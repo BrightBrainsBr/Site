@@ -1,0 +1,14 @@
+{
+  "collectionName": "forms_title_fields",
+  "info": {
+    "displayName": "Title Field",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "collectionName": "common_links",
+  "info": {
+    "displayName": "Link",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "default": "/",
+      "regex": "^(\\/|http|mailto:|tel:)"
+    },
+    "blank": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "collectionName": "forms_check_fields",
+  "info": {
+    "displayName": "Check Field",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "customField",
+      "options": {
+        "global": "form-input-name"
+      },
+      "customField": "plugin::dynamic-enumeration.dynamic-field",
+      "required": true
+    },
+    "label": {
+      "type": "text",
+      "required": true
+    },
+    "requiredMessage": {
+      "type": "string",
+      "required": true
+    },
+    "size": {
+      "type": "enumeration",
+      "enum": ["full", "half"],
+      "required": true,
+      "default": "full"
+    },
+    "showConditions": {
+      "type": "component",
+      "repeatable": true,
+      "component": "forms-assets.field-conditions",
+      "required": false
+    },
+    "required": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,125 @@
+@import 'tailwindcss';
+
+@theme {
+  /* COLORS */
+  --color-*: initial;
+  --color-current: currentColor;
+
+  --color-black: #000;
+  --color-white: #fff;
+
+  --color-blue-400: #295991;
+  --color-blue-500: #255185;
+  --color-blue-600: #224a78;
+
+  --color-gray-lightness: #f2f2f2;
+  --color-gray-light: #e2e4e8;
+  --color-gray-medium: #d0d3d6;
+  --color-gray-dark: #a2a7aa;
+
+  --color-danger: #ffd600;
+  --color-error: #e90016;
+  --color-success: #00ab27;
+
+  /* COLORS - VARIABLES */
+  --color-primary: var(--color-blue-400);
+  --color-secondary: var(--color-gray-dark);
+  --color-background: var(--color-gray-lightness);
+
+  --color-accent: var(--color-black);
+  --color-accent-text: var(--color-white);
+
+  --color-on-hover: var(--color-primary);
+
+  /* COLORS - INPUT */
+  --color-input-background: var(--color-white);
+  --color-input-border: var(--color-gray-medium);
+  --color-input-placeholder: var(--color-gray-dark);
+  --color-input-text: var(--color-black);
+
+  /* COLORS - CURRENT */
+  --color-current: currentColor;
+  --color-current-hover: var(--color-on-hover);
+  --color-current-primary: var(--color-primary);
+  --color-current-secondary: var(--color-secondary);
+  --color-current-background: var(--color-background);
+  --color-current-accent: var(--color-accent);
+  --color-current-accent-text: var(--color-accent-text);
+  --color-current-input-background: var(--color-input-background);
+  --color-current-input-border: var(--color-input-border);
+  --color-current-input-placeholder: var(--color-input-placeholder);
+  --color-current-input-text: var(--color-input-text);
+
+  /* SCREEN */
+  --breakpoint-xs: 375px;
+  --breakpoint-sm: 440px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-1.5lg: 1152px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-1.5xl: 1440px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 1920px;
+
+  /* FONT */
+  --font-sans: var(--font-inter);
+
+  /* FONT SIZE */
+  --text-2.5xl: 1.625rem;
+  --text-5.5xl: 3.25rem;
+  --text-6.5xl: 4rem;
+  --text-7.5xl: 5rem;
+
+  /* TRANSITION */
+  --default-transition-timing-function: cubic-bezier(0, 0, 0.4, 1);
+  --default-transition-duration: 300ms;
+
+  /* BOX SHADOW */
+  --shadow-card: rgba(0, 0, 0, 0.25) 0px 2px 5px -1px,
+    rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+
+  --distance-small: --spacing(10);
+  --distance-medium: --spacing(16);
+  --distance-large: --spacing(24);
+}
+
+@custom-variant data-disabled (&:where([data-disabled="true"] *));
+@custom-variant group-active (&:merge(.group).active &);
+@custom-variant control-active (.control-active &);
+@custom-variant current-active (&.current-active);
+
+.dark {
+  color: var(--color-white);
+  --color-primary: var(--color-blue-400);
+  --color-secondary: var(--color-gray-light);
+  --color-accent: var(--color-white);
+  --color-accent-text: var(--color-black);
+}
+
+.light {
+  color: var(--color-black);
+  --color-primary: var(--color-blue-400);
+  --color-secondary: var(--color-gray-dark);
+  --color-accent: var(--color-black);
+  --color-accent-text: var(--color-white);
+}
+
+@media (width >= theme(--breakpoint-md)) {
+  @theme {
+    --distance-small: --spacing(14);
+    --distance-medium: --spacing(24);
+    --distance-large: --spacing(32);
+  }
+}
+
+@import '@futurebrand/helpers-nextjs/styles';
+
+@import './base.css' layer(base);
+@import './components.css' layer(components);
+@import './utilities.css';
+
+@import './components/swiper.css';
+@import './components/hamburgers.css';
+@import './components/form.css';
+
+@source '../node_modules/@futurebrand/helpers-nextjs/dist';

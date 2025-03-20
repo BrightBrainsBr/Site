@@ -1,0 +1,38 @@
+.wrapper-background > *:first-child,
+.wrapper-background > *:first-child > *:first-child {
+  --section-top: 0;
+}
+
+.wrapper-background > *:last-child,
+.wrapper-background > *:last-child > *:last-child {
+  --section-bottom: 0;
+}
+
+.wrapper-join {
+  --distance-small: --spacing(4);
+  --distance-medium: --spacing(8);
+  --distance-large: --spacing(12);
+}
+
+.split-content .container {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 100% !important;
+}
+
+.card,
+.card-link {
+  background-color: var(--color-accent);
+  color: var(--color-accent-text);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+@media (width >= theme(--breakpoint-md)) {
+  .wrapper-join {
+    --distance-small: --spacing(8);
+    --distance-medium: --spacing(10);
+    --distance-large: --spacing(12);
+  }
+}

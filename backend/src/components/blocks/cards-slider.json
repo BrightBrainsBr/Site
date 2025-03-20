@@ -1,0 +1,27 @@
+{
+  "collectionName": "blocks_cards_sliders",
+  "info": {
+    "displayName": "Block | Cards Slider",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "anchor": {
+      "type": "string"
+    },
+    "title": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.title"
+    },
+    "description": {
+      "type": "text"
+    },
+    "cards": {
+      "type": "component",
+      "repeatable": true,
+      "component": "blocks-assets.cards-slider-item",
+      "required": true
+    }
+  }
+}

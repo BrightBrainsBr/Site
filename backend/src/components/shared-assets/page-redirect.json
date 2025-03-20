@@ -1,0 +1,19 @@
+{
+  "collectionName": "shared_assets_page_redirects",
+  "info": {
+    "displayName": "Redirecionar Pagina",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "enabled": {
+      "type": "boolean",
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "regex": "^(\\/|http)"
+    }
+  }
+}

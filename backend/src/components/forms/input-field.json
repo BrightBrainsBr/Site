@@ -1,0 +1,48 @@
+{
+  "collectionName": "forms_input_fields",
+  "info": {
+    "displayName": "Text Field",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "customField",
+      "options": {
+        "global": "form-input-name"
+      },
+      "customField": "plugin::dynamic-enumeration.dynamic-field",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "placeholder": {
+      "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["text", "email", "phone", "date"],
+      "required": true,
+      "default": "text"
+    },
+    "size": {
+      "type": "enumeration",
+      "enum": ["full", "half"],
+      "required": true,
+      "default": "full"
+    },
+    "showConditions": {
+      "type": "component",
+      "repeatable": true,
+      "component": "forms-assets.field-conditions",
+      "required": false
+    },
+    "required": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    }
+  }
+}

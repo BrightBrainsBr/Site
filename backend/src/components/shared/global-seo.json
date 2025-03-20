@@ -1,0 +1,38 @@
+{
+  "collectionName": "shared_global_seo",
+  "info": {
+    "displayName": "Global SEO",
+    "icon": "search",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "siteName": {
+      "required": true,
+      "type": "string"
+    },
+    "metaTitle": {
+      "required": true,
+      "type": "string"
+    },
+    "metaDescription": {
+      "type": "string",
+      "required": true
+    },
+    "themeColor": {
+      "type": "string",
+      "required": true
+    },
+    "metaImage": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "customMetas": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared-assets.custom-head-property"
+    }
+  }
+}

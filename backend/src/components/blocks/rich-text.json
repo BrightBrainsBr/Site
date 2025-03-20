@@ -1,0 +1,21 @@
+{
+  "collectionName": "blocks_rich_text",
+  "info": {
+    "displayName": "Block | Rich Text",
+    "icon": "write",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "anchor": {
+      "type": "string"
+    },
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    }
+  }
+}

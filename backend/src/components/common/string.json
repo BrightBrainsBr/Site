@@ -1,0 +1,14 @@
+{
+  "collectionName": "common_strings",
+  "info": {
+    "displayName": "Strings",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "value": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

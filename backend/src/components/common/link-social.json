@@ -1,0 +1,35 @@
+{
+  "collectionName": "common_social_links",
+  "info": {
+    "displayName": "Social link",
+    "icon": "share-alt-square",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "facebook",
+        "twitter",
+        "instagram",
+        "tiktok",
+        "whatsapp",
+        "linkedin",
+        "youtube",
+        "phone",
+        "email",
+        "site"
+      ]
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "regex": "^(\\/|http|mailto:|tel:)"
+    }
+  }
+}

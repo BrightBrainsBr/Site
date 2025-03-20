@@ -1,0 +1,19 @@
+{
+  "collectionName": "simple_menus",
+  "info": {
+    "displayName": "Simple Menu",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "subLinks": {
+      "type": "component",
+      "repeatable": true,
+      "component": "common.link"
+    }
+  }
+}

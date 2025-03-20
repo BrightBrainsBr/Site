@@ -1,0 +1,21 @@
+{
+  "collectionName": "posts_blocks_texts",
+  "info": {
+    "displayName": "Block | Text",
+    "icon": "write",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "anchor": {
+      "type": "string"
+    },
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    }
+  }
+}

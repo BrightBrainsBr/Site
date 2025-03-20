@@ -1,0 +1,20 @@
+{
+  "collectionName": "common_titles",
+  "info": {
+    "displayName": "title",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "string",
+      "required": true
+    },
+    "htmlTag": {
+      "type": "enumeration",
+      "enum": ["h1", "h2", "h3", "h4", "h5", "h6", "p"],
+      "default": "h2",
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "collectionName": "common_link_buttons",
+  "info": {
+    "displayName": "Botão com Link",
+    "icon": "external-link-alt",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "variant": {
+      "type": "enumeration",
+      "enum": ["light", "dark"],
+      "default": "light",
+      "required": true
+    },
+    "text": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "default": "/",
+      "regex": "^(\\/|http|mailto:|tel:)"
+    },
+    "blank": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "download": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    }
+  }
+}

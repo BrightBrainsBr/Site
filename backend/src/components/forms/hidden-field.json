@@ -1,0 +1,21 @@
+{
+  "collectionName": "forms_hidden_fields",
+  "info": {
+    "displayName": "Hidden Field",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "customField",
+      "options": {
+        "global": "form-input-name"
+      },
+      "customField": "plugin::dynamic-enumeration.dynamic-field",
+      "required": true
+    },
+    "value": {
+      "type": "string"
+    }
+  }
+}

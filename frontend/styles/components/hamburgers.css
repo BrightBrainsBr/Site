@@ -1,0 +1,57 @@
+.hamburger {
+  .inner,
+  .inner::before,
+  .inner::after {
+    @apply transition-transform;
+    background-color: currentColor;
+    position: absolute;
+    display: block;
+    width: 1.6875rem;
+    height: 0.125rem;
+  }
+
+  .inner {
+    transition-duration: 220ms;
+    transition-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  }
+
+  .inner::before,
+  .inner::after {
+    content: '';
+  }
+
+  .inner::before {
+    top: -0.5rem;
+    transition:
+      top 0.1s 0.25s ease-in,
+      opacity 0.1s ease-in;
+  }
+  .inner::after {
+    bottom: -0.5rem;
+    transition:
+      bottom 0.1s 0.25s ease-in,
+      transform 0.22s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+  }
+
+  .active .inner {
+    transform: rotate(225deg);
+    transition-delay: 120ms;
+    transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  .active .inner::before {
+    top: 0;
+    opacity: 0;
+    transition:
+      top 0.1s ease-out,
+      opacity 0.1s 0.12s ease-out;
+  }
+
+  .active .inner::after {
+    bottom: 0;
+    transform: rotate(-90deg);
+    transition:
+      bottom 0.1s ease-out,
+      transform 0.22s 0.12s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+}

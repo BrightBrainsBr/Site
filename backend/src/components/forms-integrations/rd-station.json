@@ -1,0 +1,24 @@
+{
+  "collectionName": "forms_integration_rd_station",
+  "info": {
+    "displayName": "RD Station Integration",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "token": {
+      "type": "string",
+      "required": true
+    },
+    "identificador": {
+      "type": "string",
+      "required": true
+    },
+    "conditions": {
+      "type": "component",
+      "repeatable": true,
+      "component": "forms-assets.field-conditions",
+      "required": false
+    }
+  }
+}

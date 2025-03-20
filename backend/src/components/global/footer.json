@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_global_footers",
+  "info": {
+    "displayName": "Footer",
+    "icon": "cogs",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "socialLink": {
+      "type": "component",
+      "repeatable": true,
+      "component": "common.link-social"
+    },
+    "legalText": {
+      "type": "string"
+    }
+  }
+}

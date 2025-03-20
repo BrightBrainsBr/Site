@@ -1,0 +1,27 @@
+{
+  "collectionName": "blocks_contact_box",
+  "info": {
+    "displayName": "Block | Contact - Box",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "anchor": {
+      "type": "string"
+    },
+    "title": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.title"
+    },
+    "requiredText": {
+      "type": "string",
+      "default": "*This field is required"
+    },
+    "form": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::form.form"
+    }
+  }
+}

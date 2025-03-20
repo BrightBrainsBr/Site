@@ -1,0 +1,28 @@
+{
+  "collectionName": "blocks_assets_slider_card_items",
+  "info": {
+    "displayName": "Slider Cards Item",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "url": {
+      "type": "string",
+      "required": true,
+      "default": "/",
+      "regex": "^(\\/|http|mailto:|tel:)"
+    },
+    "linkText": {
+      "type": "string",
+      "default": "See more",
+      "required": false
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "extends": "@strapi/typescript-utils/tsconfigs/server",
+  "compilerOptions": {
+    "allowJs": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "typeRoots": ["../../types"]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.cjs",
+    "**/*.mjs",
+    "**/*.js",
+    "types/**/*.d.ts",
+    "src/**/*.json"
+  ],
+  "exclude": [
+    "node_modules/",
+    "build/",
+    "dist/",
+    ".cache/",
+    ".tmp/",
+    "src/admin/",
+    "src/plugins/**"
+  ]
+}

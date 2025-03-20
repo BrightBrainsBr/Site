@@ -1,0 +1,282 @@
+.form-field {
+  position: relative;
+  width: 100%;
+}
+
+.form-field legend {
+  width: 100%;
+}
+
+.form-field legend .legend-label {
+  color: currentColor;
+  font-size: var(--text-sm);
+}
+
+.form-field .input-container,
+.form-field .file-container,
+.form-field .select-container,
+.form-field.textarea .textarea-container {
+  position: relative;
+  width: 100%;
+  height: --spacing(11);
+  margin-top: --spacing(0.5);
+}
+
+.form-field.textarea .textarea-container {
+  height: --spacing(28);
+}
+
+.form-field.input .input-container input,
+.form-field.select .select-container select,
+.form-field.file .file-container .file-dropzone,
+.form-field.textarea .textarea-container textarea {
+  width: 100%;
+  height: 100%;
+
+  padding: 0 --spacing(4);
+  border-radius: 0.25rem;
+  transition-property: box-shadow;
+  transition-timing-function: cubic-bezier(0, 0, 0.4, 1);
+  transition-duration: 200ms;
+
+  border: 1px solid var(--color-current-input-border);
+  background-color: var(--color-current-input-background);
+  color: var(--color-current-input-text);
+  font-size: var(--text-sm);
+
+  &:focus,
+  &:focus-visible {
+    box-shadow: var(--shadow-card);
+    outline-style: none;
+  }
+
+  &::placeholder {
+    color: var(--color-current-input-placeholder);
+  }
+}
+
+.form-field.file .file-container .file-dropzone {
+  transition: color 300ms cubic-bezier(0, 0, 0.4, 1);
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  cursor: pointer;
+  border-style: dashed;
+  color: var(--color-input-placeholder);
+}
+
+.form-field.file .file-container .file-dropzone p {
+  font-size: var(--text-sm);
+}
+
+.form-field.file .file-container .file-dropzone:hover,
+.form-field.file .file-container .file-dropzone.loaded {
+  border-color: var(--color-current-primary);
+  color: var(--color-current-primary);
+}
+
+.form-field.input .input-container input:-webkit-autofill,
+.form-field.input .input-container input:-webkit-autofill:hover,
+.form-field.input .input-container input:-webkit-autofill:focus,
+.form-field.input .input-container input:-webkit-autofill:active,
+.form-field.select .select-container select:-webkit-autofill,
+.form-field.select .select-container select:-webkit-autofill:hover,
+.form-field.select .select-container select:-webkit-autofill:focus,
+.form-field.select .select-container select:-webkit-autofill:active,
+.form-field.textarea .textarea-container textarea:-webkit-autofill,
+.form-field.textarea .textarea-container textarea:-webkit-autofill:hover,
+.form-field.textarea .textarea-container textarea:-webkit-autofill:focus,
+.form-field.textarea .textarea-container textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--color-input-background) inset !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: var(--color-input-text);
+  transition:
+    background-color 5000s ease-in-out 0s,
+    box-shadow 200ms cubic-bezier(0, 0, 0.4, 1);
+}
+
+.form-field.textarea .textarea-container textarea {
+  padding-block: --spacing(2);
+  resize: none;
+}
+
+.form-field.input .input-container .icon {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &.icon-before {
+    left: 0;
+  }
+  &.icon-after {
+    right: 0;
+  }
+}
+
+.form-field.checkbox,
+.form-field.radio {
+  @apply lg:py-1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field.checkbox .checkbox-container,
+.form-field.radio .radio-container {
+  display: flex;
+  margin-top: --spacing(1.5);
+}
+
+.form-field.checkbox .checkbox-item,
+.form-field.radio .radio-item,
+.form-field.check .check-container {
+  display: flex;
+  align-items: center;
+  gap: --spacing(2);
+  cursor: pointer;
+}
+
+.form-field.checkbox .checkbox-container .label,
+.form-field.radio .radio-container .label,
+.form-field.check .check-container .label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+  position: relative;
+  top: --spacing(0.5);
+}
+
+.form-field.checkbox .checkmark,
+.form-field.check .checkmark {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-width: 1px;
+  border-style: solid;
+  border-color: currentColor;
+
+  width: --spacing(4);
+  height: --spacing(4);
+
+  transition-property: color, background;
+  transition-timing-function: cubic-bezier(0.45, 1.5, 0.5, 0.75);
+  transition-duration: 300ms;
+
+  .icon {
+    width: --spacing(2.5);
+    height: auto;
+    transition-property: scale;
+    transition-timing-function: cubic-bezier(0.45, 1.5, 0.5, 0.75);
+    transition-duration: 300ms;
+    scale: 0;
+  }
+
+  @variant peer-disabled {
+    opacity: 75%;
+  }
+
+  @variant peer-checked {
+    border-color: var(--color-current-accent);
+    background-color: var(--color-current-accent);
+    color: var(--color-current-accent-text);
+
+    .icon {
+      scale: 100%;
+    }
+  }
+
+  @media (min-width: theme(--breakpoint-lg)) {
+    @variant group-hover {
+      .icon {
+        scale: 75%;
+      }
+    }
+  }
+}
+
+.form-field.radio .checkmark {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid currentColor;
+  width: --spacing(5);
+  height: --spacing(5);
+
+  border-radius: calc(infinity * 1px);
+
+  &::after {
+    content: '';
+    width: --spacing(3);
+    height: --spacing(3);
+    background-color: currentColor;
+    scale: 0;
+    transition-property: transform, opacity, scale;
+    transition-timing-function: cubic-bezier(0.45, 1.8, 0.5, 0.75);
+    transition-duration: 200ms;
+    border-radius: calc(infinity * 1px);
+  }
+
+  @media (min-width: theme(--breakpoint-lg)) {
+    @variant group-hover {
+      &::after {
+        scale: 75%;
+      }
+    }
+  }
+
+  @variant peer-checked {
+    &::after {
+      scale: 100% !important;
+    }
+  }
+}
+
+.submit-loading {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  right: --spacing(5);
+  height: 100%;
+  transition: opacity 300ms ease-out;
+
+  &::after {
+    display: block;
+    content: '';
+    width: --spacing(4);
+    height: --spacing(4);
+    animation: var(--animate-spin);
+    border-color: transparent;
+    border-top-color: currentColor;
+    border-radius: calc(infinity * 1px);
+    border-style: var(--tw-border-style);
+    border-width: 2px;
+  }
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: --spacing(1);
+  padding: --spacing(0.5);
+  border-radius: var(--radius-sm);
+  margin-top: --spacing(0.5);
+  color: var(--color-error);
+}
+
+.form-error .icon {
+  width: --spacing(4);
+  height: --spacing(4);
+}
+
+.form-error .message {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: var(--font-weight-bold);
+}

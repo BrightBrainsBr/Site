@@ -1,0 +1,33 @@
+{
+  "collectionName": "forms_assets_field_conditions",
+  "info": {
+    "displayName": "Condição para aparecer campo",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "field": {
+      "type": "customField",
+      "options": {
+        "global": "form-input-name"
+      },
+      "customField": "plugin::dynamic-enumeration.dynamic-field",
+      "required": true
+    },
+    "operator": {
+      "type": "enumeration",
+      "enum": [
+        "equals",
+        "different",
+        "contains",
+        "not-contains"
+      ],
+      "required": true,
+      "default": "equals"
+    },
+    "value": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

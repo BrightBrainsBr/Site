@@ -1,0 +1,92 @@
+{
+  "name": "starter-backend",
+  "private": true,
+  "version": "2.0.0",
+  "description": "A Strapi application",
+  "scripts": {
+    "generate-types": "npm run strapi ts:generate-types",
+    "predev": "npm run generate-types",
+    "dev": "strapi develop",
+    "dev:admin": "strapi develop --watch-admin",
+    "start": "strapi start",
+    "prebuild": "npm run generate-types",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "patch": "patch-package"
+  },
+  "dependencies": {
+    "@_sh/strapi-plugin-ckeditor": "^5.0.1",
+    "@futurebrand/helpers-strapi": "^2.0.1",
+    "@strapi/design-system": "^2.0.0-rc.11",
+    "@strapi/icons": "^2.0.0-rc.11",
+    "@strapi/plugin-color-picker": "5.10.0",
+    "@strapi/plugin-users-permissions": "5.10.0",
+    "@strapi/provider-email-nodemailer": "5.10.0",
+    "@strapi/provider-upload-aws-s3": "5.10.0",
+    "@strapi/strapi": "5.10.0",
+    "autoprefixer": "^10.4.20",
+    "mysql2": "^3.12.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.27.0",
+    "sharp": "0.33.5",
+    "strapi-plugin-dynamic-enumeration-field": "^2.0.6",
+    "strapi-plugin-placeholder": "^4.4.0",
+    "strapi-provider-upload-azure-storage": "^3.4.0",
+    "styled-components": "^6.1.15",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.20.0",
+    "@types/html-minifier": "^4.0.5",
+    "@types/node": "^22.13.1",
+    "@typescript-eslint/eslint-plugin": "8.24.0",
+    "better-sqlite3": "11.8.1",
+    "eslint": "9.20.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "globals": "^15.15.0",
+    "patch-package": "^8.0.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "8.24.0",
+    "vite": "6.1.0"
+  },
+  "overrides": {
+    "esbuild": "0.21.5",
+    "sharp": "0.33.5",
+    "undici": "5.28.2",
+    "eslint": "9.20.1",
+    "@strapi/strapi": "5.10.0",
+    "vite": "6.1.0",
+    "@koa/cors": "^5.0.0",
+    "nodemailer": "^6.9.13",
+    "styled-components": "^6.1.15",
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.21.5",
+      "sharp": "0.33.5",
+      "undici": "5.28.2",
+      "eslint": "9.20.1",
+      "@strapi/strapi": "5.10.0",
+      "vite": "6.1.0",
+      "@koa/cors": "^5.0.0",
+      "nodemailer": "^6.9.13",
+      "styled-components": "^6.1.15",
+      "typescript": "^5.7.3"
+    }
+  },
+  "author": {
+    "name": "A Futurebrand developer"
+  },
+  "strapi": {
+    "uuid": "6b6faff0-f801-4957-a454-da2e8c4bbc6c"
+  },
+  "engines": {
+    "node": ">=16 <= 20.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT"
+}

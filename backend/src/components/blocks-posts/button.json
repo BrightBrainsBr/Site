@@ -1,0 +1,20 @@
+{
+  "collectionName": "posts_blocks_buttons",
+  "info": {
+    "displayName": "Block | Button",
+    "icon": "write",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "anchor": {
+      "type": "string"
+    },
+    "linkButton": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.link-button",
+      "required": true
+    }
+  }
+}

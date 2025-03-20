@@ -1,0 +1,26 @@
+{
+  "collectionName": "global_blocks_filters",
+  "info": {
+    "displayName": "Global Block Filter",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "contain",
+        "equal",
+        "startWith"
+      ],
+      "default": "outline-white",
+      "required": true
+    },
+    "value": {
+      "regex": "^\\/([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\\/)*[a-zA-Z0-9]*(-[a-zA-Z0-9]+)*$",
+      "default": "/",
+      "type": "string",
+      "required": true
+    }
+  }
+}

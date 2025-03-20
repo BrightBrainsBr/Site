@@ -1,0 +1,30 @@
+{
+  "collectionName": "global_glossaries",
+  "info": {
+    "displayName": "dictionary",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "seeMore": {
+      "type": "string",
+      "default": "See more",
+      "required": true
+    },
+    "learnMore": {
+      "type": "string",
+      "default": "Learn more",
+      "required": true
+    },
+    "loadMore": {
+      "type": "string",
+      "default": "Load more",
+      "required": true
+    },
+    "goBack": {
+      "type": "string",
+      "default": "Go back",
+      "required": true
+    }
+  }
+}

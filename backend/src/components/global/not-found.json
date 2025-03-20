@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_global_not_founds",
+  "info": {
+    "displayName": "Not found",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.title"
+    },
+    "description": {
+      "type": "richtext"
+    }
+  }
+}

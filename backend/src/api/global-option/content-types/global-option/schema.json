@@ -1,0 +1,43 @@
+{
+  "kind": "singleType",
+  "collectionName": "global_options",
+  "info": {
+    "singularName": "global-option",
+    "pluralName": "global-options",
+    "displayName": "Global | Opções",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "dictionary": {
+      "type": "component",
+      "repeatable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "required": true,
+      "component": "global.glossary"
+    },
+    "notFound": {
+      "displayName": "Not found",
+      "type": "component",
+      "repeatable": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "required": true,
+      "component": "global.not-found"
+    }
+  }
+}

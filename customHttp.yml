@@ -1,0 +1,31 @@
+applications:
+  - appRoot: frontend
+    customHeaders:
+      - pattern: '**'
+        headers:
+          - key: 'Cache-Control'
+            value: 'public, max-age=0, s-maxage=60, stale-if-error=86400, stale-while-revalidate=31536000'
+      - pattern: '_next/**/*'
+        headers:
+          - key: 'Cache-Control'
+            value: 'public, max-age=31536000, immutable'
+      - pattern: '/assets/**/*'
+        headers:
+          - key: 'Cache-Control'
+            value: 'public, max-age=31536000, immutable'
+      - pattern: '**/preview/**/*'
+        headers:
+          - key: 'Cache-Control'
+            value: 'no-cache'
+      - pattern: '/api/**/*'
+        headers:
+          - key: 'Cache-Control'
+            value: 'no-cache'
+      - pattern: '/api/preview'
+        headers:
+          - key: 'Cache-Control'
+            value: 'public, max-age=60, s-maxage=300, stale-if-error=86400, stale-while-revalidate=31536000'
+      - pattern: '**/search'
+        headers:
+          - key: 'Cache-Control'
+            value: 'public, max-age=0, s-maxage=5, stale-while-revalidate=31536000'

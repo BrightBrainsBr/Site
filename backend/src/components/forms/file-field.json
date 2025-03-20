@@ -1,0 +1,45 @@
+{
+  "collectionName": "forms_file_fields",
+  "info": {
+    "displayName": "File Field",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "customField",
+      "options": {
+        "global": "form-input-name"
+      },
+      "customField": "plugin::dynamic-enumeration.dynamic-field",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "placeholder": {
+      "type": "string"
+    },
+    "size": {
+      "type": "enumeration",
+      "enum": [
+        "full",
+        "half"
+      ],
+      "required": true,
+      "default": "full"
+    },
+    "showConditions": {
+      "type": "component",
+      "repeatable": true,
+      "component": "forms-assets.field-conditions",
+      "required": false
+    },
+    "required": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    }
+  }
+}

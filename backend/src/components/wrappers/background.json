@@ -1,0 +1,23 @@
+{
+  "collectionName": "wrappers_backgrounds",
+  "info": {
+    "displayName": "Wrapper | Background Color",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "color": {
+      "type": "enumeration",
+      "enum": [
+        "black",
+        "white"
+      ],
+      "default": "blue",
+      "required": true
+    },
+    "padding": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

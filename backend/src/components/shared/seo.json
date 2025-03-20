@@ -1,0 +1,35 @@
+{
+  "collectionName": "shared_seo",
+  "info": {
+    "displayName": "SEO",
+    "icon": "search",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "metaTitle": {
+      "required": true,
+      "type": "string"
+    },
+    "metaDescription": {
+      "type": "string",
+      "required": false
+    },
+    "metaImage": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "showOnGoogle": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "redirect": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared-assets.page-redirect"
+    }
+  }
+}
