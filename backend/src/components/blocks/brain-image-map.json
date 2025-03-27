@@ -1,0 +1,34 @@
+{
+  "collectionName": "blocks_brain_image_maps",
+  "info": {
+    "displayName": "Block | Brain Image Map",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "symptoms": {
+      "displayName": "Symptom",
+      "type": "component",
+      "repeatable": true,
+      "component": "common.symptom"
+    },
+    "defaultImage": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

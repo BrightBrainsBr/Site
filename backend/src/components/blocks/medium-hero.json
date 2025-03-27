@@ -1,0 +1,20 @@
+{
+  "collectionName": "blocks_medium_heroes",
+  "info": {
+    "displayName": "Block | Medium Hero",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    }
+  }
+}

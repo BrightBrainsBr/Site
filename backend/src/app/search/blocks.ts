@@ -1,8 +1,8 @@
 import { UID } from '@strapi/strapi'
 
 const BLOCK_HANDLER: Partial<Record<UID.Component, (block: any) => string>> = {
-  'blocks.page-hero': (block) => {
-    return block.description || ''
+  'blocks.main-hero': (block) => {
+    return block.content || ''
   },
   'blocks.rich-text': (block) => {
     return block.content || ''

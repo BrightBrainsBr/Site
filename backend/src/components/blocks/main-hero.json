@@ -1,0 +1,19 @@
+{
+  "collectionName": "blocks_main_heroes",
+  "info": {
+    "displayName": "Block | Main Hero",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "slides": {
+      "displayName": "Hero Slide",
+      "type": "component",
+      "repeatable": true,
+      "component": "common.hero-slide"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

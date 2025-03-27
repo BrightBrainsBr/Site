@@ -1,0 +1,19 @@
+{
+  "collectionName": "common_faq_items",
+  "info": {
+    "displayName": "Faq Item"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    }
+  }
+}

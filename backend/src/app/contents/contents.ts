@@ -14,6 +14,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
   modals: ContentModule
   posts: ContentModule
   searchEntry: ContentModule
+  treatments: ContentModule
 
   constructor() {
     /** @PAGES */
@@ -63,6 +64,24 @@ class AppContentClient implements ContentClient<ContentTypes> {
         return {}
       })
 
+    /** @TREATMENTS */
+    this.treatments = new ContentModule('api::treatment.treatment')
+
+    this.treatments
+      .addDefaultSingle()
+      .addBlockHandler(DefaultBlocksHandler)
+      .addBlockHandler(WrappersBlocksHandler)
+    this.treatments.addDefaultQuery<IPostFilter>({
+      pageSize: 6,
+      hasPagination: true,
+      sort: {
+        publishedDateTime: 'desc',
+      } as any,
+      populate: {
+        featuredImage: true,
+      },
+    })
+
     this.searchEntry = new ContentModule('api::search-entry.search-entry')
 
     this.searchEntry
@@ -94,6 +113,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
     await this.modals.register()
     await this.posts.register()
     await this.searchEntry.register()
+    await this.treatments.register()
   }
 
   public getContentByType(type: ContentTypes) {
@@ -106,6 +126,8 @@ class AppContentClient implements ContentClient<ContentTypes> {
         return this.posts
       case 'search':
         return this.searchEntry
+      case 'treatments':
+        return this.treatments
       default:
         throw new Error(`Invalid content type: ${type as string}`)
     }
@@ -125,6 +147,8 @@ class AppContentClient implements ContentClient<ContentTypes> {
         return 'posts'
       case 'api::search-entry.search-entry':
         return 'search'
+      case 'api::treatment.treatment':
+        return 'treatments'
       default:
         return null
     }

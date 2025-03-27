@@ -10,6 +10,7 @@ import {
   Indent,
   Link,
   List,
+  GeneralHtmlSupport,
   Paragraph,
   FontFamily,
   FontSize,
@@ -17,6 +18,7 @@ import {
   SourceEditing,
   TodoList,
   TodoListUI,
+  Style,
 } from 'ckeditor5'
 import type { Preset } from '@_sh/strapi-plugin-ckeditor'
 
@@ -24,13 +26,27 @@ import { STYLES, fontColor, fontFamily, fontSize } from '../configs'
 
 const baseEditor: Preset = {
   name: 'baseEditor',
-  description: 'Default Text Editor',
+  description: 'Base Text Editor',
   styles: STYLES,
   editorConfig: {
     licenseKey: 'GPL',
     fontColor,
     fontFamily,
     fontSize,
+    style: {
+      definitions: [
+        {
+          name: 'Uppercase',
+          element: 'span',
+          classes: ['uppercase'],
+        },
+        {
+          name: 'Light',
+          element: 'span',
+          classes: ['font-light'],
+        },
+      ],
+    },
     plugins: [
       Autoformat,
       Bold,
@@ -40,6 +56,7 @@ const baseEditor: Preset = {
       Heading,
       HeadingButtonsUI,
       ParagraphButtonUI,
+      GeneralHtmlSupport,
       Indent,
       Link,
       List,
@@ -48,6 +65,7 @@ const baseEditor: Preset = {
       FontSize,
       FontColor,
       SourceEditing,
+      Style,
       TodoList,
       TodoListUI,
     ],
@@ -57,10 +75,12 @@ const baseEditor: Preset = {
       'heading2',
       'heading3',
       'heading4',
+      'heading5',
       '|',
       'bold',
       'italic',
       'underline',
+      'style',
       '|',
       'fontColor',
       'FontFamily',
@@ -82,6 +102,12 @@ const baseEditor: Preset = {
           class: 'ck-heading_paragraph',
         },
         {
+          model: 'heading1',
+          view: 'h1',
+          title: 'Heading 1',
+          class: 'ck-heading_heading1',
+        },
+        {
           model: 'heading2',
           view: 'h2',
           title: 'Heading 2',
@@ -98,6 +124,12 @@ const baseEditor: Preset = {
           view: 'h4',
           title: 'Heading 4',
           class: 'ck-heading_heading4',
+        },
+        {
+          model: 'heading5',
+          view: 'h5',
+          title: 'Heading 5',
+          class: 'ck-heading_heading5',
         },
       ],
     },

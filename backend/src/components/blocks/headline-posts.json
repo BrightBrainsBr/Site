@@ -1,0 +1,56 @@
+{
+  "collectionName": "blocks_headline_posts",
+  "info": {
+    "displayName": "Block | Headline Posts",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "contentOne": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "ctaOne": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.link-button"
+    },
+    "imageOne": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "contentTwo": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "ctaTwo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.link-button"
+    },
+    "imageTwo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "collectionName": "blocks_archive_treatments",
+  "info": {
+    "displayName": "Block | Archive Treatments",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "bgColor": {
+      "type": "enumeration",
+      "enum": [
+        "white",
+        "midnight-950"
+      ],
+      "required": true,
+      "default": "white"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

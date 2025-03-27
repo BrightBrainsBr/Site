@@ -1,0 +1,30 @@
+{
+  "collectionName": "blocks_headline_contacts",
+  "info": {
+    "displayName": "Block | Headline Contact",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "image": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.responsive-image"
+    },
+    "cta": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.link-button"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

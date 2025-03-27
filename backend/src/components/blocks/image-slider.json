@@ -1,0 +1,19 @@
+{
+  "collectionName": "blocks_image_sliders",
+  "info": {
+    "displayName": "Block | Image Slider",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "slides": {
+      "displayName": "Simple Slide",
+      "type": "component",
+      "repeatable": true,
+      "component": "common.simple-slide"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}
