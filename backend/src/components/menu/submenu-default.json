@@ -1,11 +1,12 @@
 {
   "collectionName": "components_menu_submenu_defaults",
   "info": {
-    "displayName": "Submenu Default"
+    "displayName": "Submenu Default",
+    "description": ""
   },
   "options": {},
   "attributes": {
-    "item": {
+    "items": {
       "type": "component",
       "repeatable": true,
       "component": "common.link"

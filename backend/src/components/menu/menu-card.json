@@ -1,7 +1,8 @@
 {
   "collectionName": "components_menu_menu_cards",
   "info": {
-    "displayName": "Menu Card"
+    "displayName": "Menu Card",
+    "description": ""
   },
   "options": {},
   "attributes": {
@@ -19,6 +20,22 @@
       "type": "component",
       "repeatable": false,
       "component": "common.link"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "layout": {
+      "type": "enumeration",
+      "enum": [
+        "default",
+        "lite"
+      ],
+      "default": "default"
     }
   }
 }
