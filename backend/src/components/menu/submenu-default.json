@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_menu_submenu_defaults",
+  "info": {
+    "displayName": "Submenu Default"
+  },
+  "options": {},
+  "attributes": {
+    "item": {
+      "type": "component",
+      "repeatable": true,
+      "component": "common.link"
+    },
+    "card": {
+      "displayName": "Menu Card",
+      "type": "component",
+      "repeatable": false,
+      "component": "menu.menu-card"
+    }
+  }
+}

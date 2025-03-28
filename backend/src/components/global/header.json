@@ -1,7 +1,8 @@
 {
   "collectionName": "components_global_headers",
   "info": {
-    "displayName": "header"
+    "displayName": "header",
+    "description": ""
   },
   "options": {},
   "attributes": {
@@ -13,10 +14,16 @@
         "images"
       ]
     },
-    "headerButtons": {
+    "headerMenu": {
+      "displayName": "Item Menu",
       "type": "component",
       "repeatable": true,
-      "component": "common.link-button"
+      "component": "menu.item-menu"
+    },
+    "contactLink": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.link"
     }
   }
 }
