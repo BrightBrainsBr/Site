@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_menu_submenu_treatments",
+  "info": {
+    "displayName": "Submenu Treatment"
+  },
+  "options": {},
+  "attributes": {
+    "cards": {
+      "type": "component",
+      "repeatable": true,
+      "component": "menu.menu-card",
+      "max": 3
+    }
+  }
+}

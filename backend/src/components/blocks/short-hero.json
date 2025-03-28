@@ -1,0 +1,17 @@
+{
+  "collectionName": "blocks_short_heroes",
+  "info": {
+    "displayName": "Block | Short Hero",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    }
+  }
+}

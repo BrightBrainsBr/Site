@@ -1,0 +1,27 @@
+{
+  "collectionName": "blocks_neuro_types",
+  "info": {
+    "displayName": "Block | Neuro Types",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "cards": {
+      "displayName": "Text Card",
+      "type": "component",
+      "repeatable": true,
+      "component": "common.text-card",
+      "max": 2
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

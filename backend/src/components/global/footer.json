@@ -22,6 +22,17 @@
     },
     "legalText": {
       "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "techResponsible": {
+      "type": "string"
+    },
+    "footerMenu": {
+      "type": "component",
+      "repeatable": true,
+      "component": "common.link"
     }
   }
 }

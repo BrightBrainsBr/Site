@@ -1,0 +1,22 @@
+{
+  "collectionName": "common_simple_cards",
+  "info": {
+    "displayName": "Simple Card"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "image": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    }
+  }
+}

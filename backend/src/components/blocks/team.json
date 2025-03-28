@@ -1,0 +1,26 @@
+{
+  "collectionName": "blocks_teams",
+  "info": {
+    "displayName": "Block | Team",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "team": {
+      "displayName": "Team Member",
+      "type": "component",
+      "repeatable": true,
+      "component": "common.team-member"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

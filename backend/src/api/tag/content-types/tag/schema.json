@@ -39,8 +39,8 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::post.post",
-      "mappedBy": "tags",
-      "private": true
+      "private": true,
+      "mappedBy": "tags"
     }
   }
 }

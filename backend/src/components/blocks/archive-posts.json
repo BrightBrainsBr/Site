@@ -1,0 +1,16 @@
+{
+  "collectionName": "blocks_archive_posts",
+  "info": {
+    "displayName": "Block | Archive Posts",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

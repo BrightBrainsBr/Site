@@ -1,0 +1,22 @@
+{
+  "collectionName": "blocks_benefits",
+  "info": {
+    "displayName": "Block | Benefits",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "benefits": {
+      "displayName": "Simple Card",
+      "type": "component",
+      "repeatable": true,
+      "component": "common.simple-card"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

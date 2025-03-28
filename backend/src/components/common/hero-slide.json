@@ -1,0 +1,25 @@
+{
+  "collectionName": "common_hero_slides",
+  "info": {
+    "displayName": "Hero Slide",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "cta": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.link-button"
+    }
+  }
+}

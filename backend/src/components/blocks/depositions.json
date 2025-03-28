@@ -1,0 +1,21 @@
+{
+  "collectionName": "blocks_depositions",
+  "info": {
+    "displayName": "Block | Depositions",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "depositions": {
+      "type": "component",
+      "repeatable": true,
+      "component": "common.text-card"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

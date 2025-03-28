@@ -1,0 +1,26 @@
+{
+  "collectionName": "blocks_form_contacts",
+  "info": {
+    "displayName": "Block | Form Contact",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "form": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::form.form"
+    },
+    "cards": {
+      "type": "component",
+      "repeatable": true,
+      "component": "common.text-card"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

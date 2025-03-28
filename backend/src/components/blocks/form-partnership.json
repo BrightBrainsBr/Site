@@ -1,0 +1,25 @@
+{
+  "collectionName": "blocks_form_partnerships",
+  "info": {
+    "displayName": "Block | Form Partnership",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "form": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::form.form"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

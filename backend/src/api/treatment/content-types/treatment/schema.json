@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "posts",
+  "collectionName": "treatments",
   "info": {
-    "singularName": "post",
-    "pluralName": "posts",
-    "displayName": "~ Posts",
+    "singularName": "treatment",
+    "pluralName": "treatments",
+    "displayName": "~ Treatments",
     "description": ""
   },
   "options": {
@@ -17,13 +17,7 @@
   },
   "attributes": {
     "title": {
-      "type": "string",
-      "required": true,
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      }
+      "type": "string"
     },
     "slug": {
       "type": "string",
@@ -36,25 +30,16 @@
         }
       }
     },
-    "featuredImage": {
-      "type": "component",
-      "repeatable": false,
-      "component": "common.responsive-image"
-    },
     "excerpt": {
-      "type": "text",
-      "required": false,
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      }
+      "type": "text"
     },
-    "tags": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::tag.tag",
-      "inversedBy": "posts"
+    "featuredImage": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
     },
     "blocks": {
       "pluginOptions": {
@@ -63,12 +48,8 @@
         }
       },
       "type": "dynamiczone",
-      "components": [
-        "blocks-posts.button",
-        "blocks-posts.image",
-        "blocks-posts.text",
-        "blocks-posts.video"
-      ]
+      "__comment": "Blocks is dynamic populated by ContentModule",
+      "components": []
     },
     "pageSeo": {
       "type": "component",

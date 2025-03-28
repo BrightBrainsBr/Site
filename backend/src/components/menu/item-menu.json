@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_menu_item_menus",
+  "info": {
+    "displayName": "Item Menu"
+  },
+  "options": {},
+  "attributes": {
+    "item": {
+      "type": "component",
+      "repeatable": false,
+      "component": "common.link"
+    },
+    "submenuDefault": {
+      "displayName": "Submenu Default",
+      "type": "component",
+      "repeatable": false,
+      "component": "menu.submenu-default"
+    },
+    "submenuTreatment": {
+      "displayName": "Submenu Treatment",
+      "type": "component",
+      "repeatable": false,
+      "component": "menu.submenu-treatment"
+    }
+  }
+}
