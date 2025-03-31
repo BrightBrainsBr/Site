@@ -8,7 +8,7 @@ export async function uploadFileAction(
   formData: FormData
 ): Promise<string | false> {
   try {
-    const response = await cmsApi.post<IStrapiMedia[]>('/upload', {
+    const response = await cmsApi().post<IStrapiMedia[]>('/upload', {
       body: formData,
     })
 

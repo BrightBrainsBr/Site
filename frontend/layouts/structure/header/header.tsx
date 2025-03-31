@@ -16,7 +16,6 @@ interface Props extends IHeaderStructure {
 const Header: React.FC<Props> = async ({
   logo,
   menu,
-  headerButtons,
   locale,
 }) => {
   // const dictionary = await useServerDictionary(locale)

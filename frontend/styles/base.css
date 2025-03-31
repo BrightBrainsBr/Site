@@ -22,7 +22,7 @@ a,
 label,
 input {
   color: currentColor;
-  font-family: var(--font-sans);
+  font-family: var(--font-kmr);
 }
 
 p,
@@ -39,17 +39,47 @@ h3,
 h4,
 h5 {
   color: currentColor;
-  font-weight: 300;
+  font-family: var(--font-kmr);
   line-height: 1.1;
   text-wrap: balance;
+}
+
+.heading-xl {
+  font-size: 1.125rem;
+  line-height: var(--leading-tight);
+}
+
+.heading-2xl {
+  font-size: 1.25rem;
+  line-height: var(--leading-tight);
+}
+
+.heading-3xl {
+  font-size: 1.5rem;
+  line-height: var(--leading-tight);
+}
+
+.heading-4xl {
+  font-size: 1.875rem;
+  line-height: var(--leading-tight);
+}
+
+.heading-5xl {
+  font-size: 2.375rem;
+  line-height: var(--leading-tight);
+}
+
+.heading-6xl {
+  font-size: 4rem;
+  line-height: var(--leading-tight);
 }
 
 button,
 a {
   cursor: pointer;
-  transition-property: color, background-color, border-color, outline-color,
-    text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via,
-    --tw-gradient-to;
+  transition-property:
+    color, background-color, border-color, outline-color, text-decoration-color,
+    fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
   transition-timing-function: var(
     --tw-ease,
     var(--default-transition-timing-function)
@@ -143,5 +173,31 @@ svg,
 
   .cms-rich-text h4 {
     font-size: var(--text-2xl);
+  }
+}
+
+@media (width >= theme(--breakpoint-lg)) {
+  .heading-xl {
+    font-size: 1.389vw;
+  }
+
+  .heading-2xl {
+    font-size: 1.667vw;
+  }
+
+  .heading-3xl {
+    font-size: 2.222vw;
+  }
+
+  .heading-4xl {
+    font-size: 2.917vw;
+  }
+
+  .heading-5xl {
+    font-size: 4.444vw;
+  }
+
+  .heading-6xl {
+    font-size: 5.278vw;
   }
 }

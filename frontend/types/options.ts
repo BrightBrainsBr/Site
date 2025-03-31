@@ -1,6 +1,7 @@
 declare module '@futurebrand/types/global-options' {
   import { IGlobalBlock } from '@futurebrand/types/contents'
   import type {
+    HTMLString,
     ISocialLinks,
     IStrapiCommonLink,
     IStrapiLinkButton,
@@ -50,14 +51,41 @@ declare module '@futurebrand/types/global-options' {
     header: IHeaderStructure
   }
 
+  // FOOTER
+
   export interface IFooterOptions {
+    footerMenu: IStrapiCommonLink[]
     socialLink: ISocialLinks[]
+    logo: IStrapiMedia
     legalText: string
+    address: string
+    techResponsible: string
+  }
+
+  // HEADER
+
+  interface IMenuCard {
+    title: string
+    description: HTMLString
+    cta: IStrapiCommonLink
+    image: IStrapiMedia
+    layout: string
+  }
+
+  interface IHeaderMenuItem {
+    item: IStrapiCommonLink
+    submenuDefault: {
+      items: IStrapiCommonLink[]
+      card: IMenuCard
+    }
+    submenuTreatment: {
+      cards: IMenuCard[]
+    }
   }
 
   export interface IHeaderStructure {
     logo: IStrapiMedia
-    headerButtons: IStrapiLinkButton[]
+    headerMenu: IStrapiLinkButton[]
   }
 
   /** @COMPONENTS */

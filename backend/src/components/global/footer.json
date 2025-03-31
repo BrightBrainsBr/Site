@@ -7,6 +7,16 @@
   },
   "options": {},
   "attributes": {
+    "footerMenu": {
+      "type": "component",
+      "repeatable": true,
+      "component": "common.link"
+    },
+    "socialLink": {
+      "type": "component",
+      "repeatable": true,
+      "component": "common.link-social"
+    },
     "logo": {
       "type": "media",
       "multiple": false,
@@ -14,11 +24,6 @@
       "allowedTypes": [
         "images"
       ]
-    },
-    "socialLink": {
-      "type": "component",
-      "repeatable": true,
-      "component": "common.link-social"
     },
     "legalText": {
       "type": "string"
@@ -28,11 +33,6 @@
     },
     "techResponsible": {
       "type": "string"
-    },
-    "footerMenu": {
-      "type": "component",
-      "repeatable": true,
-      "component": "common.link"
     }
   }
 }
