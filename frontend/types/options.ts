@@ -85,7 +85,8 @@ declare module '@futurebrand/types/global-options' {
 
   export interface IHeaderStructure {
     logo: IStrapiMedia
-    headerMenu: IStrapiLinkButton[]
+    headerMenu: IHeaderMenuItem[]
+    contactLink: IStrapiCommonLink
   }
 
   /** @COMPONENTS */

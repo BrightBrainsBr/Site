@@ -56,7 +56,7 @@ const RootLayout: React.FC<IRootLayoutProps> = async ({
       dictionary={dictionary}
       locale={locale}
     >
-      <Header {...structure.header} menu={structure.menu} locale={locale} />
+      <Header {...structure.header} locale={locale} />
       {children}
       <Footer {...structure.footer} locale={locale} />
       <div id="modals">

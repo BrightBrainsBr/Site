@@ -1,34 +1,33 @@
+'use client'
+
 import { StrapiImage } from '@futurebrand/components'
 import { Link } from '@futurebrand/helpers-nextjs/components'
 import type {
-  IHeaderMenu,
   IHeaderStructure,
 } from '@futurebrand/types/global-options'
-import React from 'react'
+import React, { useState } from 'react'
 
-import { getHelpersRouter } from '~/hooks/get-helpers-router'
+import NavMenu from './nav-menu'
+import Hamburger from './hamburger'
 
 interface Props extends IHeaderStructure {
-  menu: IHeaderMenu[]
   locale: string
 }
 
-const Header: React.FC<Props> = async ({
+const Header: React.FC<Props> = ({
   logo,
-  menu,
+  headerMenu,
+  contactLink,
   locale,
 }) => {
-  // const dictionary = await useServerDictionary(locale)
-  const router = await getHelpersRouter()
+  const [isMenuActive, setIsMenuActive] = useState<boolean>(false)
 
   return (
-    <header className="dark bg-blue-400 sticky z-50 top-0 left-0 h-20 w-full">
+    <header className="dark sticky z-50 top-0 left-0 h-20 w-full">
       <div className="container h-full flex items-center justify-between">
         <Link
           key={'header-logo'}
-          href={
-            locale === router.localization.defaultLocale ? '/' : `/${locale}`
-          }
+          href='/'
           aria-label="Home"
           locale={locale}
           name="header-logo"
@@ -42,7 +41,8 @@ const Header: React.FC<Props> = async ({
             priority
           />
         </Link>
-        <p className="text-lg">Header</p>
+        <Hamburger isMenuActive={isMenuActive} setIsMenuActive={setIsMenuActive} className='lg:hidden' />
+        <NavMenu isMenuActive={isMenuActive} headerMenu={headerMenu} contactLink={contactLink} />
       </div>
     </header>
   )

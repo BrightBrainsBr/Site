@@ -16,15 +16,6 @@
     }
   },
   "attributes": {
-    "menu": {
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      },
-      "type": "dynamiczone",
-      "components": ["common.link", "menu.simple-menu"]
-    },
     "header": {
       "type": "component",
       "repeatable": false,

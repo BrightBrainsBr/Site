@@ -34,15 +34,6 @@
         }
       }
     },
-    "excerpt": {
-      "type": "text",
-      "required": false,
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      }
-    },
     "path": {
       "type": "string",
       "required": false,
@@ -63,6 +54,27 @@
         }
       }
     },
+    "headerColor": {
+      "type": "enumeration",
+      "enum": [
+        "midnight-950",
+        "blue-400",
+        "green-400",
+        "lime-400",
+        "violet-400"
+      ],
+      "default": "midnight-950",
+      "required": true
+    },
+    "excerpt": {
+      "type": "text",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
     "blocks": {
       "pluginOptions": {
         "i18n": {
@@ -71,7 +83,30 @@
       },
       "type": "dynamiczone",
       "__comment": "Blocks is dynamic populated by ContentModule",
-      "components": []
+      "components": [
+        "blocks.archive-posts",
+        "blocks.archive-treatments",
+        "blocks.benefits",
+        "blocks.brain-image-map",
+        "blocks.depositions",
+        "blocks.faq",
+        "blocks.form-contact",
+        "blocks.form-partnership",
+        "blocks.headline-contact",
+        "blocks.headline-posts",
+        "blocks.image-slider",
+        "blocks.main-hero",
+        "blocks.medium-hero",
+        "blocks.neuro-types",
+        "blocks.rich-text",
+        "blocks.short-hero",
+        "blocks.team",
+        "blocks.treatment-guide",
+        "blocks.whatsapp-floating-cta",
+        "wrappers.close",
+        "wrappers.background",
+        "wrappers.join"
+      ]
     },
     "pageSeo": {
       "type": "component",

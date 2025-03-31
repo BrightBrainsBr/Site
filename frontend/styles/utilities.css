@@ -12,10 +12,8 @@
   @media (width >= theme(--breakpoint-lg)) {
     padding-left: 0rem;
     padding-right: 0rem;
-    margin-left: auto;
-    margin-right: auto;
-    width: 91.666667%;
-    max-width: 81.25rem;
+    margin: 0 auto;
+    width: 92.666667%;
   }
 }
 
@@ -33,10 +31,8 @@
   @media (width >= theme(--breakpoint-lg)) {
     padding-left: 0rem;
     padding-right: 0rem;
-    margin-left: auto;
-    margin-right: auto;
-    width: 83.333333%;
-    max-width: 67.5rem;
+    margin: 0 auto;
+    width: 77.3333%;
   }
 }
 
