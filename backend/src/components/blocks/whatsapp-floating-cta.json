@@ -1,0 +1,13 @@
+{
+  "collectionName": "blocks_whatsapp_floating_ctas",
+  "info": {
+    "displayName": "Block | WhatsApp Floating CTA",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "url": {
+      "type": "string"
+    }
+  }
+}
