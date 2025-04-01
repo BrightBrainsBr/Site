@@ -23,7 +23,7 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
   console.log(globalData.blocks)
 
   return (
-    <Main contentType="pages" localizations={pageData.localizations}>
+    <Main contentType="pages" localizations={pageData.localizations} headerVariant={pageData.headerColor ?? 'midnight-950'}>
       <BlocksLayout
         content={pageData}
         contentType="pages"

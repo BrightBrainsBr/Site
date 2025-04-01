@@ -2,6 +2,7 @@ import HelpersContexts from '@futurebrand/contexts'
 import { getGlobalData } from '@futurebrand/hooks'
 import { setRequestLocale } from 'next-intl/server'
 import React from 'react'
+import StateControllerProvider from '~/contexts/state-controller'
 
 import { getHelpersRouter } from '~/hooks/get-helpers-router'
 import ContentModalWrapper from '~/layouts/structure/content-wrappers'
@@ -56,12 +57,14 @@ const RootLayout: React.FC<IRootLayoutProps> = async ({
       dictionary={dictionary}
       locale={locale}
     >
-      <Header {...structure.header} locale={locale} />
-      {children}
-      <Footer {...structure.footer} locale={locale} />
-      <div id="modals">
-        <ContentModalWrapper.Context>{modal}</ContentModalWrapper.Context>
-      </div>
+      <StateControllerProvider>
+        <Header {...structure.header} locale={locale} />
+        {children}
+        <Footer {...structure.footer} locale={locale} />
+        <div id="modals">
+          <ContentModalWrapper.Context>{modal}</ContentModalWrapper.Context>
+        </div>
+      </StateControllerProvider>
     </HelpersContexts>
   )
 }

@@ -5,18 +5,21 @@ interface Props {
   isMenuActive: boolean
   setIsMenuActive: any
   className?: string
+  headerSettings: () => { accent: string; }
 }
 
 const Hamburger: React.FC<Props> = ({
   isMenuActive,
   setIsMenuActive,
   className,
+  headerSettings,
 }) => {
   return (
     <button
       type="button"
       className={twMerge(
-        'hamburger hamburger--squeeze flex items-center justify-center fixed right-4 md:right-6 z-[9999] transition-all duration-300',
+        'hamburger hamburger--squeeze flex items-center justify-center fixed top-5 right-4 md:right-6 z-[9999] transition-all duration-300',
+        `text-${headerSettings().accent}`,
         isMenuActive && 'is-active !text-midnight-950',
         className
       )}

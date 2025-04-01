@@ -44,7 +44,7 @@
 }
 
 .hamburger-box {
-  @apply inline-block relative w-full h-6;
+  @apply inline-block relative w-5 h-6;
 }
 
 .hamburger-inner {
