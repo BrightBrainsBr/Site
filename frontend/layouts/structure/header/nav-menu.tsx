@@ -22,12 +22,12 @@ const NavMenu: React.FC<Properties> = ({contactLink, headerMenu, isMenuActive, h
 
   return (
     <nav className={twMerge('fixed top-0 left-0 lg:static w-full lg:w-fit h-full lg:h-auto bg-lime-400 lg:bg-transparent transition-all duration-200 ease-out px-4 py-6', isMenuActive ? 'translate-x-0' : 'translate-x-full lg:translate-0')}>
-      <ul className="flex flex-col lg:flex-row lg:items-center gap-5">
+      <ul className="flex flex-col lg:flex-row lg:items-center gap-4">
         <li className='lg:hidden'>
           <Logo className={twMerge('opacity-0 w-10 h-10', isMenuActive && 'animate-fadein')} />
         </li>
         {headerMenu.map((menuItem, index) => (
-          <li key={index}>
+          <li key={index} className={twMerge('opacity-0 lg:opacity-100', isMenuActive && 'animate-fadein')}>
             <Link name='menu-item' href={menuItem.item.url} className={twMerge(
               "text-midnight-950 hover:text-blue-600 text-[1.875rem] lg:text-base font-kmr",
               `lg:text-${headerSettings().accent}`,
@@ -48,7 +48,7 @@ const NavMenu: React.FC<Properties> = ({contactLink, headerMenu, isMenuActive, h
             )}
           </li>
         ))}
-        <li>
+        <li className={twMerge('opacity-0 lg:opacity-100', isMenuActive && 'animate-fadein')}>
           <a href={contactLink.url} className={twMerge("block text-midnight-950 text-[1.875rem] lg:text-base font-kmr lg:px-6 lg:py-3 lg:rounded-sm", `${ctaVariants[headerSettings().cta]}`)}>
             {contactLink.text}
           </a>
