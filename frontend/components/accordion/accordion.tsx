@@ -1,17 +1,20 @@
 'use client'
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 
 import { ReactComponent as ArrowIcon } from '~/assets/icons/small-caret-down.svg'
 
 interface Props extends React.BaseHTMLAttributes<HTMLDivElement> {
   title: string
   isBigType?: boolean
+  isForMenu?: boolean
 }
 
 const Accordion: React.FC<Props> = ({
   title,
   isBigType,
+  isForMenu,
   children,
   className,
   ...rest
@@ -50,17 +53,17 @@ const Accordion: React.FC<Props> = ({
       {...rest}
     >
       <button
-        className="py-3 flex flex-row items-center justify-between text-left gap-2 w-full hover:text-blue-medium"
+        className={twMerge("flex flex-row items-center justify-between text-left gap-2 w-full hover:text-blue-medium", !isForMenu && 'py-3')}
         onClick={onClickAccordion}
       >
         <p
           style={{ maxWidth: '80%' }}
-          className={`font-bold ${isBigType ? 'text-2xl md:text-3xl md:font-medium md:pt-4' : 'text-lg '}`}
+          className={twMerge(isBigType ? 'text-2xl md:text-3xl md:font-medium md:pt-4 ' : 'text-lg', isForMenu ? 'text-[1.875rem] font-kmr text-midnight-950' : 'font-bold')}
         >
           {title}
         </p>
         <ArrowIcon
-          className={`relative flex-none transition-transform ${isBigType ? 'w-8 h-8 md:w-9 md:h-9 md:top-1' : 'w-6 h-6 '} ${opened ? 'rotate-x-180' : ''}`}
+          className={`relative flex-none transition-transform ${isBigType ? 'w-8 h-8 md:w-9 md:h-9 md:top-1' : 'w-10 h-10'} ${opened ? 'rotate-x-180' : ''}`}
         />
       </button>
       <div

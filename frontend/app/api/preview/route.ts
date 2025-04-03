@@ -15,8 +15,6 @@ export async function POST(request: Request) {
 
   const router = await getHelpersRouter()
 
-  console.log('api', data)
-
   try {
     const url = router.getUrl(data.params, data.locale, data.type)
 

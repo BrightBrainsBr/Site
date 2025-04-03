@@ -1,0 +1,11 @@
+.treatmentCard:nth-child(1) a {
+  border-color: var(--color-green-400);
+}
+
+.treatmentCard:nth-child(2) a {
+  border-color: var(--color-blue-400);
+}
+
+.treatmentCard:nth-child(3) a {
+  border-color: var(--color-violet-400);
+}

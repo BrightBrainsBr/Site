@@ -119,6 +119,20 @@
   --font-sans: var(--font-roboto);
   --font-kmr: var(--font-kmr);
 
+  /* ANIMATION */
+
+  --animate-fadein: fadeIn 0.3s cubic-bezier(0.455, 0.03, 0.515, 0.955) forwards
+    0.2s;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 100;
+    }
+  }
+
   /* FONT SIZE */
   --text-2.5xl: 1.625rem;
   --text-5.5xl: 3.25rem;

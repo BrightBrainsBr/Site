@@ -1,4 +1,6 @@
-import { getContentSingle, getGlobalData } from '@futurebrand/hooks'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { getContentSingle } from '@futurebrand/hooks'
 import type { IPageData } from '@futurebrand/types/contents'
 import React from 'react'
 
@@ -19,11 +21,12 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
     previewData,
   })
 
-  const globalData = await getGlobalData(locale)
-  console.log(globalData.blocks)
-
   return (
-    <Main contentType="pages" localizations={pageData.localizations}>
+    <Main
+      contentType="pages"
+      localizations={pageData.localizations}
+      headerVariant={pageData.headerColor ?? 'midnight-950'}
+    >
       <BlocksLayout
         content={pageData}
         contentType="pages"
