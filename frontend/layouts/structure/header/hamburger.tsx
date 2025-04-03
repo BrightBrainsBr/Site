@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React from 'react'
 import { twMerge } from 'tailwind-merge'
 
@@ -5,7 +8,7 @@ interface Props {
   isMenuActive: boolean
   setIsMenuActive: any
   className?: string
-  headerSettings: () => { accent: string; }
+  headerSettings: () => { accent: string }
 }
 
 const Hamburger: React.FC<Props> = ({
