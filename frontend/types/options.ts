@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 declare module '@futurebrand/types/global-options' {
-  import { IGlobalBlock } from '@futurebrand/types/contents'
+  import type { IGlobalBlock } from '@futurebrand/types/contents'
   import type {
     HTMLString,
     ISocialLinks,
     IStrapiCommonLink,
-    IStrapiLinkButton,
     IStrapiMedia,
   } from '@futurebrand/types/strapi'
 
@@ -56,10 +57,9 @@ declare module '@futurebrand/types/global-options' {
   export interface IFooterOptions {
     footerMenu: IStrapiCommonLink[]
     socialLink: ISocialLinks[]
-    logo: IStrapiMedia
     legalText: string
-    address: string
-    techResponsible: string
+    address: HTMLString
+    techResponsible: HTMLString
   }
 
   // HEADER

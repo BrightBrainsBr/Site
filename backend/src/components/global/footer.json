@@ -17,22 +17,22 @@
       "repeatable": true,
       "component": "common.link-social"
     },
-    "logo": {
-      "type": "media",
-      "multiple": false,
-      "required": false,
-      "allowedTypes": [
-        "images"
-      ]
-    },
     "legalText": {
       "type": "string"
     },
     "address": {
-      "type": "string"
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
     },
     "techResponsible": {
-      "type": "string"
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
     }
   }
 }

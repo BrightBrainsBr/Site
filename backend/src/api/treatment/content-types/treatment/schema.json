@@ -30,7 +30,7 @@
         }
       }
     },
-    "headerColor": {
+    "themeColor": {
       "type": "enumeration",
       "enum": [
         "midnight-950",
@@ -61,7 +61,30 @@
       },
       "type": "dynamiczone",
       "__comment": "Blocks is dynamic populated by ContentModule",
-      "components": []
+      "components": [
+        "blocks.archive-posts",
+        "blocks.archive-treatments",
+        "blocks.benefits",
+        "blocks.brain-image-map",
+        "blocks.depositions",
+        "blocks.faq",
+        "blocks.form-contact",
+        "blocks.form-partnership",
+        "blocks.headline-contact",
+        "blocks.headline-posts",
+        "blocks.image-slider",
+        "blocks.main-hero",
+        "blocks.medium-hero",
+        "blocks.neuro-types",
+        "blocks.rich-text",
+        "blocks.short-hero",
+        "blocks.team",
+        "blocks.treatment-guide",
+        "blocks.whatsapp-floating-cta",
+        "wrappers.close",
+        "wrappers.background",
+        "wrappers.join"
+      ]
     },
     "pageSeo": {
       "type": "component",

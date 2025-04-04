@@ -54,7 +54,7 @@
         }
       }
     },
-    "headerColor": {
+    "themeColor": {
       "type": "enumeration",
       "enum": [
         "midnight-950",

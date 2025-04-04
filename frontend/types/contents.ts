@@ -114,7 +114,7 @@ declare module '@futurebrand/types/contents' {
 
   export interface IPageData extends IPageWithBlocks {
     path: string
-    headerColor?: 'midnight-950' | 'blue-400' | 'green-400' | 'lime-400' | 'violet-400'
+    themeColor?: 'midnight-950' | 'blue-400' | 'green-400' | 'lime-400' | 'violet-400'
   }
 
   /** @MODALS */

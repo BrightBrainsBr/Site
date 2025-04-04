@@ -81,8 +81,9 @@ const NavMenu: React.FC<Properties> = ({
                     name="menu-item"
                     href={menuItem.item.url}
                     className={twMerge(
-                      'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base font-kmr',
+                      'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base font-kmr lg:translate-y-0 lg:transition-all lg:duration-200 hover:lg:-translate-y-2',
                       !isDropdownActive && `lg:text-${headerSettings().accent}`,
+                      activeSubmenu === index && 'lg:-translate-y-2',
                       menuItem.submenuTreatment && 'hidden lg:block'
                     )}
                     onClick={closeMenu}
@@ -94,9 +95,10 @@ const NavMenu: React.FC<Properties> = ({
                   <>
                     <button
                       className={twMerge(
-                        'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base font-kmr',
+                        'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base font-kmr lg:translate-y-0 lg:transition-all lg:duration-200',
                         !isDropdownActive &&
                           `lg:text-${headerSettings().accent}`,
+                        activeSubmenu === index && 'lg:-translate-y-2',
                         menuItem.submenuTreatment && 'hidden lg:block'
                       )}
                     >
@@ -262,7 +264,7 @@ const NavMenu: React.FC<Properties> = ({
                     <li
                       key={`treatment-card-${index}`}
                       className={twMerge(
-                        'w-[32.5%] hover:w-[44.44vw] transition-all duration-200',
+                        'w-[32.5%] hover:w-[48.44vw] transition-all duration-200',
                         styles.treatmentCard
                       )}
                     >
