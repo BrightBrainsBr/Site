@@ -48,7 +48,7 @@ function ProjectLogo({ name, variant, ...rest }: Properties) {
       <Icon
         className={twMerge(
           'hidden lg:block object-contain object-left',
-          variant === 'header' ? 'w-[17.75rem] h-6' : 'w-[52.5rem] h-[4.375rem]'
+          variant === 'header' ? 'w-[17.75rem] h-6' : 'w-[50.5rem] h-[4.375rem]'
         )}
         {...rest}
       />
