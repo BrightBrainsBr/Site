@@ -7,8 +7,8 @@ import type { IHeaderStructure } from '@futurebrand/types/global-options'
 import React, { useCallback, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import HeaderLogo from '~/components/header-logo'
-import useHeaderControl from '~/hooks/use-header-control'
+import ProjectLogo from '~/components/project-logo'
+import useThemeControl from '~/hooks/use-header-control'
 
 import Hamburger from './hamburger'
 import NavMenu from './nav-menu'
@@ -18,7 +18,7 @@ interface Props extends IHeaderStructure {
 }
 
 const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
-  const { headerColor } = useHeaderControl()
+  const { themeColor } = useThemeControl()
   const [isMenuActive, setIsMenuActive] = useState<boolean>(false)
   const [isDropdownActive, setIsDropdownActive] = useState<boolean>(false)
   const [isScrolled, setIsScrolled] = useState<boolean>(false)
@@ -34,7 +34,7 @@ const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
   }, [])
 
   const headerSettings = () => {
-    switch (headerColor) {
+    switch (themeColor) {
       case 'blue-400':
         return {
           logo: 'logo-blue-400',
@@ -73,7 +73,7 @@ const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
       className={twMerge(
         'dark sticky z-50 top-0 left-0 h-20 lg:h-[5.625rem] w-full duration-200',
         isScrolled
-          ? headerColor !== 'lime-400'
+          ? themeColor !== 'lime-400'
             ? 'bg-gray-light'
             : 'bg-midnight-950'
           : 'bg-transparent',
@@ -89,7 +89,8 @@ const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
           name="header-logo"
           className="mr-auto lg:z-40 pr-8 transition-opacity hover:opacity-80"
         >
-          <HeaderLogo
+          <ProjectLogo
+            variant="header"
             name={
               isDropdownActive ? 'logo-midnight-950' : headerSettings().logo
             }

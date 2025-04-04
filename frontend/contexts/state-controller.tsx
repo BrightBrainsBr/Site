@@ -3,26 +3,38 @@
 import React, { createContext, useState } from 'react'
 
 interface IStateControllerContext {
-  headerVariant: 'midnight-950' | 'blue-400' | 'green-400' | 'lime-400' | 'violet-400'
-  setHeaderVariant: (variant: 'midnight-950' | 'blue-400' | 'green-400' | 'lime-400' | 'violet-400') => void
+  themeVariant:
+    | 'midnight-950'
+    | 'blue-400'
+    | 'green-400'
+    | 'lime-400'
+    | 'violet-400'
+  setThemeVariant: (
+    variant:
+      | 'midnight-950'
+      | 'blue-400'
+      | 'green-400'
+      | 'lime-400'
+      | 'violet-400'
+  ) => void
 }
 
 const initialState: IStateControllerContext = {
-  headerVariant: 'midnight-950',
-  setHeaderVariant: () => {},
+  themeVariant: 'midnight-950',
+  setThemeVariant: () => {},
 }
 
 export const StateControllerContext =
   createContext<IStateControllerContext>(initialState)
 
 const StateControllerProvider = ({ children }: React.PropsWithChildren) => {
-  const [headerVariant, setHeaderVariant] = useState(initialState.headerVariant)
+  const [themeVariant, setThemeVariant] = useState(initialState.themeVariant)
 
   return (
     <StateControllerContext.Provider
       value={{
-        headerVariant,
-        setHeaderVariant,
+        themeVariant,
+        setThemeVariant,
       }}
     >
       {children}

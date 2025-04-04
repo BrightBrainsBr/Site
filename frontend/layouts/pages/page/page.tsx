@@ -25,7 +25,7 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
     <Main
       contentType="pages"
       localizations={pageData.localizations}
-      headerVariant={pageData.headerColor ?? 'midnight-950'}
+      themeVariant={pageData.themeColor ?? 'midnight-950'}
     >
       <BlocksLayout
         content={pageData}

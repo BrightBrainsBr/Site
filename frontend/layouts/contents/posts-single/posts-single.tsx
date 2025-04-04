@@ -27,7 +27,7 @@ async function PostsSingle({ locale, params, previewData }: Props) {
       contentType={'posts'}
       localizations={pageData.localizations}
       className="pt-16 lg:pt-20"
-      headerVariant="midnight-950"
+      themeVariant="midnight-950"
     >
       <Title
         title={pageData.title}

@@ -11,7 +11,12 @@ import Main from './main'
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   localizations?: ILocalization[]
-  headerVariant?: 'midnight-950' | 'blue-400' | 'green-400' | 'lime-400' | 'violet-400'
+  themeVariant?:
+    | 'midnight-950'
+    | 'blue-400'
+    | 'green-400'
+    | 'lime-400'
+    | 'violet-400'
   contentType?: ContentTypes
   pageKey?: string
 }
@@ -19,7 +24,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
 const MainLoader: React.FC<React.PropsWithChildren<Props>> = async ({
   children,
   localizations,
-  headerVariant,
+  themeVariant,
   contentType,
   ...rest
 }) => {
@@ -40,7 +45,11 @@ const MainLoader: React.FC<React.PropsWithChildren<Props>> = async ({
   }
 
   return (
-    <Main {...rest} headerVariant={headerVariant} localizations={sanitizedLocalizations}>
+    <Main
+      {...rest}
+      themeVariant={themeVariant}
+      localizations={sanitizedLocalizations}
+    >
       {children}
     </Main>
   )

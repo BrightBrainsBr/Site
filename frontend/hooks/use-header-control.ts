@@ -2,14 +2,14 @@ import { useMemo } from 'react'
 
 import useStateController from './use-state-controller'
 
-function useHeaderControl() {
-  const { headerVariant } = useStateController()
+function useThemeControl() {
+  const { themeVariant } = useStateController()
 
-  const headerColor = useMemo(() => headerVariant, [headerVariant])
+  const themeColor = useMemo(() => themeVariant, [themeVariant])
 
   return {
-    headerColor,
+    themeColor,
   }
 }
 
-export default useHeaderControl
+export default useThemeControl
