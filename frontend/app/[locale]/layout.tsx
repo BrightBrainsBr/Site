@@ -62,7 +62,10 @@ const RootLayout = async ({ children, params }: any) => {
   const { locale } = await params
 
   return (
-    <html lang={locale} className={`${roboto.variable} font-sans ${kmr.variable}`}>
+    <html
+      lang={locale}
+      className={`${roboto.variable} font-sans ${kmr.variable}`}
+    >
       <head>
         <Scripts />
       </head>
@@ -72,4 +75,3 @@ const RootLayout = async ({ children, params }: any) => {
 }
 
 export default RootLayout
-

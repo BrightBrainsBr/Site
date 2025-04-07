@@ -7,6 +7,7 @@ import type { IHeaderStructure } from '@futurebrand/types/global-options'
 import React, { useCallback, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+import ProjectFrame from '~/components/project-frame'
 import ProjectLogo from '~/components/project-logo'
 import useThemeControl from '~/hooks/use-header-control'
 
@@ -69,50 +70,53 @@ const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
   }
 
   return (
-    <header
-      className={twMerge(
-        'dark sticky z-50 top-0 left-0 h-20 lg:h-[5.625rem] w-full duration-200',
-        isScrolled
-          ? themeColor !== 'lime-400'
-            ? 'bg-gray-light'
-            : 'bg-midnight-950'
-          : 'bg-transparent',
-        isDropdownActive && 'bg-gray-light'
-      )}
-    >
-      <div className="container h-full flex items-center justify-between">
-        <Link
-          key={'header-logo'}
-          href="/"
-          aria-label="Home"
-          locale={locale}
-          name="header-logo"
-          className="mr-auto lg:z-40 pr-8 transition-opacity hover:opacity-80"
-        >
-          <ProjectLogo
-            variant="header"
-            name={
-              isDropdownActive ? 'logo-midnight-950' : headerSettings().logo
-            }
+    <>
+      <ProjectFrame name={themeColor} />
+      <header
+        className={twMerge(
+          'sticky z-50 top-0 left-0 h-20 lg:h-[5.625rem] w-full transition-all duration-200',
+          isScrolled && themeColor === 'lime-400' && 'bg-midnight-950',
+          isScrolled && themeColor !== 'lime-400' && 'bg-gray-light',
+          !isScrolled &&
+            themeColor !== 'lime-400' &&
+            'bg-gradient-to-b from-[#ffffffec] via-[#ffffffc9] via-40% to-transparent',
+          isDropdownActive && 'bg-gray-light'
+        )}
+      >
+        <div className="container h-full flex items-center justify-between">
+          <Link
+            key={'header-logo'}
+            href="/"
+            aria-label="Home"
+            locale={locale}
+            name="header-logo"
+            className="mr-auto lg:z-40 pr-8 transition-opacity hover:opacity-80"
+          >
+            <ProjectLogo
+              variant="header"
+              name={
+                isDropdownActive ? 'logo-midnight-950' : headerSettings().logo
+              }
+            />
+          </Link>
+          <Hamburger
+            isMenuActive={isMenuActive}
+            setIsMenuActive={setIsMenuActive}
+            className="lg:hidden"
+            headerSettings={headerSettings}
           />
-        </Link>
-        <Hamburger
-          isMenuActive={isMenuActive}
-          setIsMenuActive={setIsMenuActive}
-          className="lg:hidden"
-          headerSettings={headerSettings}
-        />
-        <NavMenu
-          isMenuActive={isMenuActive}
-          closeMenu={closeMenu}
-          headerMenu={headerMenu}
-          contactLink={contactLink}
-          headerSettings={headerSettings}
-          isDropdownActive={isDropdownActive}
-          setIsDropdownActive={setIsDropdownActive}
-        />
-      </div>
-    </header>
+          <NavMenu
+            isMenuActive={isMenuActive}
+            closeMenu={closeMenu}
+            headerMenu={headerMenu}
+            contactLink={contactLink}
+            headerSettings={headerSettings}
+            isDropdownActive={isDropdownActive}
+            setIsDropdownActive={setIsDropdownActive}
+          />
+        </div>
+      </header>
+    </>
   )
 }
 
