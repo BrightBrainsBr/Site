@@ -140,7 +140,7 @@ const NavMenu: React.FC<Properties> = ({
                 name="contact-link"
                 href={contactLink.url}
                 className={twMerge(
-                  'block text-midnight-950 text-[1.875rem] lg:text-base font-kmr lg:px-6 lg:py-3 lg:rounded-sm',
+                  'block text-midnight-950 text-[1.875rem] lg:text-xs lg:uppercase font-kmr lg:px-6 lg:py-3 lg:rounded-sm',
                   `${ctaVariants[headerSettings().cta]}`
                 )}
                 onClick={closeMenu}
