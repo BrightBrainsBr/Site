@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IButtonVariant } from '@futurebrand/types/strapi'
 import React from 'react'
 import { tv } from 'tailwind-variants'
@@ -13,14 +14,17 @@ type Properties = VariantProperties & ButtonProperties
 
 const buttonClassVariant = tv(
   {
-    base: 'button flex items-center justify-center leading-none text-balance origin-center text-center ',
+    base: 'button flex items-center justify-center leading-none text-balance origin-center text-center rounded-sm',
     variants: {
       color: {
-        light: 'text-black bg-white hover:bg-gray-lightness',
-        dark: 'text-white bg-black hover:bg-blue-600',
+        'midnight-950': 'text-white bg-midnight-950 hover:bg-midnight-600',
+        'blue-400': 'text-white bg-blue-400 hover:bg-midnight-950',
+        'green-400': 'text-white bg-green-400 hover:bg-blue-600',
+        'lime-400': 'text-bg-midnight-950 bg-lime-400 hover:bg-lime-600',
+        'violet-400': 'text-white bg-violet-600 hover:bg-violet-400',
       },
       tiny: {
-        false: 'px-9 h-14 text-base',
+        false: 'px-9 py-4 !text-xs uppercase',
         true: 'px-6 h-10 text-sm',
       },
       style: {
@@ -35,7 +39,7 @@ const buttonClassVariant = tv(
 )
 
 const VariantButton: React.FC<Properties> = ({
-  variant = 'light',
+  variant = 'midnight-950',
   style,
   className,
   children,

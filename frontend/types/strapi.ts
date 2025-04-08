@@ -62,7 +62,12 @@ declare module '@futurebrand/types/strapi' {
     blank: boolean
   }
 
-  export type IButtonVariant = 'light' | 'dark'
+  export type IButtonVariant =
+    | 'midnight-950'
+    | 'blue-400'
+    | 'green-400'
+    | 'lime-400'
+    | 'violet-400'
 
   export interface IStrapiButton {
     id: number

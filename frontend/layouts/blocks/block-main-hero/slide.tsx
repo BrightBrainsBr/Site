@@ -14,7 +14,7 @@ const Slide: React.FC<Properties> = ({ data }) => {
   const { title, content, cta } = data
 
   return (
-    <div className="flex flex-col gap-5 lg:gap-10 justify-center h-fit lg:h-[85.71vh] min-h-[43.75rem] lg:min-h-[45rem]">
+    <div className="flex flex-col gap-10 justify-center h-fit lg:h-[85.71vh] min-h-[43.75rem] lg:min-h-[45rem]">
       {title && (
         <h2
           className={twMerge(
