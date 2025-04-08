@@ -34,7 +34,7 @@ const BlockArchiveTreatments: React.FC<IBlockProps<Properties>> = async ({
     <AnimatedSection
       name="block-archive-treatments"
       anchor={anchor}
-      distance="medium"
+      distance="small"
       spacing="padding"
       className={twMerge(
         'relative !z-20',
