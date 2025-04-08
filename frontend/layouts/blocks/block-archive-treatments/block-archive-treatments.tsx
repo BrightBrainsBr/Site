@@ -37,7 +37,7 @@ const BlockArchiveTreatments: React.FC<IBlockProps<Properties>> = async ({
       distance="medium"
       spacing="padding"
       className={twMerge(
-        'relative',
+        'relative !z-20',
         bgColor !== 'white'
           ? 'bg-midnight-950'
           : 'bg-transparent bg-gradient-to-b from-transparent to-gray-light to-70%'
@@ -58,7 +58,7 @@ const BlockArchiveTreatments: React.FC<IBlockProps<Properties>> = async ({
               animate()
             )}
           >
-            <span className="block w-[2.625rem] h-[0.0625rem] bg-current" />
+            <span className="block w-[2.625rem] h-[0.125rem] bg-current" />
             <h2 className="heading-4xl">{title}</h2>
           </div>
         )}
