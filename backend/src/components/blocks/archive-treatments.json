@@ -6,6 +6,9 @@
   },
   "options": {},
   "attributes": {
+    "title": {
+      "type": "string"
+    },
     "bgColor": {
       "type": "enumeration",
       "enum": [

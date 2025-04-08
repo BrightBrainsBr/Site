@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module '@futurebrand/types/contents' {
   import type { IForm } from '@futurebrand/types/form'
   import type {
     HTMLString,
     IDynamicZoneComponent,
+    IResponsiveImage,
     IStrapiDataComponentList,
     IStrapiMedia,
   } from '@futurebrand/types/strapi'
   import type { PropsWithChildren } from 'react'
 
-  export type ContentTypes = 'pages' | 'posts' | 'modals'
+  export type ContentTypes = 'pages' | 'posts' | 'modals' | 'treatments'
 
   // BLOCKS
 
@@ -114,7 +116,12 @@ declare module '@futurebrand/types/contents' {
 
   export interface IPageData extends IPageWithBlocks {
     path: string
-    themeColor?: 'midnight-950' | 'blue-400' | 'green-400' | 'lime-400' | 'violet-400'
+    themeColor?:
+      | 'midnight-950'
+      | 'blue-400'
+      | 'green-400'
+      | 'lime-400'
+      | 'violet-400'
   }
 
   /** @MODALS */
@@ -142,7 +149,7 @@ declare module '@futurebrand/types/contents' {
   export interface IPost extends IPageWithBlocks {
     title: string
     excerpt: string
-    thumbnail: IStrapiMedia
+    featuredImage: IResponsiveImage
     tags?: ITag[]
     publishedDateTime: string
   }
@@ -158,6 +165,28 @@ declare module '@futurebrand/types/contents' {
   }
 
   export interface IPostFilter {
+    tags?: number[]
+  }
+
+  /** @TREATMENT */
+
+  export interface ITreatment extends IPageWithBlocks {
+    title: string
+    excerpt: string
+    featuredImage: IStrapiMedia
+    publishedDateTime: string
+  }
+
+  export interface ITreatmentCard {
+    id: number
+    title: string
+    excerpt: string
+    featuredImage?: IStrapiMedia
+    path: string
+    animation: number | false
+  }
+
+  export interface ITreatmentFilter {
     tags?: number[]
   }
 }
