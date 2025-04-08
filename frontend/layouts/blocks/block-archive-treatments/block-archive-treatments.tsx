@@ -1,6 +1,7 @@
 import { AnimatedSection } from '@futurebrand/helpers-nextjs/components'
 import { animate } from '@futurebrand/helpers-nextjs/utils'
 import type { IBlockProps } from '@futurebrand/types/contents'
+import Image from 'next/image'
 import React from 'react'
 import { twMerge } from 'tailwind-merge'
 
@@ -36,9 +37,19 @@ const BlockArchiveTreatments: React.FC<IBlockProps<Properties>> = async ({
       distance="medium"
       spacing="padding"
       className={twMerge(
-        bgColor !== 'white' ? 'bg-midnight-950' : 'bg-transparent'
+        'relative',
+        bgColor !== 'white'
+          ? 'bg-midnight-950'
+          : 'bg-transparent bg-gradient-to-b from-transparent to-gray-light to-70%'
       )}
     >
+      <Image
+        className="hidden lg:block absolute -bottom-[11.5rem] left-1/2 -translate-x-1/2"
+        src="/graphism-treatments.png"
+        width={670}
+        height={700}
+        alt="graphism"
+      />
       <div className="container flex flex-col gap-10">
         {title && (
           <div
@@ -47,7 +58,7 @@ const BlockArchiveTreatments: React.FC<IBlockProps<Properties>> = async ({
               animate()
             )}
           >
-            <span className="block w-[2.625rem] h-[0.125rem] text-current" />
+            <span className="block w-[2.625rem] h-[0.0625rem] bg-current" />
             <h2 className="heading-4xl">{title}</h2>
           </div>
         )}
