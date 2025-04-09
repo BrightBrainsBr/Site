@@ -287,7 +287,7 @@ const NavMenu: React.FC<Properties> = ({
                         )}
                         {card.description && (
                           <div
-                            className="relative z-10 cms-rich-text hidden group-hover:block group-hover:animate-fadein opacity-0"
+                            className="relative z-10 cms-rich-text hidden group-hover:block group-hover:animate-fadein opacity-0 text-white"
                             dangerouslySetInnerHTML={{
                               __html: card.description,
                             }}

@@ -74,7 +74,7 @@ const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
       <ProjectFrame name={themeColor} />
       <header
         className={twMerge(
-          'sticky z-50 top-0 left-0 h-20 lg:h-[5.625rem] w-full transition-all duration-200',
+          'fixed z-50 top-0 left-0 h-20 lg:h-[5.625rem] w-full transition-all duration-200',
           isScrolled && themeColor === 'lime-400' && 'bg-midnight-950',
           isScrolled && themeColor !== 'lime-400' && 'bg-gray-light',
           !isScrolled &&
