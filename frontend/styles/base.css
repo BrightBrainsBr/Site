@@ -46,27 +46,27 @@ h5 {
 
 .heading-xl {
   font-size: 1.125rem;
-  line-height: var(--leading-tight);
+  line-height: 1;
 }
 
 .heading-2xl {
   font-size: 1.25rem;
-  line-height: var(--leading-tight);
+  line-height: 1;
 }
 
 .heading-3xl {
   font-size: 1.5rem;
-  line-height: var(--leading-tight);
+  line-height: 1;
 }
 
 .heading-4xl {
   font-size: 1.875rem;
-  line-height: var(--leading-tight);
+  line-height: 1;
 }
 
 .heading-5xl {
   font-size: 2.375rem;
-  line-height: var(--leading-tight);
+  line-height: 1;
 }
 
 .heading-6xl {

@@ -1,8 +1,70 @@
+import { AnimatedSection } from '@futurebrand/helpers-nextjs/components'
+import { animate } from '@futurebrand/helpers-nextjs/utils'
+import type { IBlockProps } from '@futurebrand/types/contents'
+import type { HTMLString } from '@futurebrand/types/strapi'
+import Image from 'next/image'
 import React from 'react'
+import { twMerge } from 'tailwind-merge'
 
-const BlockNeuroTypes = () => {
+interface ICard {
+  content: HTMLString
+}
+
+interface Properties {
+  content: HTMLString
+  cards: ICard[]
+}
+
+const BlockNeuroTypes: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
+  const { cards, content, anchor } = blockData
+
   return (
-    <div>BlockNeuroTypes</div>
+    <AnimatedSection
+      name="block-neuro-types"
+      anchor={anchor}
+      spacing="padding"
+      distance="small"
+      className="relative bg-midnight-950"
+    >
+      <Image
+        src="/graphism-neuro.png"
+        className="absolute top-0 left-0 w-auto lg:w-full h-full lg:h-auto object-cover object-left lg:object-center lg:object-contain opacity-30"
+        width="1920"
+        height="1242"
+        alt="graphism-neuro"
+      />
+      <div className="relative z-10 container flex flex-col gap-10">
+        {content && (
+          <div className={animate()}>
+            <span className="block w-[2.625rem] h-[0.125rem] bg-current mb-2 text-lime-400" />
+            <div
+              className="cms-rich-text lg:max-w-[42.5vw] 2xl:max-w-[32.89vw]"
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          </div>
+        )}
+        {cards.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {cards.map((card, index) => (
+              <div
+                key={`card-${index}`}
+                className={twMerge(
+                  'px-4 py-10 lg:p-[6.875rem] border border-lime-400 rounded-lg',
+                  animate({ index: index + 1 })
+                )}
+              >
+                {card.content && (
+                  <div
+                    className="cms-rich-text"
+                    dangerouslySetInnerHTML={{ __html: card.content }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </AnimatedSection>
   )
 }
 
