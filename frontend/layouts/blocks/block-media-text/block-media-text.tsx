@@ -12,10 +12,17 @@ interface Properties {
   content: HTMLString
   image: IStrapiMedia
   imageAlignLeft: boolean
+  bgGradient: boolean
 }
 
 const BlockMediaText: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
-  const { content, image, imageAlignLeft, anchor } = blockData
+  const {
+    content,
+    image,
+    imageAlignLeft,
+    bgGradient = true,
+    anchor,
+  } = blockData
 
   return (
     <AnimatedSection
@@ -23,7 +30,12 @@ const BlockMediaText: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
       anchor={anchor}
       spacing="padding"
       distance="small"
-      className="lg:h-[74.52vh] lg:min-h-[39.125rem]"
+      className={twMerge(
+        'lg:h-[74.52vh] lg:min-h-[39.125rem]',
+        bgGradient
+          ? 'bg-gradient-to-b from-transparent to-gray-light to-60%'
+          : 'bg-gray-light'
+      )}
     >
       <div className="relative lg:h-full lg:flex lg:items-center">
         <div className="container grid grid-cols-1 lg:grid-cols-12 pb-10 lg:pb-0">

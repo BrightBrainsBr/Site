@@ -26,6 +26,11 @@
       "default": false,
       "required": true
     },
+    "bgGradient": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
     "anchor": {
       "type": "string"
     }

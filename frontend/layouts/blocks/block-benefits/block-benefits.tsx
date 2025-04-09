@@ -27,7 +27,7 @@ const BlockBenefits: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
       anchor={anchor}
       spacing="padding"
       distance="small"
-      className="overflow-hidden"
+      className="overflow-hidden bg-gray-light"
     >
       <div className="container">
         {title && (

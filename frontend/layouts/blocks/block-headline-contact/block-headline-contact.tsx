@@ -29,7 +29,8 @@ const BlockHeadlineContact: React.FC<IBlockProps<Properties>> = ({
     <AnimatedSection
       name="block-headline-contact"
       anchor={anchor}
-      spacing="none"
+      spacing="padding"
+      distance="small"
       className="h-[30rem] lg:h-[57.14vh] lg:min-h-[30rem] bg-gradient-to-t from-transparent from-40% to-gray-light"
     >
       <div className="container h-full">
