@@ -24,7 +24,7 @@ const BlockNeuroTypes: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
       anchor={anchor}
       spacing="padding"
       distance="small"
-      className="relative bg-midnight-950"
+      className="relative bg-midnight-950 overflow-hidden"
     >
       <Image
         src="/graphism-neuro.png"
