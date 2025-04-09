@@ -81,7 +81,7 @@ const NavMenu: React.FC<Properties> = ({
                     name="menu-item"
                     href={menuItem.item.url}
                     className={twMerge(
-                      'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base font-kmr lg:translate-y-0 lg:transition-all lg:duration-200 hover:lg:-translate-y-2',
+                      'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base lg:font-semibold font-kmr lg:translate-y-0 lg:transition-all lg:duration-200 hover:lg:-translate-y-2',
                       !isDropdownActive && `lg:text-${headerSettings().accent}`,
                       activeSubmenu === index && 'lg:-translate-y-2',
                       menuItem.submenuTreatment && 'hidden lg:block'
@@ -95,7 +95,7 @@ const NavMenu: React.FC<Properties> = ({
                   <>
                     <button
                       className={twMerge(
-                        'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base font-kmr lg:translate-y-0 lg:transition-all lg:duration-200',
+                        'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base lg:font-semibold font-kmr lg:translate-y-0 lg:transition-all lg:duration-200',
                         !isDropdownActive &&
                           `lg:text-${headerSettings().accent}`,
                         activeSubmenu === index && 'lg:-translate-y-2',
@@ -140,7 +140,7 @@ const NavMenu: React.FC<Properties> = ({
                 name="contact-link"
                 href={contactLink.url}
                 className={twMerge(
-                  'block text-midnight-950 text-[1.875rem] lg:text-base font-kmr lg:px-6 lg:py-3 lg:rounded-sm',
+                  'block text-midnight-950 text-[1.875rem] lg:text-xs lg:uppercase font-kmr lg:px-6 lg:py-3 lg:rounded-sm',
                   `${ctaVariants[headerSettings().cta]}`
                 )}
                 onClick={closeMenu}
@@ -155,7 +155,7 @@ const NavMenu: React.FC<Properties> = ({
         headerMenu.map((dropdown, index) => (
           <div
             className={twMerge(
-              'hidden lg:flex fixed top-0 left-0 w-[100vw] h-[56.905vh] min-h-[29.875rem] pt-[6.875rem] bg-gray-light duration-300 transition-[all cubic-bezier(0.29, 1.01, 1, -0.68)] delay-300 items-center justify-center opacity-0 z-30',
+              'hidden lg:flex fixed top-0 left-0 w-full h-[62.905vh] min-h-[32.5rem] pt-[6.875rem] pb-[3.75rem] bg-gray-light duration-300 transition-[all cubic-bezier(0.29, 1.01, 1, -0.68)] delay-300 items-center justify-center opacity-0 z-30',
               activeSubmenu === index
                 ? 'translate-y-0 animate-fadein'
                 : '-translate-y-full'

@@ -70,8 +70,8 @@ h5 {
 }
 
 .heading-6xl {
-  font-size: 4rem;
-  line-height: var(--leading-tight);
+  font-size: 3rem;
+  line-height: 1;
 }
 
 button,
@@ -199,5 +199,20 @@ svg,
 
   .heading-6xl {
     font-size: 5.278vw;
+  }
+}
+
+@media (width >= theme(--breakpoint-lg)) {
+  .text-xs {
+    font-size: 0.833vw !important;
+  }
+  .text-sm {
+    font-size: 0.97vw !important;
+  }
+  .text-base {
+    font-size: 1.11vw !important;
+  }
+  .text-lg {
+    font-size: 1.25vw !important;
   }
 }

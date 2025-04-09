@@ -3,11 +3,7 @@ import type { RouterSlugs } from '@futurebrand/router'
 const CONTENT_SLUGS: RouterSlugs = {
   'pt-BR': {
     posts: '/conteudo/:slug',
-    modals: '/m/:slug',
-    pages: '{/*path}',
-  },
-  en: {
-    posts: '/blog/:slug',
+    treatments: '/tratamento/:slug',
     modals: '/m/:slug',
     pages: '{/*path}',
   },
