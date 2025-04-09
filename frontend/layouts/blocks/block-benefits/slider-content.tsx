@@ -27,7 +27,10 @@ const SliderContent: React.FC<Props> = ({ data }) => {
   return (
     <SwiperCarousel
       renders={renders}
-      className={twMerge('!overflow-visible !pb-10', animate({ index: 1 }))}
+      className={twMerge(
+        '!overflow-visible !pb-10 lg:!pb-20',
+        animate({ index: 1 })
+      )}
       slidesPerView={1.15}
       pagination={{ clickable: true }}
       spaceBetween={20}

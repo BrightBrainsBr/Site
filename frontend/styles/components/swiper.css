@@ -1,7 +1,7 @@
 .swiper-pagination,
 .swiper-pagination-clickable {
   position: absolute !important;
-  bottom: -40px !important;
+  bottom: 0 !important;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
