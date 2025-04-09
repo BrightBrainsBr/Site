@@ -71,7 +71,7 @@ h5 {
 
 .heading-6xl {
   font-size: 3rem;
-  line-height: var(--leading-tight);
+  line-height: 1;
 }
 
 button,

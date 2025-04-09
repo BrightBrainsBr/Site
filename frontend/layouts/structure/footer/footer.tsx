@@ -47,7 +47,7 @@ const Footer: React.FC<Props> = ({
   }
 
   return (
-    <footer className="relative z-10">
+    <footer className="relative z-10 mt-24 lg:mt-32">
       <div className="container grid grid-cols-1 lg:grid-cols-12 gap-5 pb-8 lg:pb-16">
         <picture className="flex lg:items-end lg:col-span-8">
           <ProjectLogo
