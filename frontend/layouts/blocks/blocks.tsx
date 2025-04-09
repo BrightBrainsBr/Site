@@ -6,6 +6,7 @@ const BLOCKS: Record<string, any> = {
   'headline-contact': async () => await import('./block-headline-contact'),
   'headline-posts': async () => await import('./block-headline-posts'),
   'main-hero': async () => await import('./block-main-hero'),
+  'media-text': async () => await import('./block-media-text'),
   'medium-hero': async () => await import('./block-medium-hero'),
   benefits: async () => await import('./block-benefits'),
   'posts.image': async () => await import('./posts-image'),
