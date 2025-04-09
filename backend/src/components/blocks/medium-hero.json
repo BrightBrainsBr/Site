@@ -15,6 +15,15 @@
         "preset": "baseEditor"
       },
       "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "bgColor": {
+      "type": "enumeration",
+      "enum": [
+        "light",
+        "dark"
+      ],
+      "default": "light",
+      "required": true
     }
   }
 }

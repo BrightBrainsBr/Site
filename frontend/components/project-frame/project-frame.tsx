@@ -4,7 +4,7 @@ const PROJECT_FRAME: Partial<Record<string, string>> = {
   'midnight-950': '/frame-midnight-950.webm',
   'blue-400': '/frame-blue-400.webm',
   'green-400': '/frame-green-400.webm',
-  'lime-400': '/frame-lime-400.webm',
+  'lime-400': '/frame-midnight-950.webm',
   'violet-400': '/frame-violet-400.webm',
 }
 

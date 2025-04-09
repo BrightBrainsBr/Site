@@ -1,0 +1,38 @@
+{
+  "collectionName": "blocks_media_texts",
+  "info": {
+    "displayName": "Block | Media Text",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "imageAlignLeft": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "bgGradient": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}
