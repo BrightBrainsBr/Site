@@ -1,22 +1,17 @@
 {
   "collectionName": "common_symptoms",
   "info": {
-    "displayName": "Symptom"
+    "displayName": "Symptom",
+    "description": ""
   },
   "options": {},
   "attributes": {
     "title": {
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     "description": {
-      "type": "text"
-    },
-    "image": {
-      "allowedTypes": [
-        "images"
-      ],
-      "type": "media",
-      "multiple": false,
+      "type": "text",
       "required": true
     }
   }

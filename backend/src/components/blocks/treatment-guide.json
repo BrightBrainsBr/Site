@@ -25,7 +25,7 @@
         "green-400",
         "violet-400"
       ],
-      "default": "midnight-950",
+      "default": "green-400",
       "required": true
     },
     "anchor": {

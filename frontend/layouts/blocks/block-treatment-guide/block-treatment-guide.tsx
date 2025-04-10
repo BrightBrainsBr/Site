@@ -54,7 +54,7 @@ const BlockTreatmentGuide: React.FC<IBlockProps<Properties>> = ({
           <div className={animate()}>
             <span
               className={twMerge(
-                'block w-[2.625rem] h-[0.125rem] bg-current mb-2 text-lime-400',
+                'block w-[2.625rem] h-[0.125rem] bg-current mb-2',
                 accentVariant({ color: accent as any })
               )}
             />
