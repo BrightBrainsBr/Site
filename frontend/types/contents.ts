@@ -175,6 +175,12 @@ declare module '@futurebrand/types/contents' {
     excerpt: string
     featuredImage: IStrapiMedia
     publishedDateTime: string
+    themeColor?:
+      | 'midnight-950'
+      | 'blue-400'
+      | 'green-400'
+      | 'lime-400'
+      | 'violet-400'
   }
 
   export interface ITreatmentCard {

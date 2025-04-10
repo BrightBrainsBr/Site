@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ContentTypes, IPageData } from '@futurebrand/types/contents'
 import React from 'react'
 
 import Contacts from '~/layouts/contents/contacts'
 import PostSingle from '~/layouts/contents/posts-single'
+import TreatmentsSingle from '~/layouts/contents/treatments-single'
 import PageLayout from '~/layouts/pages/page'
 
 interface Properties {
@@ -12,7 +14,7 @@ interface Properties {
   previewData?: any
 }
 
-const DynamicPage: React.FC<Properties> = async ({
+const DynamicPage: React.FC<Properties> = ({
   locale,
   params,
   type,
@@ -32,9 +34,20 @@ const DynamicPage: React.FC<Properties> = async ({
         />
       )
     }
+
     case 'posts': {
       return (
         <PostSingle locale={locale} previewData={previewData} params={params} />
+      )
+    }
+
+    case 'treatments': {
+      return (
+        <TreatmentsSingle
+          locale={locale}
+          previewData={previewData}
+          params={params}
+        />
       )
     }
 
