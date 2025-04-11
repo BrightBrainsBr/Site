@@ -53,7 +53,7 @@ const BlockHeadlinePosts: React.FC<IBlockProps<Properties>> = ({
             animate()
           )}
         >
-          <span className="block w-[2.625rem] h-[0.125rem] bg-current" />
+          <span className="block w-[2.625rem] h-[0.125rem] bg-current mb-2" />
           <h2 className="heading-4xl">{title}</h2>
         </div>
       )}
