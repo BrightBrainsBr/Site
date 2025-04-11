@@ -18,6 +18,16 @@
       "repeatable": true,
       "component": "common.text-card"
     },
+    "accent": {
+      "type": "enumeration",
+      "enum": [
+        "blue-400",
+        "green-400",
+        "violet-400"
+      ],
+      "default": "green-400",
+      "required": true
+    },
     "anchor": {
       "type": "string"
     }

@@ -17,15 +17,18 @@
       "displayName": "Symptom",
       "type": "component",
       "repeatable": true,
-      "component": "common.symptom"
+      "component": "common.symptom",
+      "max": 8
     },
-    "defaultImage": {
-      "type": "media",
-      "multiple": false,
-      "required": true,
-      "allowedTypes": [
-        "images"
-      ]
+    "accent": {
+      "type": "enumeration",
+      "enum": [
+        "blue-400",
+        "green-400",
+        "violet-400"
+      ],
+      "default": "green-400",
+      "required": true
     },
     "anchor": {
       "type": "string"

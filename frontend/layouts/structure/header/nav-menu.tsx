@@ -160,6 +160,7 @@ const NavMenu: React.FC<Properties> = ({
                 ? 'translate-y-0 animate-fadein'
                 : '-translate-y-full'
             )}
+            key={`dropdown-${index}`}
             onMouseEnter={() => {
               if (dropdown.submenuDefault || dropdown.submenuTreatment) {
                 setActiveSubmenu(index)
@@ -178,11 +179,13 @@ const NavMenu: React.FC<Properties> = ({
                 <ul className="col-span-3 col-start-3 flex flex-col gap-8">
                   {dropdown.submenuDefault.items.length > 0 &&
                     dropdown.submenuDefault.items.map((submenuItem, index) => (
-                      <li className="translate-x-0 hover:translate-x-6 transition-all duration-200 w-fit">
+                      <li
+                        className="translate-x-0 hover:translate-x-6 transition-all duration-200 w-fit"
+                        key={`submenu-default-item-${index}`}
+                      >
                         <Link
                           name="submenu-default-item"
                           className="block !w-fit heading-xl text-midnight-950"
-                          key={`submenu-default-item-${index}`}
                           href={submenuItem.url}
                         >
                           {submenuItem.text}

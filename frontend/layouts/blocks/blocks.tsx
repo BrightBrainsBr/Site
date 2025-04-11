@@ -3,6 +3,7 @@ import { createBlocksComponents } from '@futurebrand/layouts'
 
 const BLOCKS: Record<string, any> = {
   'archive-treatments': async () => await import('./block-archive-treatments'),
+  'brain-image-map': async () => await import('./block-brain-image-map'),
   benefits: async () => await import('./block-benefits'),
   faq: async () => await import('./block-faq'),
   'headline-contact': async () => await import('./block-headline-contact'),
@@ -11,6 +12,7 @@ const BLOCKS: Record<string, any> = {
   'media-text': async () => await import('./block-media-text'),
   'medium-hero': async () => await import('./block-medium-hero'),
   'neuro-types': async () => await import('./block-neuro-types'),
+  'treatment-guide': async () => await import('./block-treatment-guide'),
   'posts.image': async () => await import('./posts-image'),
   'posts.text': async () => await import('./posts-text'),
   'posts.button': async () => await import('./posts-button'),
