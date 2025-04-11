@@ -17,7 +17,7 @@ interface Properties {
   accent: string
 }
 
-const colorVariant = tv({
+export const colorVariant = tv({
   variants: {
     color: {
       'blue-400': 'text-blue-400',
@@ -115,22 +115,21 @@ const ImageMap: React.FC<Properties> = ({ accent = 'green-400', data }) => {
         </ul>
       )}
       <picture className="relative block col-span-3">
-        {activeIndex === -1 && (
-          <Image
-            className={twMerge(
-              'w-[21.39vw] absolute top-1/2 left-1/2 -translate-1/2'
-            )}
-            src={
-              (accent === 'blue-400' && '/brain-blue-default.svg') ||
-              (accent === 'green-400' && '/brain-green-default.svg') ||
-              (accent === 'violet-400' && '/brain-violet-default.svg') ||
-              ''
-            }
-            width={308}
-            height={302}
-            alt="Brain Image Map"
-          />
-        )}
+        <Image
+          className={twMerge(
+            'w-[21.39vw] absolute top-1/2 left-1/2 -translate-1/2 transition-opacity duration-300',
+            activeIndex === -1 ? 'opacity-100' : 'opacity-0'
+          )}
+          src={
+            (accent === 'blue-400' && '/brain-blue-default.svg') ||
+            (accent === 'green-400' && '/brain-green-default.svg') ||
+            (accent === 'violet-400' && '/brain-violet-default.svg') ||
+            ''
+          }
+          width={308}
+          height={302}
+          alt="Brain Image Map"
+        />
         {data.map((image, index) => (
           <Image
             className={twMerge(

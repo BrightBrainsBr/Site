@@ -30,7 +30,7 @@ const BlockBrainImageMap: React.FC<IBlockProps<Properties>> = ({
       anchor={anchor}
       spacing="padding"
       distance="small"
-      className="!z-20 bg-gradient-to-t from-transparent to-gray-light to-70%"
+      className="!z-20 bg-gradient-to-t from-transparent to-gray-light to-70% overflow-hidden lg:overflow-visible"
     >
       <div className="container grid grid-cols-1 lg:grid-cols-12 gap-5">
         {content && (
