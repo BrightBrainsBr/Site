@@ -146,3 +146,13 @@
 .block-image-slider .swiper-pagination {
   bottom: 40px !important;
 }
+
+/* DEPOSITIONS */
+
+.block-depositions .swiper-pagination-bullet {
+  border: solid 1px #000 !important;
+}
+
+.block-depositions .swiper-pagination-bullet-active {
+  background-color: var(--color-black) !important;
+}

@@ -1,11 +1,13 @@
 'use client'
 
+import { animate } from '@futurebrand/helpers-nextjs/utils'
 import React, { useMemo } from 'react'
 import { Pagination } from 'swiper/modules'
+import { twMerge } from 'tailwind-merge'
 
 import SwiperCarousel from '~/components/carousel/carousel'
 
-import type { ISlide } from './block-image-slider'
+import type { ISlide } from './block-depositions'
 import Slide from './slide'
 
 interface Props {
@@ -25,6 +27,7 @@ const SliderContent: React.FC<Props> = ({ data }) => {
   return (
     <SwiperCarousel
       renders={renders}
+      className={twMerge('!overflow-visible', animate({ index: 1 }))}
       pagination={{ clickable: true }}
       slidesPerView={1}
       spaceBetween={0}
