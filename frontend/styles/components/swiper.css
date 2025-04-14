@@ -18,7 +18,7 @@
   margin: 0 !important;
   pointer-events: auto;
 
-  border-color: var(--color-current-secondary);
+  border: solid 1px #fff !important;
   border-radius: calc(infinity * 1px);
   transition-property: opacity;
   transition-timing-function: var(
@@ -27,18 +27,14 @@
   );
   transition-duration: var(--tw-duration, var(--default-transition-duration));
 
-  background-color: var(--color-current-secondary);
   width: --spacing(2.5);
   height: --spacing(2.5);
   opacity: 60%;
 }
 
-.swiper-pagination-bullet:hover {
-  opacity: 80%;
-}
-
 .swiper-pagination-bullet-active {
   opacity: 100% !important;
+  background-color: var(--color-white);
 }
 
 .swiper-pagination-lock {

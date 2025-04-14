@@ -23,6 +23,12 @@
     "activity": {
       "type": "string"
     },
+    "linkedin": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
     "image": {
       "allowedTypes": [
         "images"

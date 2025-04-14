@@ -140,3 +140,33 @@
     bottom 0.075s ease,
     transform 0.075s 0.12s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
+
+/* IMAGE SLIDER */
+
+.block-image-slider .swiper-pagination {
+  bottom: 40px !important;
+}
+
+/* DEPOSITIONS */
+
+.block-depositions .swiper-pagination-bullet {
+  border: solid 1px #000 !important;
+}
+
+.block-depositions .swiper-pagination-bullet-active {
+  background-color: var(--color-black) !important;
+}
+
+/* FORM PARTNERSHIP */
+
+.block-form-partnership input,
+.block-form-partnership select,
+.block-form-partnership textarea {
+  background-color: var(--color-midnight-950) !important;
+  border: solid 1px var(--color-white) !important;
+  color: var(--color-white) !important;
+
+  &::placeholder {
+    color: var(--color-white) !important;
+  }
+}

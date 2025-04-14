@@ -20,7 +20,7 @@ const buttonClassVariant = tv(
         'midnight-950': 'text-white bg-midnight-950 hover:bg-midnight-600',
         'blue-400': 'text-white bg-blue-400 hover:bg-midnight-950',
         'green-400': 'text-white bg-green-400 hover:bg-blue-600',
-        'lime-400': 'text-bg-midnight-950 bg-lime-400 hover:bg-lime-600',
+        'lime-400': 'text-midnight-950 bg-lime-400 hover:bg-lime-600',
         'violet-400': 'text-white bg-violet-600 hover:bg-violet-400',
       },
       tiny: {
