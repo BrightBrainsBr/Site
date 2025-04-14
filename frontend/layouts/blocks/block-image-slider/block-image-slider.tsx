@@ -1,8 +1,28 @@
+import { AnimatedSection } from '@futurebrand/helpers-nextjs/components'
+import type { IBlockProps } from '@futurebrand/types/contents'
+import type { HTMLString, IResponsiveImage } from '@futurebrand/types/strapi'
 import React from 'react'
 
-const BlockImageSlider = () => {
+import SliderContent from './slider-content'
+
+export interface ISlide {
+  content: HTMLString
+  image: IResponsiveImage
+}
+
+interface Properties {
+  slides: ISlide[]
+}
+
+const BlockImageSlider: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
+  const { slides, anchor } = blockData
+
+  if (!slides || slides.length === 0) return null
+
   return (
-    <div>BlockImageSlider</div>
+    <AnimatedSection name="block-image-slider" anchor={anchor} spacing="none">
+      <SliderContent data={slides} />
+    </AnimatedSection>
   )
 }
 
