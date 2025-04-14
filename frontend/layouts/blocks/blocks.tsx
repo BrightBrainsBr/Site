@@ -7,6 +7,7 @@ const BLOCKS: Record<string, any> = {
   benefits: async () => await import('./block-benefits'),
   depositions: async () => await import('./block-depositions'),
   faq: async () => await import('./block-faq'),
+  'form-partnership': async () => await import('./block-form-partnership'),
   'image-slider': async () => await import('./block-image-slider'),
   'headline-contact': async () => await import('./block-headline-contact'),
   'headline-posts': async () => await import('./block-headline-posts'),

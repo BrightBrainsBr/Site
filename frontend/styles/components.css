@@ -156,3 +156,17 @@
 .block-depositions .swiper-pagination-bullet-active {
   background-color: var(--color-black) !important;
 }
+
+/* FORM PARTNERSHIP */
+
+.block-form-partnership input,
+.block-form-partnership select,
+.block-form-partnership textarea {
+  background-color: var(--color-midnight-950) !important;
+  border: solid 1px var(--color-white) !important;
+  color: var(--color-white) !important;
+
+  &::placeholder {
+    color: var(--color-white) !important;
+  }
+}
