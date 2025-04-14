@@ -40,7 +40,7 @@
   transition-duration: 200ms;
 
   border: 1px solid var(--color-current-input-border);
-  background-color: var(--color-current-input-background);
+  background-color: transparent;
   color: var(--color-current-input-text);
   font-family: var(--font-kmr);
   font-size: var(--text-sm);
