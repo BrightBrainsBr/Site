@@ -147,14 +147,12 @@
   bottom: 40px !important;
 }
 
-/* DEPOSITIONS */
-
-.block-depositions .swiper-pagination-bullet {
-  border: solid 1px #000 !important;
+.block-image-slider .swiper-pagination-bullet {
+  border: solid 1px var(--color-white) !important;
 }
 
-.block-depositions .swiper-pagination-bullet-active {
-  background-color: var(--color-black) !important;
+.block-image-slider .swiper-pagination-bullet-active {
+  background-color: var(--color-white) !important;
 }
 
 /* FORM PARTNERSHIP */
@@ -168,5 +166,13 @@
 
   &::placeholder {
     color: var(--color-white) !important;
+  }
+}
+
+/* SHORT HERO */
+
+@media (width >= theme(--breakpoint-lg)) {
+  .block-short-hero .cms-rich-text p {
+    max-width: 29.17vw !important;
   }
 }
