@@ -18,7 +18,7 @@
   margin: 0 !important;
   pointer-events: auto;
 
-  border: solid 1px #fff !important;
+  border: solid 1px #000 !important;
   border-radius: calc(infinity * 1px);
   transition-property: opacity;
   transition-timing-function: var(
@@ -34,7 +34,7 @@
 
 .swiper-pagination-bullet-active {
   opacity: 100% !important;
-  background-color: var(--color-white);
+  background-color: var(--color-black);
 }
 
 .swiper-pagination-lock {

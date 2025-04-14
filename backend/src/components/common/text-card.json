@@ -1,7 +1,8 @@
 {
   "collectionName": "common_text_cards",
   "info": {
-    "displayName": "Text Card"
+    "displayName": "Text Card",
+    "description": ""
   },
   "options": {},
   "attributes": {
@@ -10,7 +11,8 @@
       "options": {
         "preset": "baseEditor"
       },
-      "customField": "plugin::ckeditor5.CKEditor"
+      "customField": "plugin::ckeditor5.CKEditor",
+      "required": true
     }
   }
 }

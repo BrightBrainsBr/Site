@@ -18,6 +18,8 @@ const BlockFormPartnership: React.FC<IBlockProps<Properties>> = ({
 }) => {
   const { content, form, anchor } = blockData
 
+  if (!form) return null
+
   return (
     <AnimatedSection
       name="block-form-partnership"

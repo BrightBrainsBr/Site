@@ -37,7 +37,7 @@ const BlockArchiveTreatments: React.FC<IBlockProps<Properties>> = async ({
       distance="small"
       spacing="padding"
       className={twMerge(
-        'relative !z-20',
+        'relative !z-20 overflow-hidden',
         bgColor !== 'white'
           ? 'bg-midnight-950'
           : 'bg-transparent bg-gradient-to-b from-transparent to-gray-light to-70%'
