@@ -51,7 +51,7 @@ const Accordion: React.FC<Props> = ({
     <div
       className={twMerge(
         isSelect
-          ? 'border border-midnight-950'
+          ? 'border border-gray-secondary-dark'
           : 'border-b-gray-medium border-b last:border-none first:pt-0',
         className
       )}
