@@ -2,6 +2,7 @@
 import { createBlocksComponents } from '@futurebrand/layouts'
 
 const BLOCKS: Record<string, any> = {
+  'archive-posts': async () => await import('./block-archive-posts'),
   'archive-treatments': async () => await import('./block-archive-treatments'),
   'brain-image-map': async () => await import('./block-brain-image-map'),
   benefits: async () => await import('./block-benefits'),

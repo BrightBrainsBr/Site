@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 module.exports = {
   beforeUpdate(event) {
     const data = event.params.data

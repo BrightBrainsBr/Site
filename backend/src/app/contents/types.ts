@@ -4,7 +4,8 @@ export type ContentTypes =
   | 'modals'
   | 'search'
   | 'treatments'
+  | 'tags'
 
 export interface IPostFilter {
-  tags?: number[]
+  tags?: string[]
 }
