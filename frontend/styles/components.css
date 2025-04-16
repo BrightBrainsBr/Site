@@ -176,3 +176,23 @@
     max-width: 29.17vw !important;
   }
 }
+
+/* RICH TEXT */
+
+.block-rich-text .cms-rich-text h1,
+.block-rich-text .cms-rich-text h2,
+.block-rich-text .cms-rich-text h3,
+.block-rich-text .cms-rich-text h4,
+.block-rich-text .cms-rich-text h5 {
+  margin-top: 1.25rem;
+}
+
+@media (width >= theme(--breakpoint-lg)) {
+  .block-rich-text .cms-rich-text h1,
+  .block-rich-text .cms-rich-text h2,
+  .block-rich-text .cms-rich-text h3,
+  .block-rich-text .cms-rich-text h4,
+  .block-rich-text .cms-rich-text h5 {
+    margin-top: 2.5rem;
+  }
+}
