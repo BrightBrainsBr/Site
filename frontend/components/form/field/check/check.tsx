@@ -27,7 +27,7 @@ const Check: React.FC<IFieldProps> = ({
   name,
   label,
   containerClassName,
-  fieldData,
+  // fieldData,
   id,
   ...rest
 }) => {

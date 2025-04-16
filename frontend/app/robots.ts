@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+
 import { getHelpersRouter } from '~/hooks/get-helpers-router'
 
 export const revalidate = 600

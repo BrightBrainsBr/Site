@@ -4,10 +4,10 @@ import React from 'react'
 
 const Input: React.FC<IFieldProps> = ({
   id,
-  className,
+  // className,
   name,
-  containerClassName,
-  fieldData,
+  // containerClassName,
+  // fieldData,
   ...rest
 }) => {
   const { field } = useField(name)

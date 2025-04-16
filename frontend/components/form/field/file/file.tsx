@@ -28,13 +28,13 @@ const inputClassVariant = tv({
 
 const File: React.FC<IFieldProps> = ({
   id,
-  className,
+  // className,
   name,
   containerClassName,
   label,
   required,
-  type,
-  fieldData,
+  // type,
+  // fieldData,
   placeholder,
   ...rest
 }) => {

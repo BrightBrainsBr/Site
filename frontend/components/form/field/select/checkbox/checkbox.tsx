@@ -37,7 +37,7 @@ const CheckboxInput: React.FC<ISelectProps<HTMLInputElement>> = ({
   options,
   containerClassName,
   label,
-  id,
+  // id,
   required,
   ...rest
 }) => {

@@ -29,9 +29,9 @@ const Textarea: React.FC<Properties> = ({
   name,
   containerClassName,
   label,
-  subLabel,
+  // subLabel,
   required,
-  fieldData,
+  // fieldData,
   ...rest
 }) => {
   const { field, error } = useField(name)
