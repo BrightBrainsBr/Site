@@ -12,7 +12,7 @@ const PostCard: React.FC<Props> = ({
   isAnimated = true,
   animation,
   path,
-  thumbnail,
+  featuredImage,
   title,
   excerpt,
   index,
@@ -36,9 +36,9 @@ const PostCard: React.FC<Props> = ({
           className="relative rounded-md overflow-hidden w-full bg-white"
           style={{ height: '11.5625rem' }}
         >
-          {thumbnail && (
+          {featuredImage && (
             <StrapiImage
-              image={thumbnail}
+              image={featuredImage.mobile}
               className="absolute z-0 top-0 left-0 w-full h-full object-cover object-center"
             />
           )}
