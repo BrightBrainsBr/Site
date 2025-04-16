@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import '~/styles/index.css'
 
 import { Roboto } from 'next/font/google'
@@ -67,6 +68,20 @@ const RootLayout = async ({ children, params }: any) => {
       className={`${roboto.variable} font-sans ${kmr.variable}`}
     >
       <head>
+        <link
+          rel="icon"
+          type="image/png"
+          href="/favicon-96x96.png"
+          sizes="96x96"
+        />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/site.webmanifest" />
         <Scripts />
       </head>
       <body>{children}</body>

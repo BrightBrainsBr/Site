@@ -1,6 +1,6 @@
 import {
-  ContentBlockHandler,
   type BlockHandleList,
+  ContentBlockHandler,
 } from '@futurebrand/helpers-strapi/modules'
 
 const BLOCK_HANDLER: BlockHandleList = {}

@@ -13,11 +13,10 @@ function sanitizeData(
 ): IPostCard[] {
   return data.map((item, index) => ({
     id: item.id,
-    tags: item.tags?.map((tag) => tag.name) || [],
     animation: isAction ? index : false,
     title: item.title,
     excerpt: item.excerpt,
-    thumbnail: item.thumbnail,
+    featuredImage: item.featuredImage,
     path: router.getLocalizedPath(
       {
         slug: item.slug,

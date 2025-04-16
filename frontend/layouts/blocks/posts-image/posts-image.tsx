@@ -1,10 +1,9 @@
 import { StrapiImageResponsive } from '@futurebrand/components'
+import { AnimatedSection } from '@futurebrand/components'
 import { animate } from '@futurebrand/helpers-nextjs/utils'
 import { type IBlockProps } from '@futurebrand/types/contents'
 import type { IResponsiveImage } from '@futurebrand/types/strapi'
 import React from 'react'
-
-import { AnimatedSection } from '@futurebrand/components'
 
 interface Properties {
   image: IResponsiveImage
@@ -18,6 +17,7 @@ const BlockPostImage: React.FC<IBlockProps<Properties>> = ({
     <AnimatedSection
       name="block-post-image"
       anchor={blockData.anchor}
+      spacing="none"
       Tag="div"
     >
       <div

@@ -1,13 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import {
-  ContentModule,
   type ContentClient,
+  ContentModule,
 } from '@futurebrand/helpers-strapi/modules'
-import type { IPostFilter, ContentTypes } from './types'
 import type { UID } from '@strapi/strapi'
 
 import DefaultBlocksHandler from '../blocks/blocks'
 import PostsBlocksHandler from '../blocks/blocks-posts'
 import WrappersBlocksHandler from '../blocks/wrappers'
+import type { ContentTypes, IPostFilter } from './types'
 
 class AppContentClient implements ContentClient<ContentTypes> {
   pages: ContentModule
@@ -15,6 +20,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
   posts: ContentModule
   searchEntry: ContentModule
   treatments: ContentModule
+  tags: ContentModule
 
   constructor() {
     /** @PAGES */
@@ -35,33 +41,67 @@ class AppContentClient implements ContentClient<ContentTypes> {
     this.modals = new ContentModule('api::modal.modal')
     this.modals.addDefaultSingle()
 
+    /** @TAGS */
+    this.tags = new ContentModule('api::tag.tag')
+
+    this.tags.addDefaultQuery({
+      pageSize: 9999,
+      hasPagination: true,
+      sort: {
+        createdAt: 'desc',
+      } as any,
+    })
+
     /** @POSTS */
     this.posts = new ContentModule('api::post.post')
 
     this.posts.addDefaultSingle().addBlockHandler(PostsBlocksHandler)
     this.posts
       .addDefaultQuery<IPostFilter>({
-        pageSize: 12,
+        pageSize: 9999,
         hasPagination: true,
         sort: {
           publishedDateTime: 'desc',
         } as any,
         populate: {
-          thumbnail: true,
+          featuredImage: {
+            populate: {
+              desktop: true,
+              mobile: true,
+            },
+          },
+          tags: true,
         },
       })
       .onFilterEvent(async (filters?: IPostFilter) => {
+        const queryFilters: any[] = []
+        const filter: any = {}
+
         if (
           filters?.tags &&
-          Array.isArray(filters.tags) &&
-          filters.tags.length > 0
+          Array.isArray(filters?.tags) &&
+          filters?.tags.length > 0
         ) {
-          return {
-            tags: filters.tags.map((tag) => Number(tag)),
-          }
+          queryFilters.push({
+            tags: {
+              name: {
+                $eq: filters.tags.map((tag) => tag),
+              },
+            },
+          })
         }
 
-        return {}
+        if (filters?.title) {
+          queryFilters.push({
+            title: {
+              $ne: filters.title,
+            },
+          })
+        }
+
+        filter.$or = queryFilters
+
+        return filter
       })
 
     /** @TREATMENTS */
@@ -114,6 +154,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
     await this.posts.register()
     await this.searchEntry.register()
     await this.treatments.register()
+    await this.tags.register()
   }
 
   public getContentByType(type: ContentTypes) {
@@ -128,6 +169,8 @@ class AppContentClient implements ContentClient<ContentTypes> {
         return this.searchEntry
       case 'treatments':
         return this.treatments
+      case 'tags':
+        return this.tags
       default:
         throw new Error(`Invalid content type: ${type as string}`)
     }
@@ -149,6 +192,8 @@ class AppContentClient implements ContentClient<ContentTypes> {
         return 'search'
       case 'api::treatment.treatment':
         return 'treatments'
+      case 'api::tag.tag':
+        return 'tags'
       default:
         return null
     }

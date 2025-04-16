@@ -10,7 +10,12 @@ declare module '@futurebrand/types/contents' {
   } from '@futurebrand/types/strapi'
   import type { PropsWithChildren } from 'react'
 
-  export type ContentTypes = 'pages' | 'posts' | 'modals' | 'treatments'
+  export type ContentTypes =
+    | 'pages'
+    | 'posts'
+    | 'modals'
+    | 'treatments'
+    | 'tags'
 
   // BLOCKS
 
@@ -146,6 +151,11 @@ declare module '@futurebrand/types/contents' {
     slug: string
   }
 
+  export interface ITagCard {
+    name: string
+    slug: string
+  }
+
   export interface IPost extends IPageWithBlocks {
     title: string
     excerpt: string
@@ -158,14 +168,14 @@ declare module '@futurebrand/types/contents' {
     id: number
     title: string
     excerpt: string
-    tags: string[]
-    thumbnail?: IStrapiMedia
+    featuredImage: IResponsiveImage
     path: string
     animation: number | false
   }
 
   export interface IPostFilter {
-    tags?: number[]
+    title?: string
+    tags?: string[]
   }
 
   /** @TREATMENT */
@@ -193,6 +203,6 @@ declare module '@futurebrand/types/contents' {
   }
 
   export interface ITreatmentFilter {
-    tags?: number[]
+    tags?: string[]
   }
 }

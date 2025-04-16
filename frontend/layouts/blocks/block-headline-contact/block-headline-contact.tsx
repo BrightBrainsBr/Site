@@ -31,7 +31,7 @@ const BlockHeadlineContact: React.FC<IBlockProps<Properties>> = ({
       anchor={anchor}
       spacing="padding"
       distance="small"
-      className="h-[30rem] lg:h-[57.14vh] lg:min-h-[30rem] bg-gradient-to-t from-transparent from-40% to-gray-light"
+      className="h-[30rem] lg:h-[71.43vh] lg:min-h-[37.5rem] bg-gradient-to-t from-transparent from-40% to-gray-light"
     >
       <div className="container h-full">
         <div className="relative rounded-3xl overflow-hidden h-full p-5 lg:p-0 grid grid-cols-1 lg:grid-cols-12 gap-5">
