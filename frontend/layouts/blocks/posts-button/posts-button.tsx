@@ -1,9 +1,9 @@
+import { AnimatedSection } from '@futurebrand/components'
 import { animate } from '@futurebrand/helpers-nextjs/utils'
 import { type IBlockProps } from '@futurebrand/types/contents'
 import type { IStrapiLinkButton } from '@futurebrand/types/strapi'
 import React from 'react'
 
-import { AnimatedSection } from '@futurebrand/components'
 import CMSButton from '~/components/button/cms/cms-button'
 
 interface Properties {
@@ -15,8 +15,7 @@ const BlockPostsButton: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
     <AnimatedSection
       name="block-posts-button"
       anchor={blockData.anchor}
-      distance="small"
-      spacing="padding"
+      spacing="none"
       Tag="div"
     >
       <div

@@ -91,6 +91,14 @@ class AppContentClient implements ContentClient<ContentTypes> {
           })
         }
 
+        if (filters?.title) {
+          queryFilters.push({
+            title: {
+              $ne: filters.title,
+            },
+          })
+        }
+
         filter.$or = queryFilters
 
         return filter

@@ -174,6 +174,7 @@ declare module '@futurebrand/types/contents' {
   }
 
   export interface IPostFilter {
+    title?: string
     tags?: string[]
   }
 

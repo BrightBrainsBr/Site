@@ -7,5 +7,6 @@ export type ContentTypes =
   | 'tags'
 
 export interface IPostFilter {
+  title?: string
   tags?: string[]
 }
