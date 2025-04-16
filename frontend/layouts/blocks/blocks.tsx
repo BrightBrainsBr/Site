@@ -21,6 +21,8 @@ const BLOCKS: Record<string, any> = {
   'short-hero': async () => await import('./block-short-hero'),
   team: async () => await import('./block-team'),
   'treatment-guide': async () => await import('./block-treatment-guide'),
+  'whatsapp-floating-cta': async () =>
+    await import('./block-whatsapp-floating-cta'),
   'posts.image': async () => await import('./posts-image'),
   'posts.text': async () => await import('./posts-text'),
   'posts.button': async () => await import('./posts-button'),
