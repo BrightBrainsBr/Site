@@ -45,6 +45,7 @@ const NavMenu: React.FC<Properties> = ({
               <Link
                 name={item.text}
                 href={item.url}
+                blank={item.blank}
                 className="block lg:translate-x-0 hover:-translate-x-6 transition-all duration-200"
               >
                 {item.text}
@@ -57,7 +58,7 @@ const NavMenu: React.FC<Properties> = ({
         <ul className="flex gap-5">
           {socialLink.map((item, index) => (
             <li key={`item-${index}`}>
-              <Link name={item.label} href={item.url}>
+              <Link name={item.label} href={item.url} blank>
                 <SocialIcon
                   name={item.type}
                   className={twMerge(
