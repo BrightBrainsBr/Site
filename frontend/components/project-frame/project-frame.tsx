@@ -19,9 +19,10 @@ const ProjectFrame: React.FC<Properties> = ({ name }) => {
 
   return (
     <video
-      className="fixed top-0 left-0 w-full h-full object-cover object-top"
+      className="fixed top-0 left-0 w-full h-full object-cover object-top pointer-events-none"
       src={frameSrc}
       autoPlay
+      controls={false}
       muted
       loop
     />

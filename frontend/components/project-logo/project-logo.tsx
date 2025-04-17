@@ -7,7 +7,7 @@ import { ReactComponent as LogoGreen } from '~/assets/icons/logo-green-400.svg'
 import { ReactComponent as LogoLight } from '~/assets/icons/logo-light.svg'
 import { ReactComponent as LogoLime } from '~/assets/icons/logo-lime-400.svg'
 import { ReactComponent as LogoLimeDark } from '~/assets/icons/logo-lime-dark.svg'
-import { ReactComponent as LogoMidnight } from '~/assets/icons/logo-mignight-950.svg'
+import { ReactComponent as LogoMidnight } from '~/assets/icons/logo-midnight-950.svg'
 import { ReactComponent as LogoViolet } from '~/assets/icons/logo-violet-400.svg'
 
 type SVGProps = React.SVGProps<SVGSVGElement>
