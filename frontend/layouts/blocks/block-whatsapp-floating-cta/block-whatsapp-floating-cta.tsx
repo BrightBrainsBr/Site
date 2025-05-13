@@ -1,4 +1,7 @@
+'use client'
+
 import { Link } from '@futurebrand/helpers-nextjs/components'
+import type { IBlockProps } from '@futurebrand/types/contents'
 import React from 'react'
 
 import { ReactComponent as WhatsApp } from '~/assets/icons/whatsapp.svg'
@@ -7,7 +10,11 @@ interface Properties {
   url: string
 }
 
-const BlockWhatsappFloatingCta: React.FC<Properties> = ({ url }) => {
+const BlockWhatsappFloatingCta: React.FC<IBlockProps<Properties>> = ({
+  blockData,
+}) => {
+  const { url } = blockData
+
   return (
     <Link
       href={url}

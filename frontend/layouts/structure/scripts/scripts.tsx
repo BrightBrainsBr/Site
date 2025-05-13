@@ -4,7 +4,7 @@ import { preconnect, prefetchDNS } from 'react-dom'
 
 const CustomScriptsDomains = ['https://www.googletagmanager.com']
 
-const GOOGLE_TAG_MANAGER_ID = 'XXX-XXXXXX'
+const GOOGLE_TAG_MANAGER_ID = 'GTM-NLB73ZND'
 
 const Scripts: React.FC = () => {
   if (process.env.NODE_ENV === 'development') return false

@@ -27,7 +27,7 @@ const BlockNeuroTypes: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
       className="relative bg-midnight-950 overflow-hidden"
     >
       <Image
-        src="/graphism-neuro.png"
+        src="/graphism-neuro.svg"
         className="absolute top-0 left-0 w-auto lg:w-full h-full lg:h-auto object-cover object-left lg:object-center lg:object-contain opacity-30"
         width="1920"
         height="1242"
