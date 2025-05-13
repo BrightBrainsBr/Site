@@ -14,7 +14,7 @@ type Properties = VariantProperties & ButtonProperties
 
 const buttonClassVariant = tv(
   {
-    base: 'button flex items-center justify-center leading-none text-balance origin-center text-center rounded-sm',
+    base: 'button flex items-center gap-2 justify-center leading-none text-balance origin-center text-center rounded-sm',
     variants: {
       color: {
         'midnight-950': 'text-white bg-midnight-950 hover:bg-midnight-600',
