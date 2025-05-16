@@ -18,7 +18,7 @@ const Slide: React.FC<Properties> = ({ data }) => {
       {title && (
         <h2
           className={twMerge(
-            'heading-6xl text-midnight-950 lg:max-w-[38.19vw] font-light leading-[110%]',
+            'heading-6xl text-midnight-950 font-light leading-[110%]',
             animate()
           )}
         >
