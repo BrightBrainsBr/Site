@@ -1,0 +1,35 @@
+{
+  "collectionName": "components_blocks_manifests",
+  "info": {
+    "displayName": "Block | Manifest",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "content": {
+      "type": "customField",
+      "options": {
+        "preset": "baseEditor"
+      },
+      "customField": "plugin::ckeditor5.CKEditor"
+    },
+    "videoURL": {
+      "type": "string",
+      "required": true
+    },
+    "thumbnail": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}

@@ -13,6 +13,7 @@ const BLOCKS: Record<string, any> = {
   'image-slider': async () => await import('./block-image-slider'),
   'headline-contact': async () => await import('./block-headline-contact'),
   'headline-posts': async () => await import('./block-headline-posts'),
+  manifest: async () => await import('./block-manifest'),
   'main-hero': async () => await import('./block-main-hero'),
   'media-text': async () => await import('./block-media-text'),
   'medium-hero': async () => await import('./block-medium-hero'),

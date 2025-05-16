@@ -82,6 +82,7 @@ declare module '@futurebrand/types/strapi' {
 
   export interface IStrapiVideo {
     title: string
+    className?: string
     uploadedVideo?: IStrapiMedia
     youtubeVideo?: string
     thumbnail: IStrapiMedia
