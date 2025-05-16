@@ -22,7 +22,7 @@ const BlockManifest: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
       name="block-manifest"
       anchor={anchor}
       spacing="none"
-      className="relative pb-10 lg:pb-[6.25rem]"
+      className="relative pb-10 lg:pb-[6.25rem] bg-gray-light"
     >
       {content && (
         <div className="container pb-10 lg:pb-[4.75rem]">
