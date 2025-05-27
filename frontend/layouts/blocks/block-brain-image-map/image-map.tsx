@@ -102,14 +102,16 @@ const ImageMap: React.FC<Properties> = ({ accent = 'green-400', data }) => {
               >
                 {firstColumn.title}
               </button>
-              <span
-                className={twMerge(
-                  'absolute z-10 top-[calc(50%+30px)] right-0 opacity-0 p-4 text-sm bg-white text-gray-secondary-dark w-[19.31vw]',
-                  activeIndex === index ? 'block animate-fadein' : 'hidden'
-                )}
-              >
-                {firstColumn.description}
-              </span>
+              {firstColumn.description && (
+                <span
+                  className={twMerge(
+                    'absolute z-10 top-[calc(50%+30px)] right-0 opacity-0 p-4 text-sm bg-white text-gray-secondary-dark w-[19.31vw]',
+                    activeIndex === index ? 'block animate-fadein' : 'hidden'
+                  )}
+                >
+                  {firstColumn.description}
+                </span>
+              )}
             </li>
           ))}
         </ul>
@@ -171,14 +173,18 @@ const ImageMap: React.FC<Properties> = ({ accent = 'green-400', data }) => {
               >
                 {secoundColumn.title}
               </button>
-              <span
-                className={twMerge(
-                  'absolute z-10 top-[calc(50%+30px)] left-0 opacity-0 p-4 text-sm bg-white text-gray-secondary-dark w-[19.31vw]',
-                  activeIndex === index + 4 ? 'block animate-fadein' : 'hidden'
-                )}
-              >
-                {secoundColumn.description}
-              </span>
+              {secoundColumn.description && (
+                <span
+                  className={twMerge(
+                    'absolute z-10 top-[calc(50%+30px)] left-0 opacity-0 p-4 text-sm bg-white text-gray-secondary-dark w-[19.31vw]',
+                    activeIndex === index + 4
+                      ? 'block animate-fadein'
+                      : 'hidden'
+                  )}
+                >
+                  {secoundColumn.description}
+                </span>
+              )}
             </li>
           ))}
         </ul>
