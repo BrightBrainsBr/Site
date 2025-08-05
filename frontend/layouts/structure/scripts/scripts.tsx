@@ -4,7 +4,7 @@ import { preconnect, prefetchDNS } from 'react-dom'
 
 const CustomScriptsDomains = [
   'https://www.googletagmanager.com',
-  'https://connect.facebook.net' // Add Facebook domain for preconnect
+  'https://connect.facebook.net', // Facebook Pixel domain
 ]
 
 const Scripts: React.FC = () => {
@@ -27,33 +27,46 @@ const Scripts: React.FC = () => {
           `}
         </style>
       </noscript>
-      
-      {/* Facebook Pixel Code */}
+
       <Script id="facebook-pixel" strategy="afterInteractive">
         {`
-          !function(f,b,e,v,n,t,s)
-          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-          n.queue=[];t=b.createElement(e);t.async=!0;
-          t.src=v;s=b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t,s)}(window, document,'script',
-          'https://connect.facebook.net/en_US/fbevents.js');
+          !function(f,b,e,v,n,t,s) {
+            if(f.fbq) return;
+            n=f.fbq=function() {
+              n.callMethod ? n.callMethod.apply(n,arguments) : n.queue.push(arguments)
+            };
+            if(!f._fbq) f._fbq=n;
+            n.push=n;
+            n.loaded=!0;
+            n.version='2.0';
+            n.queue=[];
+            t=b.createElement(e);
+            t.async=!0;
+            t.src=v;
+            s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)
+          }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '1271906851245732');
           fbq('track', 'PageView');
         `}
       </Script>
       <noscript>
-        <img 
-          height="1" 
-          width="1" 
-          style={{ display: 'none' }}
-          src="https://www.facebook.com/tr?id=1271906851245732&ev=PageView&noscript=1"
-          alt=""
+        {/* Using dangerouslySetInnerHTML for the noscript pixel to avoid Next.js Image requirements */}
+        <div
+          dangerouslySetInnerHTML={{
+            __html: `
+            <img 
+              height="1" 
+              width="1" 
+              style="display:none"
+              src="https://www.facebook.com/tr?id=1271906851245732&ev=PageView&noscript=1"
+              alt=""
+            />
+          `,
+          }}
         />
       </noscript>
-      {/* End Facebook Pixel Code */}
-      
+
       <Script
         id="cookieyes"
         strategy="afterInteractive"
