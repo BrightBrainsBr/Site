@@ -83,6 +83,7 @@ const RootLayout = async ({ children, params }: any) => {
           href="/apple-touch-icon.png"
         />
         <link rel="manifest" href="/site.webmanifest" />
+        {/* Google Tag Manager */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -92,9 +93,27 @@ const RootLayout = async ({ children, params }: any) => {
             })(window,document,'script','dataLayer','GTM-WQ538QRM');`,
           }}
         />
+        {/* Facebook Pixel Code */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '1271906851245732');
+            fbq('track', 'PageView');
+            `,
+          }}
+        />
         <Scripts />
       </head>
       <body>
+        {/* Google Tag Manager noscript */}
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-WQ538QRM"
@@ -102,6 +121,22 @@ const RootLayout = async ({ children, params }: any) => {
             width="0"
             style={{ display: 'none', visibility: 'hidden' }}
           ></iframe>
+        </noscript>
+        {/* Facebook Pixel noscript */}
+        <noscript>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: `
+              <img 
+                height="1" 
+                width="1" 
+                style="display:none"
+                src="https://www.facebook.com/tr?id=1271906851245732&ev=PageView&noscript=1"
+                alt=""
+              />
+            `,
+            }}
+          />
         </noscript>
         {children}
       </body>
