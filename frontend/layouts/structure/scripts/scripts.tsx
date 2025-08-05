@@ -28,8 +28,10 @@ const Scripts: React.FC = () => {
         </style>
       </noscript>
 
-      <Script id="facebook-pixel" strategy="afterInteractive">
-        {`
+      {/* Facebook Pixel Code - Using script tag directly in head as per Meta's instructions */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
           !function(f,b,e,v,n,t,s) {
             if(f.fbq) return;
             n=f.fbq=function() {
@@ -48,8 +50,9 @@ const Scripts: React.FC = () => {
           }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '1271906851245732');
           fbq('track', 'PageView');
-        `}
-      </Script>
+        `,
+        }}
+      />
       <noscript>
         {/* Using dangerouslySetInnerHTML for the noscript pixel to avoid Next.js Image requirements */}
         <div
