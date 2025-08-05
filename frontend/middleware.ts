@@ -22,7 +22,8 @@ export default async function middleware(request: NextRequest) {
   }
 
   const handleI18nRouting = createIntlMiddleware({
-    ...i18n,
+    locales: i18n.locales,
+    defaultLocale: i18n.defaultLocale,
     localeDetection: false,
     alternateLinks: true,
   })
