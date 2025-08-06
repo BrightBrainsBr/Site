@@ -111,14 +111,15 @@ const RootLayout = async ({ children, params }: any) => {
           }}
         />
         <Scripts />
-        <noscript>
-          <iframe
+        <noscript
+          dangerouslySetInnerHTML={{
+            __html: `
+            <img height="1" width="1" style="display:none"
             src="https://www.facebook.com/tr?id=1271906851245732&ev=PageView&noscript=1"
-            height="1"
-            width="1"
-            style={{ display: 'none', visibility: 'hidden' }}
-          ></iframe>
-        </noscript>
+            />
+            `,
+          }}
+        />
       </head>
       <body>
         {/* Google Tag Manager noscript */}
