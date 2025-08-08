@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/next-script-for-ga */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable prettier/prettier */
 import '~/styles/index.css'
 
 import { Roboto } from 'next/font/google'
@@ -129,7 +131,7 @@ const RootLayout = async ({ children, params }: any) => {
         />
         <Scripts />
         <noscript>
-          <img 
+          <img
             height="1"
             width="1"
             style={{ display: 'none' }}
@@ -137,7 +139,7 @@ const RootLayout = async ({ children, params }: any) => {
           />
         </noscript>
         <noscript>
-          <img 
+          <img
             height="1"
             width="1"
             style={{ display: 'none' }}
