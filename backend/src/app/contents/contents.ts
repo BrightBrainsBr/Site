@@ -112,7 +112,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
       .addBlockHandler(DefaultBlocksHandler)
       .addBlockHandler(WrappersBlocksHandler)
     this.treatments.addDefaultQuery<IPostFilter>({
-      pageSize: 6,
+      pageSize: 25,
       hasPagination: true,
       sort: {
         publishedDateTime: 'desc',
