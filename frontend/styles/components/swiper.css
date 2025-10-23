@@ -137,19 +137,28 @@
   left: 1.5rem;
 }
 
-/* Force override of default Swiper colors and icons */
+/* Custom arrow icons using CSS */
 .swiper-button-next::after,
 .swiper-button-prev::after {
-  font-size: 1.25rem !important;
-  font-weight: 900 !important;
-  color: #a3e635 !important;
-  font-family: swiper-icons !important;
+  content: '' !important;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #a3e635;
+  border-right: 2px solid #a3e635;
+}
+
+.swiper-button-next::after {
+  transform: rotate(45deg);
+}
+
+.swiper-button-prev::after {
+  transform: rotate(-135deg);
 }
 
 /* Override any potential SVG colors */
 .swiper-button-next svg,
 .swiper-button-prev svg {
-  fill: #a3e635 !important;
+  display: none !important;
 }
 
 /* Additional overrides for stubborn Swiper styles */
