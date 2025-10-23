@@ -7,6 +7,7 @@ import type {
 export interface ITreatmentsQueryParams {
   filters: ITreatmentFilter
   page: number
+  pageSize?: number
   locale: string
   isAction?: boolean
 }

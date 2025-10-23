@@ -21,10 +21,10 @@ const BlockArchiveTreatments: React.FC<IBlockProps<Properties>> = async ({
 }) => {
   const { title, bgColor = 'transparent', anchor } = blockData
 
-  // TREATMENTS QUERY
   const queryParams: ITreatmentsQueryParams = {
     filters: {},
     page: 1,
+    pageSize: 25,
     locale,
   }
 

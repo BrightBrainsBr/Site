@@ -29,12 +29,7 @@ const Posts: React.FC<Props> = ({ initialState, queryParams }) => {
   return (
     <>
       <SliderContent data={posts} />
-      <ul
-        className={twMerge(
-          'hidden lg:flex gap-5 justify-between',
-          animate({ index: 1 })
-        )}
-      >
+      <ul aria-hidden={true} className="hidden">
         {posts &&
           posts.map((card: ITreatmentCard, index) => (
             <li

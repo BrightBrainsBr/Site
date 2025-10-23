@@ -1,6 +1,10 @@
 'use client'
 
 import './slider.css'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+import 'swiper/css/free-mode'
 
 import React from 'react'
 import { Swiper, type SwiperProps, SwiperSlide } from 'swiper/react'
@@ -28,7 +32,10 @@ const SwiperCarousel: React.FC<Props> = ({
     '--swiper-slidesPerView': slidesPerView,
     '--swiper-spaceBetween': `${Number(spaceBetween) / 16}rem`,
   } as React.CSSProperties
-  // cursor-grab active:cursor-grabbing
+
+  const shouldShowGrabCursor = 
+    slidesPerView !== 'auto' && renders.length > Number(slidesPerView)
+
   return (
     <Swiper
       {...rest}
@@ -41,9 +48,7 @@ const SwiperCarousel: React.FC<Props> = ({
       spaceBetween={spaceBetween}
       className={twMerge(
         className,
-        slidesPerView !== 'auto' &&
-          renders.length > slidesPerView &&
-          'cursor-grab active:cursor-grabbing'
+        shouldShowGrabCursor && 'cursor-grab active:cursor-grabbing'
       )}
     >
       {renders.map((item) => (
