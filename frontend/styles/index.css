@@ -187,8 +187,8 @@
 @import './components.css' layer(components);
 @import './utilities.css';
 
-@import './components/swiper.css';
 @import './components/hamburgers.css';
 @import './components/form.css';
+@import './components/swiper.css';
 
 @source '../node_modules/@futurebrand/helpers-nextjs/dist';

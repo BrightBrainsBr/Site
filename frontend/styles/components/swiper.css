@@ -120,6 +120,7 @@
   transition: all 0.3s ease;
   border: none;
   cursor: pointer;
+  font-size: 0 !important;
 }
 
 .swiper-button-next:hover,
@@ -136,12 +137,13 @@
   left: 1.5rem;
 }
 
-/* Force override of default Swiper colors */
+/* Force override of default Swiper colors and icons */
 .swiper-button-next::after,
 .swiper-button-prev::after {
-  font-size: 1.25rem;
-  font-weight: 900;
+  font-size: 1.25rem !important;
+  font-weight: 900 !important;
   color: #a3e635 !important;
+  font-family: swiper-icons !important;
 }
 
 /* Override any potential SVG colors */
