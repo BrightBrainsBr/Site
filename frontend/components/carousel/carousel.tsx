@@ -33,7 +33,7 @@ const SwiperCarousel: React.FC<Props> = ({
     '--swiper-spaceBetween': `${Number(spaceBetween) / 16}rem`,
   } as React.CSSProperties
 
-  const shouldShowGrabCursor = 
+  const shouldShowGrabCursor =
     slidesPerView !== 'auto' && renders.length > Number(slidesPerView)
 
   return (
