@@ -141,10 +141,10 @@
 .swiper-button-next::after,
 .swiper-button-prev::after {
   content: '' !important;
-  width: 10px;
-  height: 10px;
-  border-top: 2px solid #a3e635;
-  border-right: 2px solid #a3e635;
+  width: 26px;
+  height: 26px;
+  border-top: 3px solid #a3e635;
+  border-right: 3px solid #a3e635;
 }
 
 .swiper-button-next::after {
