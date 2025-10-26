@@ -1,0 +1,20 @@
+{
+  "collectionName": "common_depositions",
+  "info": {
+    "displayName": "Deposition",
+    "description": "Componente para depoimentos com vídeo e texto descritivo"
+  },
+  "options": {},
+  "attributes": {
+    "video": {
+      "type": "component",
+      "component": "common.video",
+      "required": true
+    },
+    "descriptionText": {
+      "type": "text",
+      "required": false
+    }
+  }
+}
+

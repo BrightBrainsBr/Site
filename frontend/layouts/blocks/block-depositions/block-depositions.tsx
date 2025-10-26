@@ -1,14 +1,16 @@
 import { AnimatedSection } from '@futurebrand/helpers-nextjs/components'
 import { animate } from '@futurebrand/helpers-nextjs/utils'
 import type { IBlockProps } from '@futurebrand/types/contents'
-import type { HTMLString } from '@futurebrand/types/strapi'
+import type { HTMLString, IStrapiVideo } from '@futurebrand/types/strapi'
 import React from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import SliderContent from './slider-content'
 
 export interface ISlide {
-  content: HTMLString
+  content?: HTMLString // Mantido para compatibilidade com depoimentos antigos
+  video?: IStrapiVideo // Novo campo para vídeo
+  descriptionText?: string // Novo campo para texto descritivo
 }
 
 interface Properties {
@@ -18,6 +20,9 @@ interface Properties {
 
 const BlockDepositions: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
   const { depositions, title, anchor } = blockData
+
+  // Limitar para mostrar apenas os 2 depoimentos mais recentes
+  const limitedDepositions = depositions.slice(0, 2)
 
   return (
     <AnimatedSection
@@ -38,7 +43,7 @@ const BlockDepositions: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
             {title}
           </h2>
         )}
-        <SliderContent data={depositions} />
+        <SliderContent data={limitedDepositions} />
       </div>
     </AnimatedSection>
   )

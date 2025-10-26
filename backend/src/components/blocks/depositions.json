@@ -12,7 +12,7 @@
     "depositions": {
       "type": "component",
       "repeatable": true,
-      "component": "common.text-card"
+      "component": "common.deposition"
     },
     "anchor": {
       "type": "string"
