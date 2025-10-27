@@ -16,6 +16,10 @@ interface Properties {
 
 const BlockManifest: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
   const { content, thumbnail, videoURL, anchor } = blockData
+  
+  // Alternar layout baseado no ID do block (ímpar/par)
+  // IDs ímpares: vídeo à direita | IDs pares: vídeo à esquerda
+  const isAlternate = blockData.id % 2 === 0
 
   return (
     <AnimatedSection
@@ -26,9 +30,12 @@ const BlockManifest: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
     >
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
-          {/* Texto ao lado esquerdo */}
+          {/* Texto */}
           {content && (
-            <div className="lg:col-span-5 order-2 lg:order-1">
+            <div className={twMerge(
+              'lg:col-span-5 order-2',
+              isAlternate ? 'lg:order-2' : 'lg:order-1'
+            )}>
               <span className="block w-[2.625rem] h-[0.125rem] bg-current mb-4 lg:mb-6" />
               <div
                 className={twMerge(
@@ -40,9 +47,12 @@ const BlockManifest: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
             </div>
           )}
           
-          {/* Vídeo ao lado direito */}
+          {/* Vídeo */}
           {videoURL && (
-            <div className="lg:col-span-7 order-1 lg:order-2">
+            <div className={twMerge(
+              'lg:col-span-7 order-1',
+              isAlternate ? 'lg:order-1' : 'lg:order-2'
+            )}>
               <VideoPlayer
                 thumbnail={thumbnail}
                 className="w-full aspect-video max-w-none"
