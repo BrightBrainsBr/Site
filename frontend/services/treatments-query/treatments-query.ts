@@ -14,6 +14,7 @@ function sanitizeData(
     id: item.id,
     animation: isAction ? index : false,
     title: item.title,
+    slug: item.slug,
     excerpt: item.excerpt,
     featuredImage: item.featuredImage,
     path: router.getLocalizedPath(

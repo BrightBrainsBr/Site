@@ -4,8 +4,8 @@ import React from 'react'
 
 import type { IPostsQueryParams } from '~/services/posts-query'
 import { queryPostsData } from '~/services/posts-query'
-import type { ITagsQueryParams } from '~/services/tags-query'
-import { queryTagsData } from '~/services/tags-query'
+import type { ITreatmentsQueryParams } from '~/services/treatments-query'
+import { queryTreatmentsData } from '~/services/treatments-query'
 
 import Posts from './posts'
 
@@ -19,15 +19,15 @@ const BlockArchivePosts: React.FC<IBlockProps<Properties>> = async ({
 }) => {
   const { title, anchor } = blockData
 
-  // TAGS
+  // TREATMENTS
 
-  const tagsQueryParams: ITagsQueryParams = {
+  const treatmentsQueryParams: ITreatmentsQueryParams = {
     filters: {},
     page: 1,
     locale,
   }
 
-  const tagsInitialState = await queryTagsData(tagsQueryParams)
+  const treatmentsInitialState = await queryTreatmentsData(treatmentsQueryParams)
 
   // POSTS
 
@@ -51,8 +51,8 @@ const BlockArchivePosts: React.FC<IBlockProps<Properties>> = async ({
         <Posts
           initialState={initialState}
           queryParams={queryParams}
-          tagsQueryParams={tagsQueryParams}
-          tagsInitialState={tagsInitialState}
+          treatmentsQueryParams={treatmentsQueryParams}
+          treatmentsInitialState={treatmentsInitialState}
           title={title}
         />
       </div>

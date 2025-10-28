@@ -161,6 +161,7 @@ declare module '@futurebrand/types/contents' {
     excerpt: string
     featuredImage: IResponsiveImage
     tags?: ITag[]
+    treatments?: ITag[] // usando ITag para consistência, mas é treatment
     publishedDateTime: string
   }
 
@@ -176,6 +177,7 @@ declare module '@futurebrand/types/contents' {
   export interface IPostFilter {
     title?: string
     tags?: string[]
+    treatments?: string[]
   }
 
   /** @TREATMENT */
@@ -196,6 +198,7 @@ declare module '@futurebrand/types/contents' {
   export interface ITreatmentCard {
     id: number
     title: string
+    slug: string
     excerpt: string
     featuredImage?: IStrapiMedia
     path: string

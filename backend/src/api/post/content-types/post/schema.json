@@ -56,6 +56,12 @@
       "target": "api::tag.tag",
       "inversedBy": "posts"
     },
+    "treatments": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::treatment.treatment",
+      "inversedBy": "posts"
+    },
     "blocks": {
       "pluginOptions": {
         "i18n": {

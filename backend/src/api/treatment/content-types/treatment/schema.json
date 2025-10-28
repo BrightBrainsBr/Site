@@ -104,6 +104,12 @@
         }
       },
       "type": "datetime"
+    },
+    "posts": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::post.post",
+      "mappedBy": "treatments"
     }
   }
 }
