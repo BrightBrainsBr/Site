@@ -26,7 +26,7 @@ const Title: React.FC<Properties> = ({
       spacing="padding"
       distance="small"
       className={twMerge(
-        'relative min-h-[31.25rem] lg:h-[47.62vh] lg:min-h-[25rem] flex flex-col justify-end overflow-hidden'
+        'relative min-h-[31.25rem] lg:h-[47.62vh] lg:min-h-[25rem] flex flex-col justify-end overflow-hidden pb-10 lg:pb-20'
       )}
     >
       <span className="absolute z-10 block top-0 left-0 w-full h-full bg-gradient-to-t lg:bg-gradient-to-r from-[#00000093] to-transparent" />
@@ -56,7 +56,7 @@ const Title: React.FC<Properties> = ({
           )} */}
           <h1
             className={animate({
-              className: 'font-light heading-5xl lg:max-w-[44.44vw]',
+              className: 'font-light heading-4xl lg:max-w-[44.44vw]',
             })}
           >
             {title}
