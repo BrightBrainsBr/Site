@@ -14,43 +14,43 @@ import type {
 } from '~/services/posts-query'
 import usePostsQuery from '~/services/posts-query/use-posts-query'
 import type {
-  ITreatmentsQueryParams,
-  ITreatmentsQueryResponse,
-} from '~/services/treatments-query'
-import useTreatmentsQuery from '~/services/treatments-query/use-treatments-query'
+  ITagsQueryParams,
+  ITagsQueryResponse,
+} from '~/services/tags-query'
+import useTagsQuery from '~/services/tags-query/use-tags-query'
 
 interface Props {
   queryParams: IPostsQueryParams
   initialState: IPostsQueryResponse
-  treatmentsQueryParams: ITreatmentsQueryParams
-  treatmentsInitialState: ITreatmentsQueryResponse
+  tagsQueryParams: ITagsQueryParams
+  tagsInitialState: ITagsQueryResponse
   title: string
 }
 
 const Posts: React.FC<Props> = ({
   initialState,
   queryParams,
-  treatmentsQueryParams,
-  treatmentsInitialState,
+  tagsQueryParams,
+  tagsInitialState,
   title,
 }) => {
-  const [currentTreatments, setCurrentTreatments] = useState<string[]>([])
+  const [currentTags, setCurrentTags] = useState<string[]>([])
   const { posts, isLoading, total, changeFilter } = usePostsQuery({
     initialState,
     queryParams,
   })
   const router = useSearchParams()
 
-  const { posts: treatments } = useTreatmentsQuery({
-    initialState: treatmentsInitialState,
-    queryParams: treatmentsQueryParams,
+  const { tags } = useTagsQuery({
+    initialState: tagsInitialState,
+    queryParams: tagsQueryParams,
   })
 
   useEffect(() => {
     void changeFilter({
-      treatments: currentTreatments,
+      tags: currentTags,
     })
-  }, [currentTreatments, router])
+  }, [currentTags, router])
 
   return (
     <>
@@ -61,34 +61,34 @@ const Posts: React.FC<Props> = ({
         )}
       >
         {title && <h2 className="text-sm uppercase">{title}</h2>}
-        {treatments.length > 0 && (
+        {tags.length > 0 && (
           <Accordion
             title="Filtros"
             isSelect
             className="lg:z-10 lg:absolute lg:top-0 lg:right-0 bg-gray-light rounded-2xl w-full lg:w-[20.83vw] px-3"
           >
             <form className="flex flex-col gap-3 px-3 pt-4 pb-10">
-              {treatments.map((treatment, index) => (
-                <fieldset className="flex gap-2" key={`treatment-${index}`}>
+              {tags.map((tag, index) => (
+                <fieldset className="flex gap-2" key={`tag-${index}`}>
                   <input
-                    id={treatment.title}
-                    name="treatment-option"
+                    id={tag.name}
+                    name="tag-option"
                     type="radio"
-                    value={treatment.title}
+                    value={tag.name}
                     onChange={(event) => {
                       if (event.target.checked) {
-                        setCurrentTreatments([treatment.slug])
+                        setCurrentTags([tag.name])
                       }
                     }}
                   />
-                  <label htmlFor={treatment.title}>{treatment.title}</label>
+                  <label htmlFor={tag.name}>{tag.name}</label>
                 </fieldset>
               ))}
               <button
                 type="reset"
                 className="underline w-fit text-gray-secondary-dark"
                 onClick={() => {
-                  setCurrentTreatments([])
+                  setCurrentTags([])
                 }}
               >
                 Limpar

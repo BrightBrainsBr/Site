@@ -55,6 +55,24 @@ const NavMenu: React.FC<Properties> = ({
               )}
             />
           </li>
+          <li
+            className={twMerge(
+              'opacity-0 lg:opacity-100 lg:h-full',
+              isMenuActive && 'animate-fadein'
+            )}
+          >
+            <Link
+              name="blog-link"
+              href="/noticias"
+              className={twMerge(
+                'lg:h-full lg:flex lg:items-center lg:px-2 text-midnight-950 text-[1.875rem] lg:text-base lg:font-semibold font-kmr lg:translate-y-0 lg:transition-all lg:duration-200 hover:lg:-translate-y-2',
+                !isDropdownActive && `lg:text-${headerSettings().accent}`
+              )}
+              onClick={closeMenu}
+            >
+              Blog
+            </Link>
+          </li>
           {headerMenu.length > 0 &&
             headerMenu.map((menuItem, index) => (
               <li

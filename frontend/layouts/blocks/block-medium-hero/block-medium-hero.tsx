@@ -21,7 +21,7 @@ const BlockMediumHero: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
       anchor={anchor}
       spacing="none"
       className={twMerge(
-        'relative h-[31.25rem] lg:h-[78.14vh] lg:min-h-[37.5rem] flex flex-col justify-center lg:justify-start overflow-hidden',
+        'relative h-[18rem] lg:h-[35vh] lg:min-h-[22rem] flex flex-col justify-center lg:justify-start overflow-hidden',
         bgColor !== 'light'
           ? 'bg-midnight-950'
           : 'bg-gradient-to-b from-[#ffffffc9] to-transparent'
@@ -36,7 +36,7 @@ const BlockMediumHero: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
           alt="graphism-neuro"
         />
       )}
-      <div className="container grid grid-cols-1 lg:grid-cols-12 lg:pt-[30.76vh]">
+        <div className="container grid grid-cols-1 lg:grid-cols-12 lg:pt-[20vh]">
         <div
           className={twMerge(
             'relative z-10 lg:col-span-6 lg:col-start-3 flex flex-col gap-5 lg:gap-10',
