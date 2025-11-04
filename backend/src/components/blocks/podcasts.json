@@ -1,0 +1,16 @@
+{
+  "collectionName": "blocks_podcasts",
+  "info": {
+    "displayName": "Block | Podcasts",
+    "description": "Bloco para exibir os últimos episódios do podcast do Spotify"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "anchor": {
+      "type": "string"
+    }
+  }
+}
