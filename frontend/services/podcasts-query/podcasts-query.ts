@@ -1,4 +1,5 @@
 import { ContentService } from '@futurebrand/helpers-nextjs/services'
+
 import type { IPodcastData } from '~/components/spotify-cards'
 
 import type { IPodcastsQueryParams, IPodcastsQueryResponse } from './types'
@@ -39,7 +40,7 @@ export async function queryPodcastsData(
     }
   } catch (error) {
     console.error('Error querying podcasts:', error)
-    
+
     return {
       pagination: {
         page: 1,

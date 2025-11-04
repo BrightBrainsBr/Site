@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/next-script-for-ga */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
-/* eslint-disable prettier/prettier */
+
 import '~/styles/index.css'
 
 import { Roboto } from 'next/font/google'

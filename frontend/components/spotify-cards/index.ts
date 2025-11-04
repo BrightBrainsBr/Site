@@ -1,6 +1,6 @@
 export { default as SpotifyCard } from './spotify-card'
 export { default as SpotifyCardsContainer } from './spotify-cards-container'
-export { default as SpotifyCardsLoading } from './spotify-cards-loading'
 export { default as SpotifyCardsError } from './spotify-cards-error'
+export { default as SpotifyCardsLoading } from './spotify-cards-loading'
 export { default as SpotifyCardsWrapper } from './spotify-cards-wrapper'
 export * from './types'

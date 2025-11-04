@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 const imagesDomain = require('./domains')
 
 const cmsBaseUrl = process.env.CMS_BASE_URL

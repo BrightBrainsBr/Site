@@ -58,14 +58,16 @@ export async function queryTreatmentsData(
 
   const response = await fetch(url, {
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     next: { revalidate: 300 },
   })
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch treatments: ${response.status} ${response.statusText}`)
+    throw new Error(
+      `Failed to fetch treatments: ${response.status} ${response.statusText}`
+    )
   }
 
   const data = await response.json()

@@ -38,7 +38,10 @@ const Slide: React.FC<Properties> = ({ data }) => {
   if (video) {
     return (
       <>
-        <div className="w-full cursor-pointer" onClick={() => setIsModalOpen(true)}>
+        <div
+          className="w-full cursor-pointer"
+          onClick={() => setIsModalOpen(true)}
+        >
           <VideoPlayer
             title={video.title || 'Depoimento'}
             youtubeVideo={video.youtubeVideo}
@@ -61,7 +64,9 @@ const Slide: React.FC<Properties> = ({ data }) => {
             </div>
             {descriptionText && (
               <div className="prose prose-lg max-w-none text-midnight-950">
-                <p className="text-base lg:text-lg leading-relaxed">{descriptionText}</p>
+                <p className="text-base lg:text-lg leading-relaxed">
+                  {descriptionText}
+                </p>
               </div>
             )}
           </div>

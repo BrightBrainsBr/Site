@@ -1,10 +1,9 @@
 import { StrapiTitle } from '@futurebrand/components'
+import { AnimatedSection } from '@futurebrand/components'
 import type { IWrapperProps } from '@futurebrand/types/contents'
 import { type IStrapiTitle } from '@futurebrand/types/strapi'
 import { animate } from '@futurebrand/utils'
 import React from 'react'
-
-import { AnimatedSection } from '@futurebrand/components'
 
 interface Properties {
   title: IStrapiTitle

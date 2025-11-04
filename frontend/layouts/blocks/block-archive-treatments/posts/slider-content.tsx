@@ -3,7 +3,7 @@
 import { animate } from '@futurebrand/helpers-nextjs/utils'
 import type { ITreatmentCard } from '@futurebrand/types/contents'
 import React, { useMemo } from 'react'
-import { FreeMode, Autoplay, Navigation, Pagination } from 'swiper/modules'
+import { Autoplay, FreeMode, Navigation, Pagination } from 'swiper/modules'
 import { twMerge } from 'tailwind-merge'
 
 import SwiperCarousel from '~/components/carousel/carousel'
@@ -29,7 +29,7 @@ const BREAKPOINTS = {
 const SliderContent: React.FC<Props> = ({ data }) => {
   const renders = useMemo(
     () =>
-      data.map((slide, index) => ({
+      data.map((slide) => ({
         key: `treatment-card-${slide.id}`,
         Layout: <Slide data={slide} />,
       })),

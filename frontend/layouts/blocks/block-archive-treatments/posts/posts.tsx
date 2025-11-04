@@ -1,7 +1,6 @@
 'use client'
 
 import { Link, StrapiImage } from '@futurebrand/helpers-nextjs/components'
-import { animate } from '@futurebrand/helpers-nextjs/utils'
 import type { ITreatmentCard } from '@futurebrand/types/contents'
 import React from 'react'
 import { twMerge } from 'tailwind-merge'

@@ -36,7 +36,7 @@ const BlockMediumHero: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
           alt="graphism-neuro"
         />
       )}
-        <div className="container grid grid-cols-1 lg:grid-cols-12 lg:pt-[20vh]">
+      <div className="container grid grid-cols-1 lg:grid-cols-12 lg:pt-[20vh]">
         <div
           className={twMerge(
             'relative z-10 lg:col-span-6 lg:col-start-3 flex flex-col gap-5 lg:gap-10',

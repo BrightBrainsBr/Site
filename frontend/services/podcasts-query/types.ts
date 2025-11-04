@@ -1,4 +1,5 @@
 import type { IContentPagination } from '@futurebrand/types/contents'
+
 import type { IPodcastData } from '~/components/spotify-cards'
 
 export interface IPodcastFilter {

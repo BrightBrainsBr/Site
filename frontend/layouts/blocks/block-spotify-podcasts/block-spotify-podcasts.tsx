@@ -2,9 +2,9 @@ import { AnimatedSection } from '@futurebrand/helpers-nextjs/components'
 import type { IBlockProps } from '@futurebrand/types/contents'
 import React from 'react'
 
+import { SpotifyCardsWrapper } from '~/components/spotify-cards'
 import type { IPodcastsQueryParams } from '~/services/podcasts-query'
 import { queryPodcastsData } from '~/services/podcasts-query'
-import { SpotifyCardsWrapper } from '~/components/spotify-cards'
 
 interface Properties {
   title: string
@@ -29,7 +29,7 @@ const BlockSpotifyPodcasts: React.FC<IBlockProps<Properties>> = async ({
 
   try {
     podcastsData = await queryPodcastsData(queryParams)
-    
+
     // Check if the response contains an error
     if (podcastsData.error) {
       error = podcastsData.error

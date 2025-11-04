@@ -2,10 +2,10 @@
 
 import React, { Suspense } from 'react'
 
-import type { IPodcastData } from './types'
 import SpotifyCardsContainer from './spotify-cards-container'
 import SpotifyCardsError from './spotify-cards-error'
 import SpotifyCardsLoading from './spotify-cards-loading'
+import type { IPodcastData } from './types'
 
 interface ISpotifyCardsWrapperProps {
   podcasts?: IPodcastData[]
@@ -38,17 +38,14 @@ const SpotifyCardsWrapper: React.FC<ISpotifyCardsWrapperProps> = ({
 
   // Loading state
   if (isLoading || !podcasts) {
-    return (
-      <SpotifyCardsLoading
-        title={title}
-        className={className}
-      />
-    )
+    return <SpotifyCardsLoading title={title} className={className} />
   }
 
   // Success state
   return (
-    <Suspense fallback={<SpotifyCardsLoading title={title} className={className} />}>
+    <Suspense
+      fallback={<SpotifyCardsLoading title={title} className={className} />}
+    >
       <SpotifyCardsContainer
         podcasts={podcasts}
         title={title}
