@@ -21,7 +21,7 @@ const SCRIPTS_SRC = [
   '*.youtube.com',
 ]
 const STYLES_SRC = []
-const FRAMES_SRC = ['www.youtube.com']
+const FRAMES_SRC = ['www.youtube.com', 'open.spotify.com']
 const IMAGES_SRC = [cmsHostName, ...imagesDomain, '*.ytimg.com']
 
 /**
