@@ -6,10 +6,9 @@ import type { ISpotifyCard } from './types'
 
 const SpotifyCard: React.FC<ISpotifyCard> = ({ podcast, priority = false }) => {
   const { attributes } = podcast
-  
+
   // Normalize data - handle both camelCase and snake_case from API
   const spotifyId = attributes.spotifyId || attributes.spotify_id || ''
-  const spotifyUrl = attributes.spotifyUrl || attributes.spotify_url || ''
   const { title } = attributes
 
   // Spotify embed iframe URL
@@ -18,9 +17,7 @@ const SpotifyCard: React.FC<ISpotifyCard> = ({ podcast, priority = false }) => {
   return (
     <div
       className={twMerge(
-        'spotify-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300',
-        'border border-gray-200 hover:border-green-400',
-        'w-full relative', // Added relative for badge positioning
+        'spotify-card w-full relative', // Removed border, bg and shadow
         animate()
       )}
     >
@@ -30,13 +27,13 @@ const SpotifyCard: React.FC<ISpotifyCard> = ({ podcast, priority = false }) => {
           NOVO
         </div>
       )}
-      
+
       {/* Spotify Embed Player */}
       <div className="w-full">
         <iframe
           src={embedUrl}
           width="100%"
-          height="352"
+          height="300"
           frameBorder="0"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"

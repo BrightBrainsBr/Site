@@ -1,3 +1,20 @@
+// Raw podcast data as it comes from API (flat structure)
+export interface IPodcastRawData {
+  id: number
+  documentId?: string
+  spotifyId: string
+  title: string
+  description: string
+  imageUrl?: string
+  spotifyUrl: string
+  duration: number
+  publishedDate?: string
+  createdAt?: string
+  updatedAt?: string
+  publishedAt?: string
+  locale?: string
+}
+
 export interface IPodcastData {
   id: number
   attributes: {
@@ -54,7 +71,7 @@ export interface ISpotifyCardsProps {
 }
 
 export interface ISpotifyCardsContainerProps {
-  podcasts: IPodcastData[]
+  podcasts: (IPodcastData | IPodcastRawData)[]
   title?: string
   className?: string
 }

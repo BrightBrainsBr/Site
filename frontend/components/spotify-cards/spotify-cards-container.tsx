@@ -1,9 +1,13 @@
-                                                                                                                                import { animate } from '@futurebrand/helpers-nextjs/utils'
+import { animate } from '@futurebrand/helpers-nextjs/utils'
 import React from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import SpotifyCard from './spotify-card'
-import type { ISpotifyCardsContainerProps } from './types'
+import type {
+  ISpotifyCardsContainerProps,
+  IPodcastData,
+  IPodcastRawData,
+} from './types'
 
 const SpotifyCardsContainer: React.FC<ISpotifyCardsContainerProps> = ({
   podcasts,
@@ -12,6 +16,13 @@ const SpotifyCardsContainer: React.FC<ISpotifyCardsContainerProps> = ({
 }) => {
   // Limit to 3 most recent podcasts
   const latestPodcasts = podcasts.slice(0, 3)
+
+  // Type guard to check if podcast has attributes
+  const hasAttributes = (
+    podcast: IPodcastData | IPodcastRawData
+  ): podcast is IPodcastData => {
+    return 'attributes' in podcast
+  }
 
   if (latestPodcasts.length === 0) {
     return (
@@ -57,18 +68,22 @@ const SpotifyCardsContainer: React.FC<ISpotifyCardsContainerProps> = ({
         )}
       >
         {latestPodcasts.map((podcast, index) => {
-          // Handle both formats: { attributes: {...} } or direct object
-          const attrs = podcast.attributes || podcast
-          const key = (attrs as any).spotifyId || (attrs as any).spotify_id || podcast.id
-          
-          // Normalize podcast to expected format
-          const normalizedPodcast = podcast.attributes 
-            ? podcast 
-            : { id: podcast.id, attributes: podcast as any }
-          
+          // Check if data has attributes wrapper or is raw
+          const normalizedPodcast: IPodcastData = hasAttributes(podcast)
+            ? podcast
+            : {
+                id: podcast.id,
+                attributes: podcast as IPodcastRawData,
+              }
+
+          const spotifyId =
+            normalizedPodcast.attributes.spotifyId ||
+            normalizedPodcast.attributes.spotify_id ||
+            normalizedPodcast.id
+
           return (
             <SpotifyCard
-              key={key}
+              key={String(spotifyId)}
               podcast={normalizedPodcast}
               priority={index === 0} // First card gets priority loading
             />
