@@ -5,6 +5,7 @@ export type ContentTypes =
   | 'search'
   | 'treatments'
   | 'tags'
+  | 'podcasts'
 
 export interface IPostFilter {
   title?: string

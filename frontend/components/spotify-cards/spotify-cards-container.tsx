@@ -1,4 +1,4 @@
-import { animate } from '@futurebrand/helpers-nextjs/utils'
+                                                                                                                                import { animate } from '@futurebrand/helpers-nextjs/utils'
 import React from 'react'
 import { twMerge } from 'tailwind-merge'
 
@@ -56,19 +56,32 @@ const SpotifyCardsContainer: React.FC<ISpotifyCardsContainerProps> = ({
           animate()
         )}
       >
-        {latestPodcasts.map((podcast, index) => (
-          <SpotifyCard
-            key={podcast.attributes.spotifyId}
-            podcast={podcast}
-            priority={index === 0} // First card gets priority loading
-          />
-        ))}
+        {latestPodcasts.map((podcast, index) => {
+          // Handle both formats: { attributes: {...} } or direct object
+          const attrs = podcast.attributes || podcast
+          const key = (attrs as any).spotifyId || (attrs as any).spotify_id || podcast.id
+          
+          // Normalize podcast to expected format
+          const normalizedPodcast = podcast.attributes 
+            ? podcast 
+            : { id: podcast.id, attributes: podcast as any }
+          
+          return (
+            <SpotifyCard
+              key={key}
+              podcast={normalizedPodcast}
+              priority={index === 0} // First card gets priority loading
+            />
+          )
+        })}
       </div>
 
       {/* Show all episodes link */}
       <div className={twMerge('text-center mt-8', animate())}>
         <a
-          href="#"
+          href="https://open.spotify.com/show/27Ea3Q6N75RmWg0vyzQtCr"
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-medium transition-colors"
         >
           Ver todos os episódios

@@ -18,6 +18,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
   pages: ContentModule
   modals: ContentModule
   posts: ContentModule
+  podcasts: ContentModule
   searchEntry: ContentModule
   treatments: ContentModule
   tags: ContentModule
@@ -124,6 +125,16 @@ class AppContentClient implements ContentClient<ContentTypes> {
 
     this.searchEntry = new ContentModule('api::search-entry.search-entry')
 
+    /** @PODCASTS */
+    this.podcasts = new ContentModule('api::podcast.podcast')
+    this.podcasts.addDefaultQuery({
+      pageSize: 25,
+      hasPagination: true,
+      sort: {
+        publishedDate: 'desc',
+      } as any,
+    })
+
     this.searchEntry
       .addDefaultQuery<IPostFilter>({
         pageSize: 12,
@@ -152,12 +163,14 @@ class AppContentClient implements ContentClient<ContentTypes> {
     await this.pages.register()
     await this.modals.register()
     await this.posts.register()
+      await this.podcasts.register()
     await this.searchEntry.register()
     await this.treatments.register()
     await this.tags.register()
   }
 
   public getContentByType(type: ContentTypes) {
+    console.log(`[ContentClient] getContentByType called with type: "${type}" (typeof: ${typeof type})`)
     switch (type) {
       case 'pages':
         return this.pages
@@ -165,6 +178,9 @@ class AppContentClient implements ContentClient<ContentTypes> {
         return this.modals
       case 'posts':
         return this.posts
+      case 'podcasts':
+        console.log('[ContentClient] Matched podcasts case, returning this.podcasts')
+        return this.podcasts
       case 'search':
         return this.searchEntry
       case 'treatments':
@@ -172,6 +188,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
       case 'tags':
         return this.tags
       default:
+        console.error(`[ContentClient] No matching case found for type: "${type}"`)
         throw new Error(`Invalid content type: ${type as string}`)
     }
   }
@@ -188,6 +205,8 @@ class AppContentClient implements ContentClient<ContentTypes> {
         return 'modals'
       case 'api::post.post':
         return 'posts'
+      case 'api::podcast.podcast':
+        return 'podcasts'
       case 'api::search-entry.search-entry':
         return 'search'
       case 'api::treatment.treatment':

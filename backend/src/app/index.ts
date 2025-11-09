@@ -93,26 +93,31 @@ class App extends AppClient {
     // Initialize search relation
     await createSearchRelation()
     
-    // Initialize Spotify podcast synchronization
-    await this.initializePodcastSync(strapi)
+    // Initialize Spotify podcast synchronization (without health check on startup)
+    this.initializePodcastSync(strapi)
   }
 
   /**
    * Initialize Spotify podcast synchronization cronjob
    */
-  private async initializePodcastSync(strapi: Core.Strapi) {
+  private initializePodcastSync(strapi: Core.Strapi) {
     try {
       // Create podcast sync service
       const podcastSync = new PodcastSyncService(strapi)
-      
-      // Test service health on startup
-      const healthCheck = await podcastSync.healthCheck()
-      if (!healthCheck.success) {
-        console.warn(`[App] Podcast sync service health check failed: ${healthCheck.message}`)
-        console.warn(`[App] Cronjob will still be scheduled, but may not work until Spotify credentials are configured`)
-      } else {
-        console.log(`[App] Podcast sync service initialized successfully: ${healthCheck.message}`)
-      }
+
+      // Run initial sync on startup
+      console.log(`[App] 🔄 Running initial podcast synchronization...`)
+      podcastSync.syncPodcasts()
+        .then((result) => {
+          if (result.success) {
+            console.log(`[App] ✅ Initial sync completed: ${result.message}`)
+          } else {
+            console.error(`[App] ❌ Initial sync failed: ${result.message}`)
+          }
+        })
+        .catch((error) => {
+          console.error(`[App] ❌ Initial sync error:`, error)
+        })
 
       // Schedule cronjob to run daily at 3:00 AM
       // Cron format: second minute hour day month day-of-week
@@ -131,11 +136,6 @@ class App extends AppClient {
       })
 
       console.log(`[App] ✅ Podcast synchronization cronjob scheduled for daily execution at 3:00 AM (Brazil/SP timezone)`)
-      
-      // Optional: Run initial sync on startup (commented out for now)
-      // console.log(`[App] Running initial podcast sync...`)
-      // const initialSync = await podcastSync.syncPodcasts()
-      // console.log(`[App] Initial sync result: ${initialSync.message}`)
 
     } catch (error) {
       console.error(`[App] Failed to initialize podcast synchronization:`, error)
