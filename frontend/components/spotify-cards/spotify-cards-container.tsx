@@ -1,12 +1,13 @@
-import { animate } from '@futurebrand/helpers-nextjs/utils'
 import React from 'react'
 import { twMerge } from 'tailwind-merge'
 
+import { animate } from '@futurebrand/helpers-nextjs/utils'
+
 import SpotifyCard from './spotify-card'
 import type {
-  ISpotifyCardsContainerProps,
   IPodcastData,
   IPodcastRawData,
+  ISpotifyCardsContainerProps,
 } from './types'
 
 const SpotifyCardsContainer: React.FC<ISpotifyCardsContainerProps> = ({
@@ -73,7 +74,7 @@ const SpotifyCardsContainer: React.FC<ISpotifyCardsContainerProps> = ({
             ? podcast
             : {
                 id: podcast.id,
-                attributes: podcast as IPodcastRawData,
+                attributes: podcast,
               }
 
           const spotifyId =
