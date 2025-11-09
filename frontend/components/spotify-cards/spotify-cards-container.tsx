@@ -1,7 +1,6 @@
+import { animate } from '@futurebrand/helpers-nextjs/utils'
 import React from 'react'
 import { twMerge } from 'tailwind-merge'
-
-import { animate } from '@futurebrand/helpers-nextjs/utils'
 
 import SpotifyCard from './spotify-card'
 import type {
