@@ -8,8 +8,9 @@ const SpotifyCard: React.FC<ISpotifyCard> = ({ podcast, priority = false }) => {
   const { attributes } = podcast
 
   // Normalize data - handle both camelCase and snake_case from API
-  const spotifyId = attributes.spotifyId || attributes.spotify_id || ''
-  const { title } = attributes
+  const spotifyId =
+    attributes?.spotifyId || attributes?.spotify_id || podcast.id
+  const title = attributes?.title || ''
 
   // Spotify embed iframe URL
   const embedUrl = `https://open.spotify.com/embed/episode/${spotifyId}`
