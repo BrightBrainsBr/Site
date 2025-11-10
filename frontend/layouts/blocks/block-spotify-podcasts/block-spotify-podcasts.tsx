@@ -47,7 +47,7 @@ const BlockSpotifyPodcasts: React.FC<IBlockProps<Properties>> = async ({
       anchor={anchor}
       distance="small"
       spacing="padding"
-      className="bg-gradient-to-b from-gray-light from-20% to-transparent"
+      className="bg-gradient-to-b from-20% to-transparent"
     >
       <div className="container">
         <SpotifyCardsWrapper
