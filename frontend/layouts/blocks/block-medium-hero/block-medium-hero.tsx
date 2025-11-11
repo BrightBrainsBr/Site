@@ -21,7 +21,7 @@ const BlockMediumHero: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
       anchor={anchor}
       spacing="none"
       className={twMerge(
-        'relative h-[18rem] lg:h-[35vh] lg:min-h-[22rem] flex flex-col justify-center lg:justify-start overflow-hidden',
+        'relative h-[22rem] lg:h-[45vh] lg:min-h-[28rem] flex flex-col justify-center lg:justify-start overflow-hidden',
         bgColor !== 'light'
           ? 'bg-midnight-950'
           : 'bg-gradient-to-b from-[#ffffffc9] to-transparent'
