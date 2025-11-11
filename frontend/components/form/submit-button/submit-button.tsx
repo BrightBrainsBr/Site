@@ -31,10 +31,10 @@ const SubmitButton: React.FC = () => {
   return (
     <div
       className={twMerge(
-        'flex col-span-full mt-3 md:mt-2',
-        buttonPosition === 'center' && 'md:justify-center',
-        buttonPosition === 'right' && 'md:justify-right',
-        buttonPosition === 'left' && 'md:justify-left'
+        'flex flex-col col-span-full mt-3 md:mt-2 gap-3',
+        buttonPosition === 'center' && 'md:items-center',
+        buttonPosition === 'right' && 'md:items-end',
+        buttonPosition === 'left' && 'md:items-start'
       )}
     >
       <CMSButton
@@ -47,6 +47,10 @@ const SubmitButton: React.FC = () => {
       >
         <div className={classNames.spin()} />
       </CMSButton>
+      <p className="text-sm text-midnight-950/70">
+        Ao clicar você está consentindo o compartilhamento dos seus dados, de
+        acordo com a Lei LGPD.
+      </p>
     </div>
   )
 }
