@@ -12,10 +12,10 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@futurebrand/helpers-nextjs": "^2.0.1",
-    "@react-pdf/renderer": "^4.3.2",
     "@supabase/supabase-js": "^2.98.0",
     "@tailwindcss/postcss": "^4.0.4",
     "@tailwindcss/typography": "^0.5.19",
+    "jspdf": "^4.2.0",
     "marked": "^17.0.4",
     "next": "15.3.8",
     "next-compose-plugins": "^2.2.1",

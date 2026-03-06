@@ -16,7 +16,6 @@ const nextConfig = {
       fullUrl: true,
     },
   },
-  serverExternalPackages: ['@react-pdf/renderer', '@react-pdf/layout', '@react-pdf/pdfkit', 'yoga-layout'],
   experimental: {},
   reactStrictMode: false,
 }
