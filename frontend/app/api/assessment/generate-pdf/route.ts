@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server'
 import React from 'react'
 
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 300
 
 import { LOGO_PNG, type PdfInput, s } from './pdf-constants'
 import { formatBody, parseSections } from './pdf-helpers'
