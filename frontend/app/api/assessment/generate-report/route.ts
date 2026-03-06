@@ -4,6 +4,9 @@ import type { NextRequest } from 'next/server'
 import type { AssessmentFormData } from '~/components/assessment/assessment.interface'
 import { buildReportPromptData } from '~/helpers/assessment/build-report-data'
 
+export const runtime = 'nodejs'
+export const maxDuration = 300
+
 const MODEL = 'claude-sonnet-4-20250514'
 
 const CFM_SYSTEM_PREAMBLE = `Você é uma IA de Apoio à Decisão Clínica do programa "Bright Precision" (Bright Brains · Instituto da Mente).

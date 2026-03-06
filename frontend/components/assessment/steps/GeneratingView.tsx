@@ -46,7 +46,7 @@ const REASONING_MESSAGES: Record<number, string[]> = {
   ],
 }
 
-const ESTIMATED_TOTAL_SECONDS = 120
+const ESTIMATED_TOTAL_SECONDS = 170
 
 export { STAGE_LABELS, type StageContent }
 
