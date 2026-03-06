@@ -223,24 +223,6 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
 
       {phase === 'complete' && (
         <div className="space-y-4">
-          {stages.map((st) => (
-            <ReportStageDetails
-              key={st.stage}
-              stage={st}
-              label={STAGE_LABELS[st.stage - 1]}
-              defaultOpen={st.stage === stages.length}
-            />
-          ))}
-
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs text-amber-300/80">
-            <strong>Conformidade CFM nº 2.454/2026</strong> — Este relatório
-            contém sugestões preliminares de IA classificada como Médio Risco
-            (Art. 13, Anexo II). Todas as recomendações são não vinculantes e
-            sujeitas à análise e decisão final do comitê médico responsável.
-          </div>
-
-          {error && <InfoBox variant="warning">{error}</InfoBox>}
-
           {!pdfUrl ? (
             <button
               type="button"
@@ -274,6 +256,24 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
               </button>
             </div>
           )}
+
+          {error && <InfoBox variant="warning">{error}</InfoBox>}
+
+          {stages.map((st) => (
+            <ReportStageDetails
+              key={st.stage}
+              stage={st}
+              label={STAGE_LABELS[st.stage - 1]}
+              defaultOpen={st.stage === stages.length}
+            />
+          ))}
+
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs text-amber-300/80">
+            <strong>Conformidade CFM nº 2.454/2026</strong> — Este relatório
+            contém sugestões preliminares de IA classificada como Médio Risco
+            (Art. 13, Anexo II). Todas as recomendações são não vinculantes e
+            sujeitas à análise e decisão final do comitê médico responsável.
+          </div>
         </div>
       )}
 

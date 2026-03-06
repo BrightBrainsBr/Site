@@ -195,15 +195,8 @@ export function GeneratingView({
           <span>Análise em tempo real</span>
         </div>
         <div className="h-28 overflow-y-auto font-mono text-xs leading-relaxed scrollbar-thin">
-          {logRef.current.map((msg, i) => (
-            <div
-              key={`${msg}-${i}`}
-              className={`py-0.5 ${
-                i === logRef.current.length - 1
-                  ? 'text-lime-400'
-                  : 'text-zinc-600'
-              }`}
-            >
+          {logRef.current.slice(0, -1).map((msg, i) => (
+            <div key={`${msg}-${i}`} className="py-0.5 text-zinc-600">
               <span className="text-zinc-700 mr-2">
                 {formatTime(
                   Math.max(0, elapsed - (logRef.current.length - 1 - i) * 3)
