@@ -9,7 +9,19 @@ interface II18nConfig {
 export default getRequestConfig(async ({ requestLocale }) => {
   // This typically corresponds to the `[locale]` segment.
   let locale = await requestLocale
-  const i18n = (await getDynamicI18nConfigs()) as II18nConfig
+  
+  // Try to get dynamic i18n configs, fallback to static config if CMS is unavailable
+  let i18n: II18nConfig
+  try {
+    i18n = (await getDynamicI18nConfigs()) as II18nConfig
+  } catch (error) {
+    // Fallback to default locale configuration when CMS is unavailable
+    console.warn('CMS unavailable, using fallback locale configuration:', error)
+    i18n = {
+      locales: ['pt', 'en'],
+      defaultLocale: 'pt',
+    }
+  }
 
   // Ensure that a valid locale is used
   if (!locale || !i18n.locales.includes(locale as any)) {

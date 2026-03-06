@@ -40,3 +40,5 @@ frontend/public/*.xml
 
 # backend
 backend/config/env/development/database.ts
+
+claude_artifact/

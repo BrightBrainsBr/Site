@@ -10,9 +10,14 @@
     "analyze": "cross-env ANALYZE=true next build"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@futurebrand/helpers-nextjs": "^2.0.1",
+    "@react-pdf/renderer": "^4.3.2",
+    "@supabase/supabase-js": "^2.98.0",
     "@tailwindcss/postcss": "^4.0.4",
-    "next": "^15.3.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "marked": "^17.0.4",
+    "next": "15.3.8",
     "next-compose-plugins": "^2.2.1",
     "next-intl": "^3.26.3",
     "next-plugin-svgr": "^1.1.12",
@@ -28,15 +33,15 @@
   },
   "devDependencies": {
     "@futurebrand/dev-tools": "^2.1.2",
-    "@next/bundle-analyzer": "^15.3.0",
+    "@next/bundle-analyzer": "15.3.8",
     "@types/node": "^22.14.1",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
+    "eslint": "latest",
     "prettier": "^3.4.2",
-    "typescript": "^5.7.3",
-    "eslint": "latest"
+    "typescript": "^5.7.3"
   },
   "overrides": {
     "next": "$next",
