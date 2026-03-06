@@ -7,8 +7,6 @@ const PUBLIC_FILE = /\.(.*)$/
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  const i18n = await getDynamicI18nConfigs()
-
   if (pathname === '/BitKeeper') {
     return NextResponse.error()
   }
@@ -19,6 +17,18 @@ export default async function middleware(request: NextRequest) {
     PUBLIC_FILE.test(request.nextUrl.pathname)
   ) {
     return NextResponse.next()
+  }
+
+  // Try to get dynamic i18n configs, fallback to static config if CMS is unavailable
+  let i18n
+  try {
+    i18n = await getDynamicI18nConfigs()
+  } catch (error) {
+    console.warn('CMS unavailable, using fallback locale configuration:', error)
+    i18n = {
+      locales: ['pt', 'en'],
+      defaultLocale: 'pt',
+    }
   }
 
   const handleI18nRouting = createIntlMiddleware({

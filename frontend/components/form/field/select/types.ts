@@ -4,8 +4,9 @@ export interface ISelectOption {
   label: string
 }
 
-export interface ISelectProps<Element extends HTMLElement = HTMLSelectElement>
-  extends React.HTMLProps<Element> {
+export interface ISelectProps<
+  Element extends HTMLElement = HTMLSelectElement,
+> extends React.HTMLProps<Element> {
   name: string
   options: ISelectOption[]
   placeholder?: string
