@@ -18,8 +18,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
     // Fallback to default locale configuration when CMS is unavailable
     console.warn('CMS unavailable, using fallback locale configuration:', error)
     i18n = {
-      locales: ['pt', 'en'],
-      defaultLocale: 'pt',
+      locales: ['pt-BR', 'en'],
+      defaultLocale: 'pt-BR',
     }
   }
 

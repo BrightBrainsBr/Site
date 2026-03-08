@@ -10,7 +10,7 @@ export async function generateSitemaps() {
     return router.localization.locales.map((locale) => ({ id: locale }))
   } catch {
     // Allow local/prototype builds when CMS auth is unavailable.
-    return [{ id: 'pt' }, { id: 'en' }]
+    return [{ id: 'pt-BR' }, { id: 'en' }]
   }
 }
 
