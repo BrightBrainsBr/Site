@@ -6,7 +6,7 @@ export const revalidate = 600
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const baseUrl = process.env.siteUrl || process.env.SITE_URL || ''
-  let locales = ['pt', 'en']
+  let locales = ['pt-BR', 'en']
 
   try {
     const router = await getHelpersRouter()
