@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 .PHONY: help dev build start
 
 help: ## Show this help message
@@ -7,10 +8,10 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 dev: ## Start Strapi in development mode
-	npm run dev
+	source $$HOME/.nvm/nvm.sh && nvm use 20 && npm rebuild better-sqlite3 && npm run dev
 
 build: ## Build Strapi for production
-	npm run build
+	source $$HOME/.nvm/nvm.sh && nvm use 20 && npm run build
 
 start: ## Start Strapi in production mode
-	npm run start
+	source $$HOME/.nvm/nvm.sh && nvm use 20 && npm run start

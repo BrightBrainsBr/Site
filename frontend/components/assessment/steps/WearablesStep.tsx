@@ -40,7 +40,7 @@ export function WearablesStep({
               placeholder="Ex: Apple Watch, Oura Ring..."
             />
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               <Input
                 label="FC Repouso (bpm)"
                 value={data.wFCRepouso}

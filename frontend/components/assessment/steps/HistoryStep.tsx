@@ -75,7 +75,7 @@ export function HistoryStep({
           selected={data.condicoesCronicas}
           onChange={(v) => update('condicoesCronicas', v)}
           options={CHRONIC_CONDITIONS}
-          columns={3}
+          columns={2}
         />
 
         <RadioGroup

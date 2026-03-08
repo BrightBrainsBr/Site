@@ -78,7 +78,7 @@ export function TriageStep({
         </label>
 
         <Textarea
-          label="Resumo do entrevistador"
+          label="Resumo"
           value={data.triagemResumo}
           onChange={(v) => update('triagemResumo', v)}
           placeholder="Impressões clínicas..."

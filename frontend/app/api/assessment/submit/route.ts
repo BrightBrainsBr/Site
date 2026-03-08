@@ -1,50 +1,178 @@
 import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
+
+import type { AssessmentFormData } from '~/components/assessment/assessment.interface'
+
+import { buildPdf } from '../generate-pdf/pdf-helpers'
+import { generateReportBackground } from '../lib/generate-report-background'
+import { sendErrorEmail, sendReportEmail } from '../lib/send-email'
+
+export const runtime = 'nodejs'
+export const maxDuration = 300
+
+function createSupabaseClient() {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function POST(request: NextRequest) {
+  const requestId = crypto.randomUUID().slice(0, 8)
+
   try {
     const body = await request.json()
-    const { formData, scores } = body as {
-      formData: Record<string, unknown>
+    const { formData, scores, uploads } = body as {
+      formData: AssessmentFormData
       scores: Record<string, number>
+      uploads?: { name: string; data: string }[]
     }
 
-    const nome = formData?.nome as string | undefined
+    const nome = formData?.nome || ''
     if (!nome) {
       return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 })
     }
 
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    console.warn(
+      `[submit:${requestId}] Saving evaluation | patient=${nome} | uploads=${uploads?.length ?? 0}`
     )
+
+    const sb = createSupabaseClient()
 
     const { data: row, error } = await sb
       .from('mental_health_evaluations')
       .insert({
         patient_name: nome,
-        patient_email: (formData.email as string) || null,
-        patient_cpf: (formData.cpf as string)?.replace(/\D/g, '') || null,
-        patient_phone: (formData.telefone as string) || null,
-        patient_birth_date: (formData.nascimento as string) || null,
-        patient_sex: (formData.sexo as string) || null,
+        patient_email: formData.email || null,
+        patient_cpf: formData.cpf?.replace(/\D/g, '') || null,
+        patient_phone: formData.telefone || null,
+        patient_birth_date: formData.nascimento || null,
+        patient_sex: formData.sexo || null,
         patient_profile: (formData.publico as string) || null,
         form_data: formData,
         scores,
-        status: 'completed',
+        status: 'processing',
       })
       .select('id')
       .single()
 
     if (error) {
-      console.error('Supabase insert error:', error)
+      console.error(`[submit:${requestId}] Supabase insert error:`, error)
       throw new Error('Erro ao salvar avaliação')
     }
 
-    return NextResponse.json({ evaluationId: row.id })
+    const evaluationId = row.id
+    console.warn(
+      `[submit:${requestId}] Evaluation saved | id=${evaluationId} — starting background processing`
+    )
+
+    after(async () => {
+      const bgStart = Date.now()
+      console.warn(
+        `[bg:${requestId}] Background processing started for ${evaluationId}`
+      )
+
+      try {
+        const report = await generateReportBackground(
+          formData,
+          scores,
+          uploads,
+          requestId
+        )
+
+        console.warn(
+          `[bg:${requestId}] Report generated | ${Date.now() - bgStart}ms — generating PDF`
+        )
+
+        const today = new Date().toLocaleDateString('pt-BR')
+        const reportMarkdown = report.reportMarkdown.replace(
+          /\[Data (?:do relatório|atual)\]/gi,
+          today
+        )
+
+        const pdfBuffer = buildPdf(formData, reportMarkdown)
+
+        const bgSb = createSupabaseClient()
+        const fileName = `report_${evaluationId}_${Date.now()}.pdf`
+
+        const { error: uploadError } = await bgSb.storage
+          .from('assessment-pdfs')
+          .upload(fileName, pdfBuffer, {
+            contentType: 'application/pdf',
+            upsert: false,
+          })
+
+        if (uploadError) {
+          console.error(`[bg:${requestId}] PDF upload error:`, uploadError)
+          throw new Error('Erro ao fazer upload do PDF')
+        }
+
+        const {
+          data: { publicUrl },
+        } = bgSb.storage.from('assessment-pdfs').getPublicUrl(fileName)
+
+        await bgSb
+          .from('mental_health_evaluations')
+          .update({
+            report_markdown: reportMarkdown,
+            report_pdf_url: publicUrl,
+            status: 'completed',
+          })
+          .eq('id', evaluationId)
+
+        console.warn(
+          `[bg:${requestId}] Evaluation completed | pdf=${publicUrl} | total=${Date.now() - bgStart}ms`
+        )
+
+        await sendReportEmail({
+          patientName: nome,
+          pdfUrl: publicUrl,
+          evaluationId,
+          patientEmail: formData.email || undefined,
+          patientPhone: formData.telefone || undefined,
+          patientProfile: (formData.publico as string) || undefined,
+        })
+      } catch (err) {
+        const errorMsg =
+          err instanceof Error ? err.message : 'Erro desconhecido'
+        console.error(
+          `[bg:${requestId}] Background processing FAILED after ${Date.now() - bgStart}ms:`,
+          errorMsg
+        )
+
+        const bgSb = createSupabaseClient()
+        const { error: statusUpdateError } = await bgSb
+          .from('mental_health_evaluations')
+          .update({
+            status: 'error',
+            processing_error: errorMsg,
+          })
+          .eq('id', evaluationId)
+        if (statusUpdateError) {
+          console.error(
+            `[bg:${requestId}] Status update failed:`,
+            statusUpdateError
+          )
+        }
+
+        await sendErrorEmail({
+          patientName: nome,
+          evaluationId,
+          errorMessage: errorMsg,
+          patientEmail: formData.email || undefined,
+          patientPhone: formData.telefone || undefined,
+          patientProfile: (formData.publico as string) || undefined,
+        })
+      }
+    })
+
+    return NextResponse.json({
+      evaluationId,
+      status: 'processing',
+    })
   } catch (err) {
-    console.error('Submit error:', err)
+    console.error(`[submit:${requestId}] Request failed:`, err)
     const msg = err instanceof Error ? err.message : 'Erro interno'
     return NextResponse.json({ error: msg }, { status: 500 })
   }

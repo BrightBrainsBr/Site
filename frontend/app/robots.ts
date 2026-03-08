@@ -5,10 +5,17 @@ import { getHelpersRouter } from '~/hooks/get-helpers-router'
 export const revalidate = 600
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
-  const router = await getHelpersRouter()
-  const sitemap = router.localization.locales.map((locale) => {
-    return process.env.siteUrl + `/sitemap/${locale}.xml`
-  })
+  const baseUrl = process.env.siteUrl || process.env.SITE_URL || ''
+  let locales = ['pt', 'en']
+
+  try {
+    const router = await getHelpersRouter()
+    locales = router.localization.locales
+  } catch {
+    // Allow local/prototype builds when CMS auth is unavailable.
+  }
+
+  const sitemap = locales.map((locale) => `${baseUrl}/sitemap/${locale}.xml`)
 
   return {
     rules: {

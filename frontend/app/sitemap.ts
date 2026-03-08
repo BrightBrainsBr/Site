@@ -5,8 +5,13 @@ import { getHelpersRouter } from '~/hooks/get-helpers-router'
 export const revalidate = 3600
 
 export async function generateSitemaps() {
-  const router = await getHelpersRouter()
-  return router.localization.locales.map((locale) => ({ id: locale }))
+  try {
+    const router = await getHelpersRouter()
+    return router.localization.locales.map((locale) => ({ id: locale }))
+  } catch {
+    // Allow local/prototype builds when CMS auth is unavailable.
+    return [{ id: 'pt' }, { id: 'en' }]
+  }
 }
 
 export default async function sitemap({
@@ -14,6 +19,10 @@ export default async function sitemap({
 }: {
   id: string
 }): Promise<MetadataRoute.Sitemap> {
-  const router = await getHelpersRouter()
-  return await router.map.generateSitemap({ locale })
+  try {
+    const router = await getHelpersRouter()
+    return await router.map.generateSitemap({ locale })
+  } catch {
+    return []
+  }
 }
