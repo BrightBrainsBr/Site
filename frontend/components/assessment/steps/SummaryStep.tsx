@@ -1,182 +1,72 @@
 'use client'
 
-import { marked } from 'marked'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { computeAllScores } from '../../../helpers/assessment/compute-scores'
+import { clearFormData } from '../../../services/assessment/localStorage'
 import type { StepComponentProps } from '../assessment.interface'
-import { SCALE_RANGES } from '../constants/scoring-ranges'
 import { InfoBox, SectionTitle } from '../fields'
-import { ScoreDisplay } from '../fields/ScoreDisplay'
 import { StepNavigation } from '../StepNavigation'
-import {
-  GeneratingView,
-  STAGE_LABELS,
-  type StageContent,
-} from './GeneratingView'
 
-type Phase = 'review' | 'generating' | 'complete'
+type Phase = 'review' | 'submitting' | 'submitted'
 
 export function SummaryStep({ data, onPrev }: StepComponentProps) {
   const [phase, setPhase] = useState<Phase>('review')
-  const [evaluationId, setEvaluationId] = useState<string | null>(null)
-  const [stages, setStages] = useState<StageContent[]>([])
-  const [progress, setProgress] = useState<{
-    stage: number
-    percent: number
-    message: string
-  } | null>(null)
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const scores = computeAllScores(data)
-  const activeScales = Object.entries(scores).filter(
-    ([key]) => SCALE_RANGES[key] !== undefined
-  )
 
-  const streamReport = useCallback(
-    async (evId: string) => {
-      const res = await fetch('/api/assessment/generate-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ evaluationId: evId, formData: data, scores }),
-      })
-      if (!res.ok) throw new Error('Erro ao gerar relatório')
-      if (!res.body) throw new Error('Streaming não suportado')
-
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() ?? ''
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue
-          const payload = line.slice(6).trim()
-          if (payload === '[DONE]') continue
-          try {
-            const ev = JSON.parse(payload) as {
-              type: string
-              stage?: number
-              progress?: number
-              message?: string
-              content?: string
-            }
-            if (ev.type === 'progress') {
-              setProgress({
-                stage: ev.stage ?? 0,
-                percent: ev.progress ?? 0,
-                message: ev.message ?? '',
-              })
-            } else if (ev.type === 'stage_complete') {
-              setStages((prev) => [
-                ...prev,
-                { stage: ev.stage ?? 0, content: ev.content ?? '' },
-              ])
-            } else if (ev.type === 'error') {
-              throw new Error(ev.message ?? 'Erro desconhecido')
-            }
-          } catch {
-            // skip malformed SSE
-          }
-        }
-      }
-    },
-    [data, scores]
-  )
-
-  const handleGenerate = useCallback(async () => {
+  const handleSubmit = useCallback(async () => {
     setError(null)
-    setPhase('generating')
-    setStages([])
-    setProgress(null)
+    setPhase('submitting')
 
     try {
-      const submitRes = await fetch('/api/assessment/submit', {
+      const allUploads: { name: string; data: string }[] = []
+      for (const files of Object.values(data.uploads)) {
+        for (const f of files as {
+          name: string
+          size: number
+          data?: string
+        }[]) {
+          if (f.data) allUploads.push({ name: f.name, data: f.data })
+        }
+      }
+
+      const res = await fetch('/api/assessment/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formData: data, scores }),
+        body: JSON.stringify({
+          formData: data,
+          scores,
+          uploads: allUploads.length > 0 ? allUploads : undefined,
+        }),
       })
-      if (!submitRes.ok) {
-        const errData = await submitRes.json().catch(() => ({}))
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
         throw new Error(
-          (errData as { error?: string }).error || 'Erro ao salvar avaliação'
+          (errData as { error?: string }).error || 'Erro ao enviar avaliação'
         )
       }
-      const { evaluationId: evId } = (await submitRes.json()) as {
-        evaluationId: string
-      }
-      setEvaluationId(evId)
 
-      await streamReport(evId)
-      setPhase('complete')
+      clearFormData()
+      setPhase('submitted')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
       setPhase('review')
     }
-  }, [data, scores, streamReport])
-
-  const handleExportPdf = useCallback(async () => {
-    if (!evaluationId || stages.length < 3) return
-    setIsExporting(true)
-    setError(null)
-
-    try {
-      const reportMarkdown = stages.map((st) => st.content).join('\n\n---\n\n')
-      const res = await fetch('/api/assessment/generate-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          evaluationId,
-          formData: data,
-          scores,
-          reportMarkdown,
-        }),
-      })
-      if (!res.ok) throw new Error('Erro ao gerar PDF')
-      const { pdfUrl: url } = (await res.json()) as { pdfUrl: string }
-      setPdfUrl(url)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao exportar PDF')
-    } finally {
-      setIsExporting(false)
-    }
-  }, [evaluationId, stages, data, scores])
+  }, [data, scores])
 
   return (
     <div>
       <SectionTitle
         icon="📊"
-        title="Resumo & Relatório"
-        subtitle="Revisão dos resultados e geração de relatório com IA"
+        title="Resumo & Envio"
+        subtitle="Revise seus dados e envie a avaliação"
       />
 
       {phase === 'review' && (
         <>
-          {activeScales.length > 0 && (
-            <div className="mb-8">
-              <h3 className="mb-3 text-sm font-semibold text-zinc-300">
-                Pontuações das Escalas
-              </h3>
-              <div className="grid gap-3 md:grid-cols-2">
-                {activeScales.map(([key, score]) => (
-                  <ScoreDisplay
-                    key={key}
-                    score={score}
-                    config={SCALE_RANGES[key]}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="mb-6 space-y-3">
             <SummaryCard
               title="Paciente"
@@ -201,75 +91,77 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
           </div>
 
           <InfoBox variant="info">
-            Ao clicar abaixo, os dados serão salvos e o relatório será gerado
-            automaticamente pela IA (≈2 min).
+            Ao clicar abaixo, seus dados serão enviados com segurança. O
+            relatório será processado e enviado diretamente à clínica para
+            análise pelo comitê médico.
           </InfoBox>
 
           {error && <InfoBox variant="warning">{error}</InfoBox>}
 
           <button
             type="button"
-            onClick={() => void handleGenerate()}
+            onClick={() => void handleSubmit()}
             className="mt-4 w-full rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 py-3.5 text-sm font-bold text-zinc-900 shadow-lg shadow-lime-400/20 transition-opacity hover:opacity-90"
           >
-            Gerar Relatório de Apoio
+            Enviar Avaliação
           </button>
         </>
       )}
 
-      {phase === 'generating' && (
-        <GeneratingView stages={stages} progress={progress} error={error} />
+      {phase === 'submitting' && (
+        <div className="flex flex-col items-center gap-4 py-12">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+          <p className="text-sm text-zinc-400">Enviando sua avaliação...</p>
+        </div>
       )}
 
-      {phase === 'complete' && (
-        <div className="space-y-4">
-          {!pdfUrl ? (
-            <button
-              type="button"
-              onClick={() => void handleExportPdf()}
-              disabled={isExporting}
-              className="w-full rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 py-3 text-sm font-bold text-zinc-900 shadow-lg shadow-lime-400/20 transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              {isExporting ? 'Gerando PDF...' : '📄 Exportar PDF'}
-            </button>
-          ) : (
-            <div className="rounded-xl border border-lime-400/30 bg-lime-400/5 p-5 text-center">
-              <p className="mb-2 text-sm font-semibold text-lime-400">
-                PDF gerado com sucesso!
-              </p>
-              <a
-                href={pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block rounded-lg bg-lime-400 px-6 py-2.5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-lime-300"
-              >
-                Abrir PDF
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  void navigator.clipboard.writeText(pdfUrl)
-                }}
-                className="mt-2 block w-full text-xs text-zinc-500 underline hover:text-zinc-400"
-              >
-                Copiar link do PDF
-              </button>
-            </div>
-          )}
+      {phase === 'submitted' && (
+        <div className="space-y-4 py-6">
+          <div className="rounded-xl border border-lime-400/30 bg-lime-400/5 p-8 text-center">
+            <div className="mb-4 text-4xl">✅</div>
+            <h3 className="mb-2 text-lg font-bold text-lime-400">
+              Avaliação Enviada com Sucesso
+            </h3>
+            <p className="text-sm text-zinc-400">
+              Obrigado por preencher a avaliação. Seus dados foram recebidos com
+              segurança.
+            </p>
+          </div>
 
-          {error && <InfoBox variant="warning">{error}</InfoBox>}
-
-          {stages.map((st) => (
-            <ReportStageDetails
-              key={st.stage}
-              stage={st}
-              label={STAGE_LABELS[st.stage - 1]}
-              defaultOpen={st.stage === stages.length}
-            />
-          ))}
+          <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/30 p-5 text-center">
+            <p className="mb-2 text-sm font-medium text-zinc-300">
+              O que acontece agora?
+            </p>
+            <ol className="mx-auto max-w-md space-y-2 text-left text-xs text-zinc-400">
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                  1
+                </span>
+                O sistema está gerando seu relatório com inteligência artificial
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                  2
+                </span>
+                O relatório será enviado automaticamente para a clínica
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                  3
+                </span>
+                O Comitê Médico analisará e validará as recomendações
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                  4
+                </span>
+                A clínica entrará em contato com você
+              </li>
+            </ol>
+          </div>
 
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs text-amber-300/80">
-            <strong>Conformidade CFM nº 2.454/2026</strong> — Este relatório
+            <strong>Conformidade CFM nº 2.454/2026</strong> — O relatório gerado
             contém sugestões preliminares de IA classificada como Médio Risco
             (Art. 13, Anexo II). Todas as recomendações são não vinculantes e
             sujeitas à análise e decisão final do comitê médico responsável.
@@ -279,38 +171,6 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
 
       {phase === 'review' && <StepNavigation onPrev={onPrev} onNext={null} />}
     </div>
-  )
-}
-
-function ReportStageDetails({
-  stage,
-  label,
-  defaultOpen,
-}: {
-  stage: StageContent
-  label: string
-  defaultOpen: boolean
-}) {
-  const html = useMemo(() => {
-    marked.setOptions({ breaks: true, gfm: true })
-    return marked.parse(stage.content) as string
-  }, [stage.content])
-
-  return (
-    <details
-      className="rounded-xl border border-zinc-700/50 bg-zinc-800/30"
-      open={defaultOpen}
-    >
-      <summary className="cursor-pointer px-5 py-3 text-sm font-semibold text-zinc-200">
-        {label}
-      </summary>
-      <div className="border-t border-zinc-700/30 px-5 py-4">
-        <div
-          className="prose prose-invert prose-sm max-w-none prose-headings:text-lime-400 prose-h2:text-base prose-h3:text-sm prose-strong:text-zinc-100 prose-li:text-zinc-300 text-zinc-300"
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      </div>
-    </details>
   )
 }
 

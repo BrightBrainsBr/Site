@@ -8,6 +8,17 @@ export const runtime = 'nodejs'
 export const maxDuration = 300
 
 const MODEL = 'claude-sonnet-4-20250514'
+type SupportedImageMime =
+  | 'image/jpeg'
+  | 'image/png'
+  | 'image/gif'
+  | 'image/webp'
+const SUPPORTED_IMAGE_MIME_TYPES: SupportedImageMime[] = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+]
 
 const CFM_SYSTEM_PREAMBLE = `Você é uma IA de Apoio à Decisão Clínica do programa "Bright Precision" (Bright Brains · Instituto da Mente).
 
@@ -143,18 +154,72 @@ export async function POST(request: NextRequest) {
     })
 
     const body = await request.json()
-    const { formData, scores } = body as {
+    const { formData, scores, uploads } = body as {
       formData: AssessmentFormData
       scores: Record<string, number>
+      uploads?: { name: string; data: string }[]
     }
 
     console.warn(
       `[report:${requestId}] Patient: ${formData.nome || 'unnamed'} | ` +
         `Profile: ${formData.publico || 'unknown'} | ` +
-        `Scales: ${Object.keys(scores).join(', ')}`
+        `Scales: ${Object.keys(scores).join(', ')} | ` +
+        `Uploads: ${uploads?.length ?? 0} file(s)`
     )
 
     const patientData = buildReportPromptData(formData, scores)
+
+    type ContentBlock =
+      | { type: 'text'; text: string }
+      | {
+          type: 'document'
+          source: {
+            type: 'base64'
+            media_type: 'application/pdf'
+            data: string
+          }
+        }
+      | {
+          type: 'image'
+          source: {
+            type: 'base64'
+            media_type: SupportedImageMime
+            data: string
+          }
+        }
+
+    const documentBlocks: ContentBlock[] = []
+    if (uploads && uploads.length > 0) {
+      for (const file of uploads) {
+        const base64Match = file.data.match(/^data:([^;]+);base64,(.+)$/)
+        if (!base64Match) continue
+        const [, mimeType, base64Data] = base64Match
+
+        if (mimeType === 'application/pdf') {
+          documentBlocks.push({
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: base64Data,
+            },
+          })
+          console.warn(`[report:${requestId}] Attached PDF: ${file.name}`)
+        } else if (
+          SUPPORTED_IMAGE_MIME_TYPES.includes(mimeType as SupportedImageMime)
+        ) {
+          documentBlocks.push({
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: mimeType as SupportedImageMime,
+              data: base64Data,
+            },
+          })
+          console.warn(`[report:${requestId}] Attached image: ${file.name}`)
+        }
+      }
+    }
 
     const encoder = new TextEncoder()
     let previousContent = ''
@@ -181,10 +246,21 @@ export async function POST(request: NextRequest) {
               message: `Iniciando ${cfg.name}...`,
             })
 
-            const userContent =
+            const textContent =
               cfg.stage === 1
                 ? `${cfg.userPrefix}${patientData}`
                 : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${previousContent}\n\nDADOS DO PACIENTE:\n${patientData}`
+
+            const userContent: ContentBlock[] =
+              cfg.stage === 1 && documentBlocks.length > 0
+                ? [
+                    ...documentBlocks,
+                    {
+                      type: 'text' as const,
+                      text: `Os documentos acima foram enviados pelo paciente (transcrição da triagem, exames, laudos). Considere-os na análise.\n\n${textContent}`,
+                    },
+                  ]
+                : [{ type: 'text' as const, text: textContent }]
 
             let fullContent = ''
             const messageStream = anthropic.messages.stream({

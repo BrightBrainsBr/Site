@@ -1,8 +1,6 @@
 // frontend/components/assessment/steps/WelcomeStep.tsx
 'use client'
 
-import { useState } from 'react'
-
 import type { StepComponentProps } from '../assessment.interface'
 
 const FEATURES = [
@@ -13,19 +11,14 @@ const FEATURES = [
 ]
 
 export function WelcomeStep({ onNext }: StepComponentProps) {
-  const [logoVisible, setLogoVisible] = useState(true)
-
   return (
     <div className="mx-auto max-w-2xl text-center">
-      {logoVisible && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src="https://www.brightbrains.com.br/frame-midnight-950.svg"
-          alt="Bright Precision"
-          className="mx-auto mb-6 h-[120px] w-auto"
-          onError={() => setLogoVisible(false)}
-        />
-      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/frame-midnight-950.svg"
+        alt="Bright Brains"
+        className="mx-auto mb-6 h-16 w-auto"
+      />
 
       <h1 className="text-2xl font-bold text-zinc-100">Bright Precision</h1>
 
@@ -36,13 +29,6 @@ export function WelcomeStep({ onNext }: StepComponentProps) {
       <p className="mt-1 text-sm text-zinc-500">
         by Bright Brains · Instituto da Mente
       </p>
-
-      <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1.5">
-        <span className="h-2 w-2 rounded-full bg-yellow-400" />
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-yellow-300">
-          Médio Risco — Resolução CFM nº 2.454/2026
-        </span>
-      </div>
 
       <div className="mt-6 rounded-xl border border-lime-400/20 bg-lime-400/[0.04] p-5 text-left text-sm leading-relaxed text-zinc-300">
         <p>

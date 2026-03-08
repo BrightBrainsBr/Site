@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { InfoBox } from '../fields'
 
@@ -66,6 +66,15 @@ export function GeneratingView({
   const logEndRef = useRef<HTMLDivElement>(null)
 
   const currentStage = progress?.stage ?? 1
+
+  const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
+    e.preventDefault()
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [handleBeforeUnload])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -214,6 +223,10 @@ export function GeneratingView({
           )}
           <div ref={logEndRef} />
         </div>
+      </div>
+
+      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-center text-xs text-amber-300/80">
+        ⚠️ Não saia desta página enquanto o relatório está sendo gerado.
       </div>
 
       {error && <InfoBox variant="warning">{error}</InfoBox>}

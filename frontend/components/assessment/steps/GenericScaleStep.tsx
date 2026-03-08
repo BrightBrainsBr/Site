@@ -2,13 +2,7 @@
 'use client'
 
 import type { ScaleStepProps } from '../assessment.interface'
-import { SCALE_RANGES } from '../constants/scoring-ranges'
-import {
-  InfoBox,
-  ScaleQuestionField,
-  ScoreDisplay,
-  SectionTitle,
-} from '../fields'
+import { ScaleQuestionField, SectionTitle } from '../fields'
 import { StepNavigation } from '../StepNavigation'
 
 export function GenericScaleStep({
@@ -23,8 +17,6 @@ export function GenericScaleStep({
   title,
   subtitle,
   badge,
-  info,
-  customScore,
 }: ScaleStepProps) {
   const scores = (data[scaleKey] as (number | null)[]) ?? []
   const answered = scores.filter((v) => v !== null).length
@@ -35,13 +27,6 @@ export function GenericScaleStep({
     setData({ ...data, [scaleKey]: updated })
   }
 
-  const total = customScore
-    ? customScore(scores)
-    : scores.reduce<number>((sum, v) => sum + (v ?? 0), 0)
-
-  const allAnswered = answered === questions.length
-  const rangeConfig = SCALE_RANGES[scaleKey]
-
   return (
     <div>
       <SectionTitle
@@ -50,8 +35,6 @@ export function GenericScaleStep({
         subtitle={subtitle}
         badge={badge}
       />
-
-      {info && <InfoBox>{info}</InfoBox>}
 
       <div className="mt-4 space-y-3">
         {questions.map((q, i) => (
@@ -65,12 +48,6 @@ export function GenericScaleStep({
           />
         ))}
       </div>
-
-      {allAnswered && rangeConfig && (
-        <div className="mt-6">
-          <ScoreDisplay score={total} config={rangeConfig} />
-        </div>
-      )}
 
       <div className="mt-2 text-right text-xs text-zinc-500">
         {answered}/{questions.length} respondidas

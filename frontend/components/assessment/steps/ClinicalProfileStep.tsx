@@ -20,19 +20,19 @@ const PROFILES: {
     id: 'adulto',
     icon: '🧑',
     label: 'Adulto',
-    desc: 'Avaliação psiquiátrica geral',
+    desc: 'Avaliação psiquiátrica (depressão, ansiedade etc)',
   },
   {
     id: 'infantil',
     icon: '👶',
     label: 'Infantil',
-    desc: 'Crianças e adolescentes',
+    desc: 'Crianças e adolescentes (TEA, TDAH etc)',
   },
   {
     id: 'neuro',
     icon: '🧠',
     label: 'Neurológico',
-    desc: 'Foco neurológico (Parkinson, ELA, etc.)',
+    desc: 'Foco neurológico (Parkinson, Alzheimer, etc.)',
   },
   {
     id: 'executivo',

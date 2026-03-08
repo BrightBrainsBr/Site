@@ -33,22 +33,109 @@ import {
   SummaryStep,
   SupplementsStep,
   SymptomsStep,
-  TriageStep,
   UploadsStep,
   WearablesStep,
   WelcomeStep,
 } from './steps'
 
+function AccessGate({ onUnlock }: { onUnlock: () => void }) {
+  const [code, setCode] = useState('')
+  const [error, setError] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(false)
+
+    try {
+      const res = await fetch('/api/assessment/validate-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
+      const { valid } = (await res.json()) as { valid: boolean }
+
+      if (valid) {
+        sessionStorage.setItem('bb_access', '1')
+        onUnlock()
+      } else {
+        setError(true)
+      }
+    } catch {
+      setError(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        className="w-full max-w-sm space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-8 shadow-xl backdrop-blur-sm"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/frame-midnight-950.svg"
+          alt="Bright Brains"
+          className="mx-auto mb-2 h-12 w-auto"
+        />
+        <h2 className="text-center text-lg font-semibold text-zinc-100">
+          Acesso Restrito
+        </h2>
+        <p className="text-center text-xs text-zinc-500">
+          Digite o código de acesso para continuar
+        </p>
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value)
+            setError(false)
+          }}
+          placeholder="Código de acesso"
+          autoFocus
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-3 text-center text-sm text-white placeholder-zinc-500 transition-colors focus:border-lime-400 focus:outline-none focus:ring-1 focus:ring-lime-400/30"
+        />
+        {error && (
+          <p className="text-center text-xs text-red-400">Código inválido</p>
+        )}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 py-3 text-sm font-bold text-zinc-900 transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {loading ? 'Verificando...' : 'Entrar'}
+        </button>
+      </form>
+    </div>
+  )
+}
+
 export function AssessmentPage() {
+  const [authorized, setAuthorized] = useState(false)
   const [data, setData] = useState<AssessmentFormData>(INITIAL_FORM_DATA)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    setData(loadFormData())
-    setCurrentStepIndex(loadCurrentStep())
-    setIsLoaded(true)
+    try {
+      if (sessionStorage.getItem('bb_access') === '1') {
+        setAuthorized(true)
+      }
+    } catch {
+      // ignore sessionStorage access issues
+    }
   }, [])
+
+  useEffect(() => {
+    if (!authorized) return
+    setData(loadFormData())
+    const savedStep = loadCurrentStep()
+    setCurrentStepIndex(savedStep >= 0 ? savedStep : 0)
+    setIsLoaded(true)
+  }, [authorized])
 
   useEffect(() => {
     if (!isLoaded) return
@@ -64,6 +151,23 @@ export function AssessmentPage() {
     () => ALL_STEPS.filter((step) => step.show(data)),
     [data]
   )
+
+  useEffect(() => {
+    if (!isLoaded) return
+    if (visibleSteps.length === 0) {
+      clearFormData()
+      setData({ ...INITIAL_FORM_DATA })
+      setCurrentStepIndex(0)
+      return
+    }
+    if (currentStepIndex >= visibleSteps.length) {
+      setCurrentStepIndex(visibleSteps.length - 1)
+      return
+    }
+    if (currentStepIndex < 0) {
+      setCurrentStepIndex(0)
+    }
+  }, [currentStepIndex, isLoaded, visibleSteps.length])
 
   const currentStep = visibleSteps[currentStepIndex]
 
@@ -89,6 +193,10 @@ export function AssessmentPage() {
     }
   }
 
+  if (!authorized) {
+    return <AccessGate onUnlock={() => setAuthorized(true)} />
+  }
+
   if (!isLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -97,7 +205,24 @@ export function AssessmentPage() {
     )
   }
 
-  if (!currentStep) return null
+  if (!currentStep) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 text-center shadow-xl backdrop-blur-sm">
+          <p className="mb-4 text-sm text-zinc-300">
+            Não foi possível carregar a etapa atual.
+          </p>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 px-4 py-2 text-sm font-bold text-zinc-900"
+          >
+            Reiniciar avaliação
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const stepProps: StepComponentProps = {
     data,
@@ -118,8 +243,6 @@ export function AssessmentPage() {
         return <ClinicalProfileStep {...stepProps} />
       case 'historia':
         return <HistoryStep {...stepProps} />
-      case 'triagem':
-        return <TriageStep {...stepProps} />
       case 'sintomas':
         return <SymptomsStep {...stepProps} />
       case 'mdq':
@@ -164,9 +287,11 @@ export function AssessmentPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-4">
-        <ProgressBar steps={visibleSteps} currentIndex={currentStepIndex} />
-      </div>
+      {currentStep.id !== 'welcome' && (
+        <div className="mb-4">
+          <ProgressBar steps={visibleSteps} currentIndex={currentStepIndex} />
+        </div>
+      )}
 
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-xl backdrop-blur-sm md:p-8">
         {renderStep()}

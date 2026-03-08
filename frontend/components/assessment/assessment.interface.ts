@@ -204,8 +204,8 @@ export interface ScaleStepProps extends StepComponentProps {
   icon: string
   title: string
   subtitle: string
-  badge: string
-  info: string
+  badge?: string
+  info?: string
   customScore?: (scores: (number | null)[]) => number
 }
 
