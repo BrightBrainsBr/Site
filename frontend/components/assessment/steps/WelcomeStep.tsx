@@ -15,9 +15,9 @@ export function WelcomeStep({ onNext }: StepComponentProps) {
     <div className="mx-auto max-w-2xl text-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/frame-midnight-950.svg"
+        src="/logo-light.svg"
         alt="Bright Brains"
-        className="mx-auto mb-6 h-16 w-auto"
+        className="mx-auto mb-6 h-11 w-auto"
       />
 
       <h1 className="text-2xl font-bold text-zinc-100">Bright Precision</h1>

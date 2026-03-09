@@ -77,9 +77,9 @@ function AccessGate({ onUnlock }: { onUnlock: () => void }) {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/frame-midnight-950.svg"
+          src="/logo-light.svg"
           alt="Bright Brains"
-          className="mx-auto mb-2 h-12 w-auto"
+          className="mx-auto mb-2 h-9 w-auto"
         />
         <h2 className="text-center text-lg font-semibold text-zinc-100">
           Acesso Restrito
