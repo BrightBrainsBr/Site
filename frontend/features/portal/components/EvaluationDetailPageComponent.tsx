@@ -25,6 +25,10 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'atividade', label: 'Atividade' },
 ]
 
+function isProcessingStatus(status: string | null | undefined) {
+  return Boolean(status && status.startsWith('processing'))
+}
+
 interface EvaluationDetailPageComponentProps {
   evaluationId: string
 }
@@ -54,16 +58,14 @@ export function EvaluationDetailPageComponent({
   } = useEvaluationByIdQueryHook(evaluationId)
 
   useEffect(() => {
-    if (evaluation?.status === 'processing') {
-      setIsRegenerating(true)
-    }
+    setIsRegenerating(isProcessingStatus(evaluation?.status))
   }, [evaluation?.status])
 
   useEffect(() => {
     if (!isRegenerating) return
     const interval = setInterval(() => {
       void refetch().then(({ data }) => {
-        if (data && data.status !== 'processing') {
+        if (data && !isProcessingStatus(data.status)) {
           setIsRegenerating(false)
         }
       })
@@ -311,6 +313,15 @@ export function EvaluationDetailPageComponent({
         </div>
       )}
 
+      {evaluation.status === 'error' && (
+        <div className="mb-6 rounded-lg border border-[rgba(255,77,109,0.3)] bg-[rgba(255,77,109,0.08)] px-4 py-3">
+          <p className="text-sm text-[#ff4d6d]">
+            Falha no processamento em segundo plano. Clique em Regenerar para
+            tentar novamente.
+          </p>
+        </div>
+      )}
+
       {/* Tab bar */}
       <div className="mb-6 flex gap-1 rounded-lg bg-[#0a1628] p-1">
         {TABS.map((tab) => (
@@ -386,6 +397,7 @@ export function EvaluationDetailPageComponent({
           pdfUrl={evaluation.report_pdf_url}
           reportHistory={evaluation.report_history ?? []}
           isRegenerating={isRegenerating}
+          processingStatus={evaluation.status}
         />
       )}
 

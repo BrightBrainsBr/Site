@@ -18,6 +18,38 @@ function createSupabaseClient() {
   )
 }
 
+type EvaluationProcessingStatus =
+  | 'processing'
+  | 'processing_report'
+  | 'processing_pdf'
+  | 'processing_upload'
+  | 'processing_notify'
+  | 'completed'
+  | 'error'
+
+async function updateEvaluationStatus(
+  sb: ReturnType<typeof createSupabaseClient>,
+  evaluationId: string,
+  status: EvaluationProcessingStatus,
+  requestId: string,
+  patch: Record<string, unknown> = {}
+) {
+  const { error } = await sb
+    .from('mental_health_evaluations')
+    .update({
+      status,
+      ...patch,
+    })
+    .eq('id', evaluationId)
+
+  if (error) {
+    console.error(
+      `[bg:${requestId}] Failed to set status=${status}:`,
+      error.message
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID().slice(0, 8)
 
@@ -55,7 +87,7 @@ export async function POST(request: NextRequest) {
         patient_profile: (formData.publico as string) || null,
         form_data: cleanFormData,
         scores,
-        status: 'processing',
+        status: 'processing_report',
       })
       .select('id')
       .single()
@@ -72,11 +104,28 @@ export async function POST(request: NextRequest) {
 
     after(async () => {
       const bgStart = Date.now()
+      const bgSb = createSupabaseClient()
+
+      const setStatus = async (
+        status: EvaluationProcessingStatus,
+        patch: Record<string, unknown> = {}
+      ) => {
+        await updateEvaluationStatus(
+          bgSb,
+          evaluationId,
+          status,
+          requestId,
+          patch
+        )
+      }
+
       console.warn(
         `[bg:${requestId}] Background processing started for ${evaluationId}`
       )
 
       try {
+        await setStatus('processing_report')
+
         const report = await generateReportBackground(
           formData,
           scores,
@@ -94,10 +143,11 @@ export async function POST(request: NextRequest) {
           today
         )
 
+        await setStatus('processing_pdf')
         const pdfBuffer = buildPdf(formData, reportMarkdown)
 
-        const bgSb = createSupabaseClient()
         const fileName = `report_${evaluationId}_${Date.now()}.pdf`
+        await setStatus('processing_upload')
 
         const { error: uploadError } = await bgSb.storage
           .from('assessment-pdfs')
@@ -115,20 +165,16 @@ export async function POST(request: NextRequest) {
           data: { publicUrl },
         } = bgSb.storage.from('assessment-pdfs').getPublicUrl(fileName)
 
-        await bgSb
-          .from('mental_health_evaluations')
-          .update({
-            report_markdown: reportMarkdown,
-            report_pdf_url: publicUrl,
-            status: 'completed',
-          })
-          .eq('id', evaluationId)
+        await setStatus('processing_notify', {
+          report_markdown: reportMarkdown,
+          report_pdf_url: publicUrl,
+        })
 
         console.warn(
-          `[bg:${requestId}] Evaluation completed | pdf=${publicUrl} | total=${Date.now() - bgStart}ms`
+          `[bg:${requestId}] PDF ready | pdf=${publicUrl} | elapsed=${Date.now() - bgStart}ms`
         )
 
-        await sendReportEmail({
+        const reportWebhookSent = await sendReportEmail({
           patientName: nome,
           pdfUrl: publicUrl,
           evaluationId,
@@ -136,6 +182,15 @@ export async function POST(request: NextRequest) {
           patientPhone: formData.telefone || undefined,
           patientProfile: (formData.publico as string) || undefined,
         })
+
+        if (!reportWebhookSent) {
+          throw new Error('Falha ao notificar webhook de relatório')
+        }
+
+        await setStatus('completed')
+        console.warn(
+          `[bg:${requestId}] Evaluation completed | total=${Date.now() - bgStart}ms`
+        )
       } catch (err) {
         const errorMsg =
           err instanceof Error ? err.message : 'Erro desconhecido'
@@ -144,17 +199,7 @@ export async function POST(request: NextRequest) {
           errorMsg
         )
 
-        const bgSb = createSupabaseClient()
-        const { error: statusUpdateError } = await bgSb
-          .from('mental_health_evaluations')
-          .update({ status: 'error' })
-          .eq('id', evaluationId)
-        if (statusUpdateError) {
-          console.error(
-            `[bg:${requestId}] Status update failed:`,
-            statusUpdateError
-          )
-        }
+        await setStatus('error')
 
         await sendErrorEmail({
           patientName: nome,
@@ -169,7 +214,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       evaluationId,
-      status: 'processing',
+      status: 'processing_report',
     })
   } catch (err) {
     console.error(`[submit:${requestId}] Request failed:`, err)

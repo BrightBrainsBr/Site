@@ -17,6 +17,37 @@ function createSb() {
   )
 }
 
+type EvaluationProcessingStatus =
+  | 'processing'
+  | 'processing_report'
+  | 'processing_pdf'
+  | 'processing_upload'
+  | 'completed'
+  | 'error'
+
+async function updateEvaluationStatus(
+  sb: ReturnType<typeof createSb>,
+  evaluationId: string,
+  status: EvaluationProcessingStatus,
+  requestId: string,
+  patch: Record<string, unknown> = {}
+) {
+  const { error } = await sb
+    .from('mental_health_evaluations')
+    .update({
+      status,
+      ...patch,
+    })
+    .eq('id', evaluationId)
+
+  if (error) {
+    console.error(
+      `[regenerate:${requestId}] Failed to set status=${status}:`,
+      error.message
+    )
+  }
+}
+
 async function requirePortalSession() {
   const cookieStore = await cookies()
   const session = cookieStore.get('portal_session')
@@ -50,7 +81,7 @@ export async function POST(
       return NextResponse.json({ message: 'Not found' }, { status: 404 })
     }
 
-    if (row.status === 'processing') {
+    if (typeof row.status === 'string' && row.status.startsWith('processing')) {
       return NextResponse.json(
         { error: 'Relatório já está sendo gerado' },
         { status: 409 }
@@ -72,17 +103,9 @@ export async function POST(
       })
     }
 
-    const { error: statusErr } = await sb
-      .from('mental_health_evaluations')
-      .update({ status: 'processing', report_history: existingHistory })
-      .eq('id', id)
-
-    if (statusErr) {
-      console.error(
-        `[regenerate:${requestId}] Status update failed:`,
-        statusErr
-      )
-    }
+    await updateEvaluationStatus(sb, id, 'processing_report', requestId, {
+      report_history: existingHistory,
+    })
 
     const formData = (row.form_data ?? {}) as AssessmentFormData
     const scores = (row.scores ?? {}) as Record<string, number>
@@ -98,8 +121,16 @@ export async function POST(
 
     after(async () => {
       const bgStart = Date.now()
+      const bgSb = createSb()
+
+      const setStatus = async (
+        status: EvaluationProcessingStatus,
+        patch: Record<string, unknown> = {}
+      ) => updateEvaluationStatus(bgSb, id, status, requestId, patch)
 
       try {
+        await setStatus('processing_report')
+
         const uploads =
           doctorUploads.length > 0
             ? doctorUploads.map((d) => ({
@@ -122,10 +153,11 @@ export async function POST(
           today
         )
 
+        await setStatus('processing_pdf')
         const pdfBuffer = buildPdf(formData, reportMarkdown)
 
-        const bgSb = createSb()
         const fileName = `report_${id}_${Date.now()}.pdf`
+        await setStatus('processing_upload')
 
         const { error: uploadError } = await bgSb.storage
           .from('assessment-pdfs')
@@ -146,14 +178,10 @@ export async function POST(
           data: { publicUrl },
         } = bgSb.storage.from('assessment-pdfs').getPublicUrl(fileName)
 
-        await bgSb
-          .from('mental_health_evaluations')
-          .update({
-            report_markdown: reportMarkdown,
-            report_pdf_url: publicUrl,
-            status: 'completed',
-          })
-          .eq('id', id)
+        await setStatus('completed', {
+          report_markdown: reportMarkdown,
+          report_pdf_url: publicUrl,
+        })
 
         console.warn(
           `[regenerate:${requestId}] Done | total=${Date.now() - bgStart}ms`
@@ -166,15 +194,11 @@ export async function POST(
           errorMsg
         )
 
-        const bgSb = createSb()
-        await bgSb
-          .from('mental_health_evaluations')
-          .update({ status: 'error' })
-          .eq('id', id)
+        await setStatus('error')
       }
     })
 
-    return NextResponse.json({ status: 'processing', requestId })
+    return NextResponse.json({ status: 'processing_report', requestId })
   } catch (err) {
     console.error(`[regenerate:${requestId}] Error:`, err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
