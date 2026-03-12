@@ -31,7 +31,13 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
         }[]) {
           if (!f.data) continue
 
-          const blob = await fetch(f.data).then((r) => r.blob())
+          const [header, b64] = f.data.split(',')
+          const mime =
+            header?.match(/:(.*?);/)?.[1] || 'application/pdf'
+          const bytes = atob(b64)
+          const buf = new Uint8Array(bytes.length)
+          for (let i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i)
+          const blob = new Blob([buf], { type: mime })
 
           const params = new URLSearchParams({
             fileName: f.name,
