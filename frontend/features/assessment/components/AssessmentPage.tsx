@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { generateTestFormData } from '../helpers/generate-test-data'
 import {
   clearFormData,
   loadCurrentStep,
@@ -37,6 +38,8 @@ import {
   WearablesStep,
   WelcomeStep,
 } from './steps'
+
+const IS_DEV = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
 
 function AccessGate({ onUnlock }: { onUnlock: () => void }) {
   const [code, setCode] = useState('')
@@ -121,7 +124,10 @@ export function AssessmentPage() {
 
   useEffect(() => {
     try {
-      if (sessionStorage.getItem('bb_access') === '1') {
+      if (
+        sessionStorage.getItem('bb_access') === '1' ||
+        process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
+      ) {
         setAuthorized(true)
       }
     } catch {
@@ -192,6 +198,17 @@ export function AssessmentPage() {
       setCurrentStepIndex(0)
     }
   }
+
+  const handleTestFill = useCallback(() => {
+    const testData = generateTestFormData()
+    setData(testData)
+    const stepsForData = ALL_STEPS.filter((s) => s.show(testData))
+    const uploadsIdx = stepsForData.findIndex((s) => s.id === 'uploads')
+    if (uploadsIdx >= 0) {
+      setCurrentStepIndex(uploadsIdx)
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
   if (!authorized) {
     return <AccessGate onUnlock={() => setAuthorized(true)} />
@@ -299,13 +316,24 @@ export function AssessmentPage() {
 
       <div className="mt-4 flex items-center justify-between text-xs text-zinc-600">
         <span>Etapa: {currentStep.label}</span>
-        <button
-          type="button"
-          onClick={handleReset}
-          className="text-zinc-600 hover:text-red-400"
-        >
-          Reiniciar formulário
-        </button>
+        <div className="flex items-center gap-3">
+          {IS_DEV && (
+            <button
+              type="button"
+              onClick={handleTestFill}
+              className="rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-400 transition-colors hover:bg-amber-500/20"
+            >
+              Preencher Teste
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-zinc-600 hover:text-red-400"
+          >
+            Reiniciar formulário
+          </button>
+        </div>
       </div>
     </div>
   )

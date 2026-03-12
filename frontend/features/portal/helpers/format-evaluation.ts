@@ -34,6 +34,20 @@ export function getStatusLabel(status: string): string {
   return labels[status] ?? status
 }
 
+export function getProcessingStatusLabel(status: string | null | undefined): string | null {
+  if (!status) return null
+  const labels: Record<string, string> = {
+    processing: 'Processando...',
+    processing_report: 'Gerando relatório...',
+    processing_pdf: 'Gerando PDF...',
+    processing_upload: 'Salvando PDF...',
+    processing_notify: 'Notificando...',
+    completed: 'Completo',
+    error: 'Erro no processamento',
+  }
+  return labels[status] ?? null
+}
+
 export function getProfileLabel(profile: string): string {
   const labels: Record<string, string> = {
     adulto: 'Adulto',

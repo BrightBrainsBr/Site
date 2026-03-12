@@ -4,6 +4,21 @@ import { useState } from 'react'
 import { cn } from '~/shared/utils/cn'
 import type { ReportHistoryEntry } from '../portal.interface'
 
+const PROCESSING_STEPS = [
+  { key: 'processing_report', label: 'Analisando dados clínicos e documentos' },
+  { key: 'processing_pdf', label: 'Gerando PDF do relatório' },
+  { key: 'processing_upload', label: 'Salvando PDF no storage' },
+  { key: 'processing_notify', label: 'Notificando equipe por webhook' },
+] as const
+
+function getProcessingStepIndex(status: string | null | undefined) {
+  if (!status || !status.startsWith('processing')) return -1
+  const idx = PROCESSING_STEPS.findIndex((step) => step.key === status)
+  if (idx >= 0) return idx
+  if (status === 'processing') return 0
+  return 0
+}
+
 function simpleMarkdownToHtml(md: string): string {
   return md
     .replace(/^### (.+)$/gm, '<h3 class="text-base font-bold text-[#00c9b1] mt-4 mb-2">$1</h3>')
@@ -30,6 +45,7 @@ interface ReportPreviewComponentProps {
   pdfUrl: string | null
   reportHistory: ReportHistoryEntry[]
   isRegenerating?: boolean
+  processingStatus?: string | null
 }
 
 export function ReportPreviewComponent({
@@ -37,6 +53,7 @@ export function ReportPreviewComponent({
   pdfUrl,
   reportHistory,
   isRegenerating = false,
+  processingStatus = null,
 }: ReportPreviewComponentProps) {
   const totalVersions = reportHistory.length + (markdown ? 1 : 0)
   const [viewingVersion, setViewingVersion] = useState<number | null>(null)
@@ -46,21 +63,60 @@ export function ReportPreviewComponent({
   const displayMarkdown = viewingHistory?.report_markdown ?? markdown
   const displayPdfUrl = viewingHistory?.report_pdf_url ?? pdfUrl
   const isCurrentVersion = viewingVersion === null
+  const currentProcessingStep = getProcessingStepIndex(processingStatus)
 
   return (
     <div>
       {/* Regenerating banner */}
       {isRegenerating && (
-        <div className="mb-4 flex items-center gap-3 rounded-lg border border-[rgba(240,160,48,0.3)] bg-[rgba(240,160,48,0.08)] px-4 py-3">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1a3a5c] border-t-[#f0a030]" />
-          <div>
-            <p className="text-sm font-medium text-[#f0a030]">
-              Relatório sendo regenerado...
-            </p>
-            <p className="text-xs text-[#5a7fa0]">
-              Este processo pode demorar alguns minutos. A página atualizará
-              automaticamente.
-            </p>
+        <div className="mb-4 rounded-lg border border-[rgba(240,160,48,0.3)] bg-[rgba(240,160,48,0.08)] px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1a3a5c] border-t-[#f0a030]" />
+            <div>
+              <p className="text-sm font-medium text-[#f0a030]">
+                Relatório sendo processado...
+              </p>
+              <p className="text-xs text-[#5a7fa0]">
+                Este processo roda em segundo plano e pode demorar alguns
+                minutos.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-1.5">
+            {PROCESSING_STEPS.map((step, index) => {
+              const done =
+                currentProcessingStep > index ||
+                (processingStatus === 'completed' && currentProcessingStep < 0)
+              const current = currentProcessingStep === index
+              return (
+                <div key={step.key} className="flex items-center gap-2 text-xs">
+                  <span
+                    className={cn(
+                      'inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-semibold',
+                      done
+                        ? 'bg-[#00c9b1] text-[#061321]'
+                        : current
+                          ? 'border border-[#f0a030] text-[#f0a030]'
+                          : 'border border-[#3a5a75] text-[#3a5a75]'
+                    )}
+                  >
+                    {done ? '✓' : index + 1}
+                  </span>
+                  <span
+                    className={cn(
+                      done
+                        ? 'text-[#00c9b1]'
+                        : current
+                          ? 'text-[#f0a030]'
+                          : 'text-[#5a7fa0]'
+                    )}
+                  >
+                    {step.label}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -125,18 +181,12 @@ export function ReportPreviewComponent({
         <p className="text-sm text-[#5a7fa0]">Relatório ainda não gerado.</p>
       ) : displayMarkdown ? (
         <>
-          <div
-            className="rounded-lg border-l-[3px] border-l-[#00c9b1] bg-[#0f2240] p-4 text-sm leading-[1.75] text-[#cce6f7]"
-            dangerouslySetInnerHTML={{
-              __html: simpleMarkdownToHtml(displayMarkdown),
-            }}
-          />
           {displayPdfUrl && (
             <a
               href={displayPdfUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#00c9b1] bg-transparent px-4 py-2.5 text-sm font-medium text-[#00c9b1] transition-colors hover:bg-[rgba(0,201,177,0.1)]"
+              className="mb-4 inline-flex items-center gap-2 rounded-lg border border-[#00c9b1] bg-transparent px-4 py-2.5 text-sm font-medium text-[#00c9b1] transition-colors hover:bg-[rgba(0,201,177,0.1)]"
             >
               <svg
                 className="h-4 w-4"
@@ -154,6 +204,12 @@ export function ReportPreviewComponent({
               Baixar PDF{!isCurrentVersion ? ` (v${(viewingVersion ?? 0) + 1})` : ''}
             </a>
           )}
+          <div
+            className="rounded-lg border-l-[3px] border-l-[#00c9b1] bg-[#0f2240] p-4 text-sm leading-[1.75] text-[#cce6f7]"
+            dangerouslySetInnerHTML={{
+              __html: simpleMarkdownToHtml(displayMarkdown),
+            }}
+          />
         </>
       ) : null}
     </div>

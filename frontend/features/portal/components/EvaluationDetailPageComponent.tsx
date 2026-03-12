@@ -2,15 +2,14 @@
 
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 
 import { cn } from '~/shared/utils/cn'
-import { formatDate } from '../helpers/format-evaluation'
+import { formatDate, getStatusLabel } from '../helpers/format-evaluation'
 import { useDeleteEvaluationMutationHook } from '../hooks/useDeleteEvaluationMutationHook'
 import { useEvaluationByIdQueryHook } from '../hooks/useEvaluationByIdQueryHook'
 import { ActivityTimelineComponent } from './ActivityTimelineComponent'
-import { ApprovalActionsComponent } from './ApprovalActionsComponent'
 import { DocumentUploadsComponent } from './DocumentUploadsComponent'
 import { EvaluationDetailViewComponent } from './EvaluationDetailViewComponent'
 import { EvaluationEditFormComponent } from './EvaluationEditFormComponent'
@@ -26,6 +25,10 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'atividade', label: 'Atividade' },
 ]
 
+function isProcessingStatus(status: string | null | undefined) {
+  return Boolean(status && status.startsWith('processing'))
+}
+
 interface EvaluationDetailPageComponentProps {
   evaluationId: string
 }
@@ -40,10 +43,10 @@ export function EvaluationDetailPageComponent({
   const [activeTab, setActiveTab] = useState<Tab>('dados')
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [mode, setMode] = useState<'read' | 'edit'>('read')
-  const [showApproveDialog, setShowApproveDialog] = useState(false)
-  const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [showRegenConfirm, setShowRegenConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
+  const statusDropdownRef = useRef<HTMLDivElement>(null)
 
   const deleteMutation = useDeleteEvaluationMutationHook(evaluationId)
 
@@ -55,16 +58,14 @@ export function EvaluationDetailPageComponent({
   } = useEvaluationByIdQueryHook(evaluationId)
 
   useEffect(() => {
-    if (evaluation?.status === 'processing') {
-      setIsRegenerating(true)
-    }
+    setIsRegenerating(isProcessingStatus(evaluation?.status))
   }, [evaluation?.status])
 
   useEffect(() => {
     if (!isRegenerating) return
     const interval = setInterval(() => {
       void refetch().then(({ data }) => {
-        if (data && data.status !== 'processing') {
+        if (data && !isProcessingStatus(data.status)) {
           setIsRegenerating(false)
         }
       })
@@ -94,9 +95,42 @@ export function EvaluationDetailPageComponent({
     regenerateMutation.mutate()
   }, [regenerateMutation])
 
-  const handleStatusChange = () => {
-    void refetch()
-  }
+  const updateStatusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const res = await fetch(
+        `/api/portal/evaluations/${evaluationId}/status`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reviewer_status: newStatus }),
+        }
+      )
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string; message?: string }
+        throw new Error(body.error ?? body.message ?? 'Erro ao alterar status')
+      }
+    },
+    onSuccess: () => void refetch(),
+  })
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(e.target as Node)
+      ) {
+        setStatusDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const STATUS_OPTIONS = [
+    { value: 'pending_review', color: '#f5b842', bg: 'rgba(245,166,35,0.12)', border: 'rgba(245,166,35,0.3)' },
+    { value: 'approved', color: '#00d896', bg: 'rgba(0,216,150,0.12)', border: 'rgba(0,216,150,0.3)' },
+    { value: 'rejected', color: '#ff6b85', bg: 'rgba(255,77,109,0.15)', border: 'rgba(255,77,109,0.3)' },
+  ] as const
 
   if (isLoading) {
     return (
@@ -126,7 +160,7 @@ export function EvaluationDetailPageComponent({
   const status = evaluation.reviewer_status ?? 'pending_review'
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    <div className="mx-auto max-w-6xl px-6 py-8">
       {/* Top bar */}
       <div className="mb-6 flex items-center justify-between">
         <Link
@@ -182,38 +216,61 @@ export function EvaluationDetailPageComponent({
             )}
           </button>
 
-          {mode === 'read' && (
+          {/* Status dropdown */}
+          <div className="relative" ref={statusDropdownRef}>
             <button
               type="button"
-              onClick={() => setMode('edit')}
-              className="rounded-lg border border-[#1a3a5c] bg-transparent px-3 py-2 text-sm font-medium text-[#cce6f7] transition-colors hover:bg-[#0f2240]"
+              onClick={() => setStatusDropdownOpen((v) => !v)}
+              className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
+              style={{
+                borderColor: STATUS_OPTIONS.find((o) => o.value === status)?.border ?? 'rgba(90,127,160,0.3)',
+                backgroundColor: STATUS_OPTIONS.find((o) => o.value === status)?.bg ?? 'rgba(90,127,160,0.15)',
+                color: STATUS_OPTIONS.find((o) => o.value === status)?.color ?? '#5a7fa0',
+              }}
             >
-              Editar
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: STATUS_OPTIONS.find((o) => o.value === status)?.color ?? '#5a7fa0' }}
+              />
+              {getStatusLabel(status)}
+              <svg className="h-3.5 w-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
-          )}
-
-          {status === 'pending_review' && (
-            <>
-              <button
-                type="button"
-                onClick={() => setShowApproveDialog(true)}
-                className="rounded-lg border border-[#00c9b1] bg-[#00c9b1] px-3 py-2 text-sm font-medium text-[#060e1a] transition-colors hover:bg-[#00e0c4]"
-              >
-                Aprovar
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowRejectDialog(true)}
-                className="rounded-lg border border-[#ff4d6d] bg-transparent px-3 py-2 text-sm font-medium text-[#ff4d6d] transition-colors hover:bg-[rgba(255,77,109,0.1)]"
-              >
-                Rejeitar
-              </button>
-            </>
-          )}
-
-          {(status === 'approved' || status === 'rejected') && (
-            <StatusBadgeComponent status={status} />
-          )}
+            {statusDropdownOpen && (
+              <div className="absolute right-0 z-30 mt-1 w-48 rounded-lg border border-[#1a3a5c] bg-[#0c1a2e] py-1 shadow-xl">
+                {STATUS_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    disabled={opt.value === status || updateStatusMutation.isPending}
+                    onClick={() => {
+                      setStatusDropdownOpen(false)
+                      updateStatusMutation.mutate(opt.value)
+                    }}
+                    className={cn(
+                      'flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors',
+                      opt.value === status
+                        ? 'cursor-default opacity-50'
+                        : 'hover:bg-[#0f2240]'
+                    )}
+                    style={{ color: opt.color }}
+                  >
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: opt.color }}
+                    />
+                    {getStatusLabel(opt.value)}
+                    {opt.value === status && (
+                      <svg className="ml-auto h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -256,6 +313,15 @@ export function EvaluationDetailPageComponent({
         </div>
       )}
 
+      {evaluation.status === 'error' && (
+        <div className="mb-6 rounded-lg border border-[rgba(255,77,109,0.3)] bg-[rgba(255,77,109,0.08)] px-4 py-3">
+          <p className="text-sm text-[#ff4d6d]">
+            Falha no processamento em segundo plano. Clique em Regenerar para
+            tentar novamente.
+          </p>
+        </div>
+      )}
+
       {/* Tab bar */}
       <div className="mb-6 flex gap-1 rounded-lg bg-[#0a1628] p-1">
         {TABS.map((tab) => (
@@ -284,6 +350,20 @@ export function EvaluationDetailPageComponent({
       {/* Tab content */}
       {activeTab === 'dados' && (
         <>
+          {mode === 'read' && (
+            <div className="mb-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setMode('edit')}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#1a3a5c] bg-transparent px-3 py-2 text-sm font-medium text-[#cce6f7] transition-colors hover:bg-[#0f2240]"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Editar Dados
+              </button>
+            </div>
+          )}
           {mode === 'read' ? (
             <>
               <EvaluationDetailViewComponent evaluation={evaluation} />
@@ -317,6 +397,7 @@ export function EvaluationDetailPageComponent({
           pdfUrl={evaluation.report_pdf_url}
           reportHistory={evaluation.report_history ?? []}
           isRegenerating={isRegenerating}
+          processingStatus={evaluation.status}
         />
       )}
 
@@ -359,16 +440,6 @@ export function EvaluationDetailPageComponent({
           </div>
         </div>
       )}
-
-      {/* Approval/Reject dialogs */}
-      <ApprovalActionsComponent
-        evaluationId={evaluationId}
-        showApprove={showApproveDialog}
-        showReject={showRejectDialog}
-        onCloseApprove={() => setShowApproveDialog(false)}
-        onCloseReject={() => setShowRejectDialog(false)}
-        onStatusChange={handleStatusChange}
-      />
 
       {/* Delete confirmation dialog */}
       {showDeleteConfirm && (

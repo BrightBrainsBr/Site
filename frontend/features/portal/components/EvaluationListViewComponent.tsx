@@ -11,7 +11,10 @@ import { formatDate } from '../helpers/format-evaluation'
 import { useDeleteEvaluationMutationHook } from '../hooks/useDeleteEvaluationMutationHook'
 import { useEvaluationsQueryHook } from '../hooks/useEvaluationsQueryHook'
 import { ProfileBadgeComponent } from './ProfileBadgeComponent'
-import { StatusBadgeComponent } from './StatusBadgeComponent'
+import {
+  ProcessingStatusBadge,
+  StatusBadgeComponent,
+} from './StatusBadgeComponent'
 
 const PROFILES = [
   { value: '', label: 'Todos', dot: '#5a7fa0' },
@@ -386,13 +389,18 @@ export function EvaluationListViewComponent() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      {evaluation.reviewer_status ? (
-                        <StatusBadgeComponent
-                          status={evaluation.reviewer_status}
+                      <div className="flex flex-col gap-1">
+                        {evaluation.reviewer_status ? (
+                          <StatusBadgeComponent
+                            status={evaluation.reviewer_status}
+                          />
+                        ) : (
+                          '—'
+                        )}
+                        <ProcessingStatusBadge
+                          status={evaluation.status}
                         />
-                      ) : (
-                        '—'
-                      )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       {evaluation.report_pdf_url ? (

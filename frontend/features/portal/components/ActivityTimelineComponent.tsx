@@ -67,7 +67,7 @@ function buildTimeline(evaluation: EvaluationDetail): TimelineEvent[] {
     })
   }
 
-  events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   return events
 }
 

@@ -13,6 +13,7 @@ type Phase = 'review' | 'submitting' | 'submitted'
 export function SummaryStep({ data, onPrev }: StepComponentProps) {
   const [phase, setPhase] = useState<Phase>('review')
   const [error, setError] = useState<string | null>(null)
+  const [evaluationId, setEvaluationId] = useState<string | null>(null)
 
   const scores = computeAllScores(data)
 
@@ -31,28 +32,50 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
         }[]) {
           if (!f.data) continue
 
-          const blob = await fetch(f.data).then((r) => r.blob())
-          const formPayload = new FormData()
-          formPayload.append('file', blob, f.name)
+          const [header, b64] = f.data.split(',')
+          const mime =
+            header?.match(/:(.*?);/)?.[1] || 'application/pdf'
+          const bytes = atob(b64)
+          const buf = new Uint8Array(bytes.length)
+          for (let i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i)
+          const blob = new Blob([buf], { type: mime })
 
-          const uploadRes = await fetch('/api/assessment/upload', {
-            method: 'POST',
-            body: formPayload,
+          const params = new URLSearchParams({
+            fileName: f.name,
+            fileSize: String(blob.size),
+            contentType: blob.type || 'application/pdf',
+          })
+          const urlRes = await fetch(
+            `/api/assessment/upload?${params.toString()}`
+          )
+          if (!urlRes.ok) {
+            throw new Error(`Erro ao preparar upload: ${f.name}`)
+          }
+
+          const { signedUrl, token, publicUrl } = (await urlRes.json()) as {
+            signedUrl: string
+            token: string
+            publicUrl: string
+          }
+
+          const putRes = await fetch(signedUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': blob.type || 'application/pdf',
+              'x-upsert': 'false',
+            },
+            body: blob,
           })
 
-          if (!uploadRes.ok) {
+          if (!putRes.ok) {
             throw new Error(`Erro ao enviar arquivo: ${f.name}`)
           }
 
-          const uploadData = (await uploadRes.json()) as {
-            url: string
-            name: string
-            type: string
-          }
+          void token
           uploadedFiles.push({
-            name: uploadData.name,
-            url: uploadData.url,
-            type: uploadData.type,
+            name: f.name,
+            url: publicUrl,
+            type: blob.type || 'application/pdf',
           })
         }
       }
@@ -75,6 +98,11 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
           (errData as { error?: string }).error || 'Erro ao enviar avaliação'
         )
       }
+
+      const resData = (await res.json().catch(() => ({}))) as {
+        evaluationId?: string
+      }
+      if (resData.evaluationId) setEvaluationId(resData.evaluationId)
 
       clearFormData()
       setPhase('submitted')
@@ -153,6 +181,11 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
               Obrigado por preencher a avaliação. Seus dados foram recebidos com
               segurança.
             </p>
+            {evaluationId && (
+              <p className="mt-2 font-mono text-xs text-zinc-500">
+                ID: {evaluationId}
+              </p>
+            )}
           </div>
 
           <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/30 p-5 text-center">
@@ -185,6 +218,28 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
                 A clínica entrará em contato com você
               </li>
             </ol>
+
+            {evaluationId && (
+              <a
+                href={`/pt-BR/portal/${evaluationId}`}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg border border-lime-400/30 bg-lime-400/10 px-4 py-2.5 text-sm font-medium text-lime-400 transition-colors hover:bg-lime-400/20"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+                Acompanhar no Portal
+              </a>
+            )}
           </div>
 
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs text-amber-300/80">

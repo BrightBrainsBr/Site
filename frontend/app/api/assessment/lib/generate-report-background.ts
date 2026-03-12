@@ -8,7 +8,7 @@ import { STAGE_PROMPTS } from './report-prompts'
 
 const MODEL = 'claude-sonnet-4-20250514'
 const BETA_1M = 'context-1m-2025-08-07'
-const RATE_LIMIT_RETRIES = 5
+const RATE_LIMIT_RETRIES = 3
 const TOKENS_PER_MINUTE = 30_000
 const ANTHROPIC_MAX_DOC_BYTES = 32 * 1024 * 1024
 const ANTHROPIC_MAX_IMAGE_BYTES = 20 * 1024 * 1024
@@ -190,6 +190,14 @@ function isRateLimit(e: unknown) {
   const m = errMsg(e)
   return m.includes('429') || m.includes('rate_limit')
 }
+function isHardRateLimit(e: unknown) {
+  const m = errMsg(e).toLowerCase()
+  return (
+    m.includes('rate limit of 0 input tokens per minute') ||
+    m.includes("organization's rate limit of 0") ||
+    m.includes('contact-sales')
+  )
+}
 function isCtxLimit(e: unknown) {
   const m = errMsg(e)
   return (
@@ -266,9 +274,9 @@ async function callStage(
         `[bg-report:${rid}] Stage ${stage} fail #${a}:`,
         last.message
       )
-      if (isPageLimit(e) || isCtxLimit(e)) throw last
+      if (isPageLimit(e) || isCtxLimit(e) || isHardRateLimit(e)) throw last
       if (a < RATE_LIMIT_RETRIES) {
-        const ms = isRateLimit(e) ? Math.min(120_000, 30_000 * a) : 2000 * a
+        const ms = isRateLimit(e) ? Math.min(30_000, 10_000 * a) : 2000 * a
         console.warn(`[bg-report:${rid}] Retry in ${(ms / 1000).toFixed(0)}s`)
         await new Promise((r) => setTimeout(r, ms))
       }
