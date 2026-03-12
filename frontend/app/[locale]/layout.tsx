@@ -9,6 +9,8 @@ import localFont from 'next/font/local'
 import React from 'react'
 
 import Scripts from '~/layouts/structure/scripts'
+import { NuqsProvider } from '~/shared/providers/NuqsProvider'
+import { ReactQueryProvider } from '~/shared/providers/ReactQueryProvider'
 
 const roboto = Roboto({
   subsets: ['latin'],
@@ -156,7 +158,9 @@ const RootLayout = async ({ children, params }: any) => {
             style={{ display: 'none', visibility: 'hidden' }}
           ></iframe>
         </noscript>
-        {children}
+        <ReactQueryProvider>
+          <NuqsProvider>{children}</NuqsProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   )

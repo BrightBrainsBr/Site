@@ -16,7 +16,11 @@ const nextConfig = {
       fullUrl: true,
     },
   },
-  experimental: {},
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '250mb',
+    },
+  },
   reactStrictMode: false,
 }
 

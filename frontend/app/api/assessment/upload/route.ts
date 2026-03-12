@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 const BUCKET = 'assessment-pdfs'
-const MAX_FILE_SIZE = 20 * 1024 * 1024
+const MAX_FILE_SIZE = 250 * 1024 * 1024
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,22 +16,23 @@ export async function POST(request: NextRequest) {
     const file = formPayload.get('file') as File | null
     const evaluationId = formPayload.get('evaluationId') as string | null
 
-    if (!file || !evaluationId) {
+    if (!file) {
       return NextResponse.json(
-        { error: 'Arquivo e evaluationId são obrigatórios' },
+        { error: 'Arquivo é obrigatório' },
         { status: 400 }
       )
     }
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: 'Arquivo muito grande (máx 20MB)' },
+        { error: 'Arquivo muito grande (máx 250MB)' },
         { status: 400 }
       )
     }
 
+    const folder = evaluationId ?? `pending/${crypto.randomUUID()}`
     const ext = file.name.split('.').pop() ?? 'bin'
-    const path = `uploads/${evaluationId}/${Date.now()}.${ext}`
+    const path = `uploads/${folder}/${Date.now()}.${ext}`
     const buffer = Buffer.from(await file.arrayBuffer())
 
     const { error: uploadError } = await supabase.storage

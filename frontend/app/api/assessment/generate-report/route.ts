@@ -1,8 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { NextRequest } from 'next/server'
 
-import type { AssessmentFormData } from '~/components/assessment/assessment.interface'
-import { buildReportPromptData } from '~/helpers/assessment/build-report-data'
+import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
+import { buildReportPromptData } from '~/features/assessment/helpers/build-report-data'
 
 export const runtime = 'nodejs'
 export const maxDuration = 300

@@ -1,147 +1,40 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { PDFDocument } from 'pdf-lib'
 
-import type { AssessmentFormData } from '~/components/assessment/assessment.interface'
-import { buildReportPromptData } from '~/helpers/assessment/build-report-data'
+import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
+import { buildReportPromptData } from '~/features/assessment/helpers/build-report-data'
+
+import { STAGE_PROMPTS } from './report-prompts'
 
 const MODEL = 'claude-sonnet-4-20250514'
-const MAX_RETRIES = 3
+const BETA_1M = 'context-1m-2025-08-07'
+const RATE_LIMIT_RETRIES = 5
+const TOKENS_PER_MINUTE = 30_000
+const ANTHROPIC_MAX_DOC_BYTES = 32 * 1024 * 1024
+const ANTHROPIC_MAX_IMAGE_BYTES = 20 * 1024 * 1024
+const PAGES_PER_CHUNK = 90
+
 type SupportedImageMime =
   | 'image/jpeg'
   | 'image/png'
   | 'image/gif'
   | 'image/webp'
-const SUPPORTED_IMAGE_MIME_TYPES: SupportedImageMime[] = [
+const SUPPORTED_IMAGES: SupportedImageMime[] = [
   'image/jpeg',
   'image/png',
   'image/gif',
   'image/webp',
 ]
 
-const CFM_SYSTEM_PREAMBLE = `Você é uma IA de Apoio à Decisão Clínica do programa "Bright Precision" (Bright Brains · Instituto da Mente).
-
-REGRAS OBRIGATÓRIAS DE CONFORMIDADE — CFM nº 2.454/2026:
-- Classificação: Médio Risco (Art. 13, Anexo II)
-- Papel: Ferramenta de apoio à decisão (Art. 4º, I) — NÃO substitui o médico
-- Todas as saídas são SUGESTÕES PRELIMINARES NÃO VINCULANTES ao Comitê Médico Interdisciplinar
-- O médico pode aceitar, modificar ou rejeitar qualquer sugestão (Art. 18)
-- Use sempre linguagem condicional: "sugere-se", "considera-se", "pode-se avaliar"
-- NUNCA use linguagem prescritiva ou imperativa
-- Inclua CID-10 em todas as hipóteses diagnósticas
-- Cite evidências (APA, CANMAT, NICE, guidelines brasileiros) quando relevante
-
-Escreva em português brasileiro, linguagem técnica profissional.`
-
-const STAGE_PROMPTS = [
-  {
-    stage: 1,
-    name: 'Análise Clínica & Diagnósticos',
-    system: `${CFM_SYSTEM_PREAMBLE}
-
-Produza as seções 1-4 do relatório:
-
-## 1. SUMÁRIO EXECUTIVO
-Síntese dos achados mais relevantes (máx 200 palavras). Incluir: perfil do paciente, queixa principal, escalas mais significativas, nível de urgência.
-
-## 2. INTEGRAÇÃO TÉCNICA DOS DADOS
-Análise integrada de:
-- Dados biométricos e wearables (se disponíveis)
-- Correlação entre escalas clínicas
-- Achados da entrevista de triagem
-- Histórico médico e familiar
-- Estilo de vida e fatores contextuais
-
-## 3. HIPÓTESES DIAGNÓSTICAS — CID-10
-Para cada hipótese:
-- Código CID-10 e descrição
-- Nível de confiança (Alta / Moderada / Baixa)
-- Evidências dos dados que suportam
-- Diagnósticos diferenciais a considerar
-
-## 4. ESTRATIFICAÇÃO DE RISCO
-- Risco atual (baixo / moderado / alto / crítico)
-- Fatores de risco identificados
-- Fatores de proteção identificados
-- Bandeiras vermelhas (se houver)
-- Recomendação de urgência`,
-    userPrefix: 'Analise os dados clínicos e produza as seções 1-4:\n\n',
-  },
-  {
-    stage: 2,
-    name: 'Terapêutica & Neuromodulação',
-    system: `${CFM_SYSTEM_PREAMBLE}
-
-Com base na análise anterior, produza as seções 5-6:
-
-## 5. FUNDAMENTAÇÃO CIENTÍFICA
-Referências e evidências que fundamentam as hipóteses diagnósticas. Cite guidelines (APA, CANMAT, NICE, ABP) e estudos relevantes.
-
-## 6. SUGESTÕES TERAPÊUTICAS AO COMITÊ MÉDICO
-Organize em subsecções:
-
-### 6.1 Farmacoterapia
-Para cada sugestão: molécula, dose inicial, titulação, justificativa baseada em evidências. Usar linguagem condicional.
-
-### 6.2 Psicoterapia
-Abordagem sugerida, frequência, objetivos terapêuticos.
-
-### 6.3 Neuromodulação
-Se indicado: modalidade (EMTr, tDCS, etc.), protocolo sugerido, evidências. Se paciente já fez/faz neuromodulação, considerar histórico.
-
-### 6.4 Intervenções de Estilo de Vida
-Exercício, higiene do sono, nutrição, mindfulness — baseadas nos dados do paciente.
-
-### 6.5 Suplementação
-Se indicado: sugestões baseadas em evidências (ex: magnésio, vitamina D, ômega-3).
-
-### 6.6 Encaminhamentos
-Outros profissionais sugeridos (neuropsicólogo, fonoaudiólogo, etc.).
-
-### 6.7 Orientações ao Paciente
-Em linguagem acessível, resumo das recomendações.
-
-### 6.8 Metas Terapêuticas
-Curto prazo (1-4 semanas), médio prazo (1-3 meses), longo prazo (6-12 meses).`,
-    userPrefix:
-      'Com base na análise anterior e dados do paciente, produza as seções 5-6:\n\n',
-  },
-  {
-    stage: 3,
-    name: 'Monitoramento & Conformidade',
-    system: `${CFM_SYSTEM_PREAMBLE}
-
-Com base nas análises e sugestões anteriores, produza as seções 7-10:
-
-## 7. PLANO DE MONITORAMENTO
-- Escalas recomendadas para follow-up
-- Frequência de reavaliação sugerida
-- Métricas de wearable a monitorar (se aplicável)
-- Critérios para reavaliação de urgência
-- Indicadores de resposta terapêutica
-
-## 8. REFERÊNCIAS BIBLIOGRÁFICAS
-Lista das referências citadas no relatório (formato ABNT ou APA).
-
-## 9. DECLARAÇÃO DE CONFORMIDADE — CFM nº 2.454/2026
-Incluir declaração formal:
-- Sistema classificado como Médio Risco (Art. 13, Anexo II)
-- Opera como ferramenta de apoio à decisão (Art. 4º, I)
-- Sob supervisão médica ativa (Art. 18)
-- Todas as sugestões são não vinculantes
-- O comitê médico mantém autonomia total de decisão
-- Data e versão do sistema
-
-## 10. OBSERVAÇÕES FINAIS
-Notas adicionais, limitações da análise, dados que seriam desejáveis para maior acurácia.`,
-    userPrefix:
-      'Com base em todo o relatório anterior, produza as seções 7-10:\n\n',
-  },
-]
-
 type ContentBlock =
   | { type: 'text'; text: string }
   | {
       type: 'document'
-      source: { type: 'base64'; media_type: 'application/pdf'; data: string }
+      source: {
+        type: 'base64'
+        media_type: 'application/pdf'
+        data: string
+      }
     }
   | {
       type: 'image'
@@ -152,96 +45,341 @@ type ContentBlock =
       }
     }
 
-type Upload = { name: string; data: string }
+type Upload = { name: string; url: string; type?: string }
 
 export interface ReportResult {
   reportMarkdown: string
   stages: { stage: number; content: string }[]
 }
 
-function buildDocumentBlocks(uploads?: Upload[]): ContentBlock[] {
-  if (!uploads || uploads.length === 0) return []
+interface StageResult {
+  content: string
+  inputTokens: number
+}
 
+/* ------------------------------------------------------------------ */
+/* File fetching & MIME                                                */
+/* ------------------------------------------------------------------ */
+
+async function fetchBuf(
+  url: string
+): Promise<{ buffer: Buffer; mime: string } | null> {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const buf = Buffer.from(await res.arrayBuffer())
+    const raw = res.headers.get('content-type') ?? 'application/octet-stream'
+    return { buffer: buf, mime: raw.split(';')[0].trim() }
+  } catch {
+    return null
+  }
+}
+
+function inferMime(u: Upload): string {
+  if (u.type) return u.type
+  const ext = u.name.split('.').pop()?.toLowerCase()
+  const MAP: Record<string, string> = {
+    pdf: 'application/pdf',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+  }
+  return (ext && MAP[ext]) || 'application/octet-stream'
+}
+
+/* ------------------------------------------------------------------ */
+/* PDF splitting (>32 MB or >90 pages → chunks)                       */
+/* ------------------------------------------------------------------ */
+
+async function splitPdf(
+  buf: Buffer,
+  name: string,
+  rid?: string
+): Promise<Buffer[]> {
+  const src = await PDFDocument.load(buf, { ignoreEncryption: true })
+  const pages = src.getPageCount()
+
+  if (pages <= PAGES_PER_CHUNK && buf.byteLength <= ANTHROPIC_MAX_DOC_BYTES) {
+    return [buf]
+  }
+
+  const chunks: Buffer[] = []
+  for (let s = 0; s < pages; s += PAGES_PER_CHUNK) {
+    const e = Math.min(s + PAGES_PER_CHUNK, pages)
+    const doc = await PDFDocument.create()
+    const copied = await doc.copyPages(
+      src,
+      Array.from({ length: e - s }, (_, i) => s + i)
+    )
+    for (const p of copied) doc.addPage(p)
+    chunks.push(Buffer.from(await doc.save()))
+  }
+
+  const mb = (buf.byteLength / 1024 / 1024).toFixed(1)
+  console.warn(
+    `[bg-report:${rid}] Split ${name} (${pages}p, ${mb}MB) → ${chunks.length} chunks`
+  )
+  return chunks
+}
+
+/* ------------------------------------------------------------------ */
+/* Build Anthropic content blocks                                     */
+/* ------------------------------------------------------------------ */
+
+async function buildBlocks(
+  uploads?: Upload[],
+  rid?: string
+): Promise<ContentBlock[]> {
+  if (!uploads?.length) return []
   const blocks: ContentBlock[] = []
-  for (const file of uploads) {
-    const base64Match = file.data.match(/^data:([^;]+);base64,(.+)$/)
-    if (!base64Match) continue
-    const [, mimeType, base64Data] = base64Match
 
-    if (mimeType === 'application/pdf') {
-      blocks.push({
-        type: 'document',
-        source: {
-          type: 'base64',
-          media_type: 'application/pdf',
-          data: base64Data,
-        },
-      })
-    } else if (
-      SUPPORTED_IMAGE_MIME_TYPES.includes(mimeType as SupportedImageMime)
-    ) {
+  for (const file of uploads) {
+    const f = await fetchBuf(file.url)
+    if (!f) {
+      console.warn(`[bg-report:${rid}] Fetch failed: ${file.name}`)
+      continue
+    }
+    const mime =
+      f.mime === 'application/octet-stream' ? inferMime(file) : f.mime
+
+    if (mime === 'application/pdf') {
+      for (const chunk of await splitPdf(f.buffer, file.name, rid)) {
+        if (chunk.byteLength > ANTHROPIC_MAX_DOC_BYTES) continue
+        blocks.push({
+          type: 'document',
+          source: {
+            type: 'base64',
+            media_type: 'application/pdf',
+            data: chunk.toString('base64'),
+          },
+        })
+      }
+    } else if (SUPPORTED_IMAGES.includes(mime as SupportedImageMime)) {
+      if (f.buffer.byteLength > ANTHROPIC_MAX_IMAGE_BYTES) continue
       blocks.push({
         type: 'image',
         source: {
           type: 'base64',
-          media_type: mimeType as SupportedImageMime,
-          data: base64Data,
+          media_type: mime as SupportedImageMime,
+          data: f.buffer.toString('base64'),
         },
       })
     }
   }
+
+  console.warn(
+    `[bg-report:${rid}] ${blocks.length} blocks from ${uploads.length} files`
+  )
   return blocks
 }
 
-async function callStageWithRetry(
-  anthropic: Anthropic,
-  system: string,
-  userContent: ContentBlock[],
-  stageNum: number,
-  requestId: string
-): Promise<string> {
-  let lastError: Error | null = null
+/* ------------------------------------------------------------------ */
+/* Error helpers                                                      */
+/* ------------------------------------------------------------------ */
 
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+function errMsg(e: unknown) {
+  return e instanceof Error ? e.message : String(e)
+}
+function isPageLimit(e: unknown) {
+  const m = errMsg(e)
+  return m.includes('PDF pages') || (m.includes('maximum') && m.includes('100'))
+}
+function isRateLimit(e: unknown) {
+  const m = errMsg(e)
+  return m.includes('429') || m.includes('rate_limit')
+}
+function isCtxLimit(e: unknown) {
+  const m = errMsg(e)
+  return (
+    m.includes('context window') ||
+    m.includes('token limit') ||
+    m.includes('too many tokens') ||
+    m.includes('prompt is too long')
+  )
+}
+function b64Size(b: ContentBlock) {
+  return b.type === 'document' || b.type === 'image' ? b.source.data.length : 0
+}
+
+/* ------------------------------------------------------------------ */
+/* Stage caller (retries + rate-limit wait + 1M beta support)         */
+/* ------------------------------------------------------------------ */
+
+async function callStage(
+  client: Anthropic,
+  system: string,
+  content: ContentBlock[],
+  stage: number,
+  rid: string,
+  use1m = false
+): Promise<StageResult> {
+  let last: Error | null = null
+  for (let a = 1; a <= RATE_LIMIT_RETRIES; a++) {
     try {
+      const tag = use1m ? '[1M]' : ''
       console.warn(
-        `[bg-report:${requestId}] Stage ${stageNum} attempt ${attempt}/${MAX_RETRIES}`
+        `[bg-report:${rid}] Stage ${stage}${tag} ${a}/${RATE_LIMIT_RETRIES}`
       )
 
-      const message = await anthropic.messages.create({
+      if (use1m) {
+        const msg = await client.beta.messages.create({
+          model: MODEL,
+          betas: [BETA_1M],
+          max_tokens: 8192,
+          system,
+          messages: [
+            {
+              role: 'user',
+              content: content as Anthropic.Beta.BetaContentBlockParam[],
+            },
+          ],
+        })
+        const text = msg.content
+          .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')
+          .map((b) => b.text)
+          .join('')
+        console.warn(
+          `[bg-report:${rid}] Stage ${stage}${tag} done | in=${msg.usage.input_tokens} out=${msg.usage.output_tokens}`
+        )
+        return { content: text, inputTokens: msg.usage.input_tokens }
+      }
+
+      const msg = await client.messages.create({
         model: MODEL,
         max_tokens: 8192,
         system,
-        messages: [{ role: 'user', content: userContent }],
+        messages: [{ role: 'user', content }],
       })
-
-      const content = message.content
+      const text = msg.content
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text)
         .join('')
-
       console.warn(
-        `[bg-report:${requestId}] Stage ${stageNum} complete | ` +
-          `input=${message.usage.input_tokens} | output=${message.usage.output_tokens}`
+        `[bg-report:${rid}] Stage ${stage} done | in=${msg.usage.input_tokens} out=${msg.usage.output_tokens}`
       )
-
-      return content
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error))
+      return { content: text, inputTokens: msg.usage.input_tokens }
+    } catch (e) {
+      last = e instanceof Error ? e : new Error(String(e))
       console.error(
-        `[bg-report:${requestId}] Stage ${stageNum} attempt ${attempt} failed:`,
-        lastError.message
+        `[bg-report:${rid}] Stage ${stage} fail #${a}:`,
+        last.message
       )
-      if (attempt < MAX_RETRIES) {
-        const delay = 2000 * attempt
-        console.warn(`[bg-report:${requestId}] Retrying in ${delay}ms...`)
-        await new Promise((resolve) => setTimeout(resolve, delay))
+      if (isPageLimit(e) || isCtxLimit(e)) throw last
+      if (a < RATE_LIMIT_RETRIES) {
+        const ms = isRateLimit(e) ? Math.min(120_000, 30_000 * a) : 2000 * a
+        console.warn(`[bg-report:${rid}] Retry in ${(ms / 1000).toFixed(0)}s`)
+        await new Promise((r) => setTimeout(r, ms))
       }
     }
   }
-
-  throw lastError!
+  throw last!
 }
+
+async function cooldown(tokens: number, rid: string) {
+  if (tokens <= TOKENS_PER_MINUTE) return
+  const ms = Math.ceil((tokens / TOKENS_PER_MINUTE) * 60_000) + 5_000
+  console.warn(
+    `[bg-report:${rid}] Cooldown ${(ms / 1000).toFixed(0)}s (${tokens} tok)`
+  )
+  await new Promise((r) => setTimeout(r, ms))
+}
+
+/* ------------------------------------------------------------------ */
+/* Stage 1: try standard → 1M beta → progressive reduction            */
+/* ------------------------------------------------------------------ */
+
+function stage1Content(docs: ContentBlock[], text: string): ContentBlock[] {
+  if (!docs.length) return [{ type: 'text' as const, text }]
+  return [
+    ...docs,
+    {
+      type: 'text' as const,
+      text: `Os documentos acima foram enviados pelo paciente (transcrição da triagem, exames, laudos). Considere-os na análise.\n\n${text}`,
+    },
+  ]
+}
+
+async function stage1Fallback(
+  client: Anthropic,
+  system: string,
+  docs: ContentBlock[],
+  text: string,
+  rid: string
+): Promise<{ result: StageResult; used1m: boolean }> {
+  const pool = [...docs]
+
+  try {
+    return {
+      result: await callStage(
+        client,
+        system,
+        stage1Content(pool, text),
+        1,
+        rid
+      ),
+      used1m: false,
+    }
+  } catch (e) {
+    if (!isPageLimit(e) && !isCtxLimit(e)) throw e
+    console.warn(`[bg-report:${rid}] Standard limit → escalating to 1M beta`)
+  }
+
+  try {
+    return {
+      result: await callStage(
+        client,
+        system,
+        stage1Content(pool, text),
+        1,
+        rid,
+        true
+      ),
+      used1m: true,
+    }
+  } catch (e) {
+    if (!isPageLimit(e)) throw e
+    console.warn(`[bg-report:${rid}] 1M also hit page limit → reducing`)
+  }
+
+  while (pool.length > 0) {
+    pool.sort((a, b) => b64Size(b) - b64Size(a))
+    pool.shift()
+    console.warn(`[bg-report:${rid}] Docs remaining: ${pool.length}`)
+    try {
+      return {
+        result: await callStage(
+          client,
+          system,
+          stage1Content(pool, text),
+          1,
+          rid,
+          true
+        ),
+        used1m: true,
+      }
+    } catch (e) {
+      if (!isPageLimit(e)) throw e
+    }
+  }
+
+  return {
+    result: await callStage(
+      client,
+      system,
+      stage1Content([], text),
+      1,
+      rid,
+      true
+    ),
+    used1m: true,
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Main                                                               */
+/* ------------------------------------------------------------------ */
 
 export async function generateReportBackground(
   formData: AssessmentFormData,
@@ -249,58 +387,51 @@ export async function generateReportBackground(
   uploads?: Upload[],
   requestId: string = crypto.randomUUID().slice(0, 8)
 ): Promise<ReportResult> {
-  const start = Date.now()
+  const t0 = Date.now()
+  const rid = requestId
   console.warn(
-    `[bg-report:${requestId}] Starting background report generation | ` +
-      `patient=${formData.nome || 'unnamed'} | uploads=${uploads?.length ?? 0}`
+    `[bg-report:${rid}] Start | patient=${formData.nome || '?'} | files=${uploads?.length ?? 0}`
   )
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
   const patientData = buildReportPromptData(formData, scores)
-  const documentBlocks = buildDocumentBlocks(uploads)
+  const docBlocks = await buildBlocks(uploads, rid)
 
-  let previousContent = ''
+  let prev = ''
   const stages: { stage: number; content: string }[] = []
+  let use1m = false
 
   for (const cfg of STAGE_PROMPTS) {
-    const stageStart = Date.now()
-
-    const textContent =
+    const st = Date.now()
+    const txt =
       cfg.stage === 1
         ? `${cfg.userPrefix}${patientData}`
-        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${previousContent}\n\nDADOS DO PACIENTE:\n${patientData}`
+        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${patientData}`
 
-    const userContent: ContentBlock[] =
-      cfg.stage === 1 && documentBlocks.length > 0
-        ? [
-            ...documentBlocks,
-            {
-              type: 'text' as const,
-              text: `Os documentos acima foram enviados pelo paciente (transcrição da triagem, exames, laudos). Considere-os na análise.\n\n${textContent}`,
-            },
-          ]
-        : [{ type: 'text' as const, text: textContent }]
+    let res: StageResult
+    if (cfg.stage === 1) {
+      const s1 = await stage1Fallback(client, cfg.system, docBlocks, txt, rid)
+      res = s1.result
+      use1m = s1.used1m
+    } else {
+      res = await callStage(
+        client,
+        cfg.system,
+        [{ type: 'text' as const, text: txt }],
+        cfg.stage,
+        rid,
+        use1m
+      )
+    }
 
-    const content = await callStageWithRetry(
-      anthropic,
-      cfg.system,
-      userContent,
-      cfg.stage,
-      requestId
-    )
+    prev += `\n\n${res.content}`
+    stages.push({ stage: cfg.stage, content: res.content })
+    console.warn(`[bg-report:${rid}] Stage ${cfg.stage} ${Date.now() - st}ms`)
 
-    previousContent += `\n\n${content}`
-    stages.push({ stage: cfg.stage, content })
-
-    console.warn(
-      `[bg-report:${requestId}] Stage ${cfg.stage} done in ${Date.now() - stageStart}ms`
-    )
+    if (cfg.stage < STAGE_PROMPTS.length) await cooldown(res.inputTokens, rid)
   }
 
-  console.warn(
-    `[bg-report:${requestId}] All stages complete | total=${Date.now() - start}ms`
-  )
-
+  console.warn(`[bg-report:${rid}] All done | ${Date.now() - t0}ms`)
   return {
     reportMarkdown: stages.map((s) => s.content).join('\n\n---\n\n'),
     stages,

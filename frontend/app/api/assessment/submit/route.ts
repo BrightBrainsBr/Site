@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
-import type { AssessmentFormData } from '~/components/assessment/assessment.interface'
+import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 
 import { buildPdf } from '../generate-pdf/pdf-helpers'
 import { generateReportBackground } from '../lib/generate-report-background'
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const { formData, scores, uploads } = body as {
       formData: AssessmentFormData
       scores: Record<string, number>
-      uploads?: { name: string; data: string }[]
+      uploads?: { name: string; url: string; type?: string }[]
     }
 
     const nome = formData?.nome || ''
@@ -40,6 +40,9 @@ export async function POST(request: NextRequest) {
 
     const sb = createSupabaseClient()
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { uploads: _stripUploads, ...cleanFormData } = formData
+
     const { data: row, error } = await sb
       .from('mental_health_evaluations')
       .insert({
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
         patient_birth_date: formData.nascimento || null,
         patient_sex: formData.sexo || null,
         patient_profile: (formData.publico as string) || null,
-        form_data: formData,
+        form_data: cleanFormData,
         scores,
         status: 'processing',
       })
@@ -144,10 +147,7 @@ export async function POST(request: NextRequest) {
         const bgSb = createSupabaseClient()
         const { error: statusUpdateError } = await bgSb
           .from('mental_health_evaluations')
-          .update({
-            status: 'error',
-            processing_error: errorMsg,
-          })
+          .update({ status: 'error' })
           .eq('id', evaluationId)
         if (statusUpdateError) {
           console.error(
