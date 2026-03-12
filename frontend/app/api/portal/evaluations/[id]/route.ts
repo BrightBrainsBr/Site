@@ -60,6 +60,77 @@ export async function GET(
   }
 }
 
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await requirePortalSession()
+    if (!session) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    const sb = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: row, error: fetchError } = await sb
+      .from('mental_health_evaluations')
+      .select('doctor_uploads')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') {
+        return NextResponse.json({ message: 'Not found' }, { status: 404 })
+      }
+      return NextResponse.json({ message: fetchError.message }, { status: 500 })
+    }
+
+    const uploads = (row?.doctor_uploads ?? []) as Array<{ path: string }>
+    if (uploads.length > 0) {
+      const paths = uploads.map((u) => u.path).filter(Boolean)
+      if (paths.length > 0) {
+        await sb.storage.from('assessment-pdfs').remove(paths)
+      }
+    }
+
+    const storagePrefix = `uploads/${id}/`
+    const { data: storedFiles } = await sb.storage
+      .from('assessment-pdfs')
+      .list(storagePrefix.replace(/\/$/, ''), { limit: 200 })
+    if (storedFiles && storedFiles.length > 0) {
+      await sb.storage
+        .from('assessment-pdfs')
+        .remove(storedFiles.map((f) => `${storagePrefix}${f.name}`))
+    }
+
+    const { error: deleteError } = await sb
+      .from('mental_health_evaluations')
+      .delete()
+      .eq('id', id)
+
+    if (deleteError) {
+      console.error('[portal/evaluations/[id]] Delete error:', deleteError)
+      return NextResponse.json(
+        { message: deleteError.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('[portal/evaluations/[id]] Delete error:', err)
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
