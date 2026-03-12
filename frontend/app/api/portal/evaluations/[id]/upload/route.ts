@@ -6,7 +6,6 @@ import { NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 
 const BUCKET = 'assessment-pdfs'
-const MAX_FILE_SIZE = 250 * 1024 * 1024
 
 interface DoctorUploadEntry {
   name: string
@@ -29,6 +28,10 @@ function createSb() {
   )
 }
 
+/**
+ * Confirms a file that was already uploaded directly to Supabase Storage
+ * via a signed URL. Receives only lightweight JSON metadata, not the file.
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -40,47 +43,31 @@ export async function POST(
     }
 
     const { id } = await params
-    const formPayload = await request.formData()
-    const file = formPayload.get('file') as File | null
-
-    if (!file) {
-      return NextResponse.json(
-        { error: 'Arquivo é obrigatório' },
-        { status: 400 }
-      )
+    const {
+      name,
+      type,
+      path: storagePath,
+    } = (await request.json()) as {
+      name: string
+      type: string
+      path: string
     }
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (!name || !storagePath) {
       return NextResponse.json(
-        { error: 'Arquivo muito grande (máx 250MB)' },
+        { error: 'name e path são obrigatórios' },
         { status: 400 }
       )
     }
 
     const sb = createSb()
 
-    const ext = file.name.split('.').pop() ?? 'bin'
-    const storagePath = `uploads/${id}/doctor/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`
-    const buffer = Buffer.from(await file.arrayBuffer())
-
-    const { error: uploadError } = await sb.storage
-      .from(BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: file.type,
-        upsert: false,
-      })
-
-    if (uploadError) {
-      console.error('[portal/upload] Storage error:', uploadError)
-      return NextResponse.json({ error: 'Erro no upload' }, { status: 500 })
-    }
-
     const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(storagePath)
 
     const newEntry: DoctorUploadEntry = {
-      name: file.name,
+      name,
       url: urlData.publicUrl,
-      type: file.type,
+      type: type || 'application/octet-stream',
       path: storagePath,
       uploaded_at: new Date().toISOString(),
     }

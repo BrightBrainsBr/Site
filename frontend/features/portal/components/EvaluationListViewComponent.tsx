@@ -2,11 +2,13 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { parseAsString, useQueryState } from 'nuqs'
 
 import { cn } from '~/shared/utils/cn'
 import type { EvaluationListItem } from '../portal.interface'
 import { formatDate } from '../helpers/format-evaluation'
+import { useDeleteEvaluationMutationHook } from '../hooks/useDeleteEvaluationMutationHook'
 import { useEvaluationsQueryHook } from '../hooks/useEvaluationsQueryHook'
 import { ProfileBadgeComponent } from './ProfileBadgeComponent'
 import { StatusBadgeComponent } from './StatusBadgeComponent'
@@ -63,6 +65,135 @@ function daysAgoShort(iso: string): string {
   return `${diffDays}d atrás`
 }
 
+function KebabMenu({
+  evaluationId,
+  patientName,
+  onDeleted,
+}: {
+  evaluationId: string
+  patientName: string
+  onDeleted: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const deleteMutation = useDeleteEvaluationMutationHook(evaluationId)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const handleDelete = useCallback(() => {
+    deleteMutation.mutate(undefined, {
+      onSuccess: () => {
+        setShowConfirm(false)
+        onDeleted()
+      },
+    })
+  }, [deleteMutation, onDeleted])
+
+  return (
+    <>
+      <div ref={menuRef} className="relative">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            setOpen((p) => !p)
+          }}
+          className="rounded-md p-1.5 text-[#5a7fa0] transition-colors hover:bg-[#0f2240] hover:text-[#cce6f7]"
+        >
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="5" r="1.5" />
+            <circle cx="12" cy="12" r="1.5" />
+            <circle cx="12" cy="19" r="1.5" />
+          </svg>
+        </button>
+        {open && (
+          <div className="absolute right-0 z-20 mt-1 w-36 rounded-lg border border-[#1a3a5c] bg-[#0c1a2e] py-1 shadow-xl">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setOpen(false)
+                setShowConfirm(true)
+              }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[#ff4d6d] transition-colors hover:bg-[rgba(255,77,109,0.1)]"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Excluir
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mx-4 w-full max-w-md rounded-xl border border-[#1a3a5c] bg-[#0c1a2e] p-6 shadow-2xl">
+            <h3
+              className="font-heading mb-2 text-lg font-bold text-[#cce6f7]"
+              style={{ fontFamily: 'var(--font-heading), sans-serif' }}
+            >
+              Excluir Avaliação?
+            </h3>
+            <p className="mb-1 text-sm leading-relaxed text-[#5a7fa0]">
+              Tem certeza que deseja excluir permanentemente o registro de:
+            </p>
+            <p className="mb-5 text-sm font-semibold text-[#cce6f7]">
+              {patientName || 'Paciente sem nome'}
+            </p>
+            <p className="mb-6 text-xs text-[#ff6b85]">
+              Todos os dados, documentos e relatórios serão removidos. Esta ação
+              não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowConfirm(false)
+                }}
+                className="rounded-lg border border-[#1a3a5c] bg-transparent px-4 py-2.5 text-sm font-medium text-[#cce6f7] transition-colors hover:bg-[#0f2240]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleDelete()
+                }}
+                className="rounded-lg border border-[#ff4d6d] bg-[#ff4d6d] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#ff6b85] disabled:opacity-50"
+              >
+                {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+            {deleteMutation.isError && (
+              <p className="mt-3 text-xs text-[#ff4d6d]">
+                {deleteMutation.error.message}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 export function EvaluationListViewComponent() {
   const router = useRouter()
   const params = useParams()
@@ -75,7 +206,7 @@ export function EvaluationListViewComponent() {
     parseAsString.withDefault('date_desc')
   )
 
-  const { data: evaluations = [], isLoading } = useEvaluationsQueryHook({
+  const { data: evaluations = [], isLoading, refetch } = useEvaluationsQueryHook({
     status: status ?? undefined,
     profile: profile ?? undefined,
     search: search ?? undefined,
@@ -291,16 +422,23 @@ export function EvaluationListViewComponent() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        className="rounded-md border border-[rgba(0,201,177,0.3)] bg-[rgba(0,201,177,0.1)] px-3 py-1.5 text-xs font-medium text-[#00c9b1] transition-colors hover:bg-[rgba(0,201,177,0.15)]"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          router.push(`/${locale}/portal/${evaluation.id}`)
-                        }}
-                      >
-                        Ver
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          className="rounded-md border border-[rgba(0,201,177,0.3)] bg-[rgba(0,201,177,0.1)] px-3 py-1.5 text-xs font-medium text-[#00c9b1] transition-colors hover:bg-[rgba(0,201,177,0.15)]"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/${locale}/portal/${evaluation.id}`)
+                          }}
+                        >
+                          Ver
+                        </button>
+                        <KebabMenu
+                          evaluationId={evaluation.id}
+                          patientName={evaluation.patient_name ?? ''}
+                          onDeleted={() => void refetch()}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

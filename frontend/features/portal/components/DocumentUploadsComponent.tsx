@@ -43,16 +43,59 @@ export function DocumentUploadsComponent({
       })
 
       try {
-        const fd = new FormData()
-        fd.append('file', file)
-        const res = await fetch(
-          `/api/portal/evaluations/${evaluationId}/upload`,
-          { method: 'POST', body: fd }
+        const urlRes = await fetch(
+          `/api/portal/evaluations/${evaluationId}/upload-url`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              contentType: file.type,
+            }),
+          }
         )
-        if (!res.ok) {
-          const err = (await res.json()) as { error?: string }
-          throw new Error(err.error ?? 'Erro no upload')
+        if (!urlRes.ok) {
+          const err = await urlRes.json().catch(() => ({}))
+          throw new Error(
+            (err as { error?: string }).error ?? 'Erro ao gerar URL de upload'
+          )
         }
+        const { signedUrl, path } = (await urlRes.json()) as {
+          signedUrl: string
+          path: string
+        }
+
+        const storageRes = await fetch(signedUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+            'x-upsert': 'false',
+          },
+          body: file,
+        })
+        if (!storageRes.ok) {
+          throw new Error('Erro ao enviar arquivo para o storage')
+        }
+
+        const confirmRes = await fetch(
+          `/api/portal/evaluations/${evaluationId}/upload`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: file.name,
+              type: file.type,
+              path,
+            }),
+          }
+        )
+        if (!confirmRes.ok) {
+          const err = await confirmRes.json().catch(() => ({}))
+          throw new Error(
+            (err as { error?: string }).error ?? 'Erro ao confirmar upload'
+          )
+        }
+
         setActiveUploads((prev) => {
           const next = [...prev]
           next[index] = { ...next[index], status: 'done' }

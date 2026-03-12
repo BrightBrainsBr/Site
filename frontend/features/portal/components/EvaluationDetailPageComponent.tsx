@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 
 import { cn } from '~/shared/utils/cn'
 import { formatDate } from '../helpers/format-evaluation'
+import { useDeleteEvaluationMutationHook } from '../hooks/useDeleteEvaluationMutationHook'
 import { useEvaluationByIdQueryHook } from '../hooks/useEvaluationByIdQueryHook'
 import { ActivityTimelineComponent } from './ActivityTimelineComponent'
 import { ApprovalActionsComponent } from './ApprovalActionsComponent'
@@ -33,6 +34,7 @@ export function EvaluationDetailPageComponent({
   evaluationId,
 }: EvaluationDetailPageComponentProps) {
   const params = useParams()
+  const router = useRouter()
   const locale = (params?.locale as string) ?? 'pt'
 
   const [activeTab, setActiveTab] = useState<Tab>('dados')
@@ -41,6 +43,9 @@ export function EvaluationDetailPageComponent({
   const [showApproveDialog, setShowApproveDialog] = useState(false)
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [showRegenConfirm, setShowRegenConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  const deleteMutation = useDeleteEvaluationMutationHook(evaluationId)
 
   const {
     data: evaluation,
@@ -133,6 +138,18 @@ export function EvaluationDetailPageComponent({
         </Link>
 
         <div className="flex items-center gap-2">
+          {/* Delete button */}
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="rounded-lg border border-[#1a3a5c] p-2 text-[#5a7fa0] transition-colors hover:border-[#ff4d6d] hover:text-[#ff4d6d]"
+            title="Excluir avaliação"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+
           {/* Regenerate button — always visible */}
           <button
             type="button"
@@ -352,6 +369,59 @@ export function EvaluationDetailPageComponent({
         onCloseReject={() => setShowRejectDialog(false)}
         onStatusChange={handleStatusChange}
       />
+
+      {/* Delete confirmation dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="mx-4 w-full max-w-md rounded-xl border border-[#1a3a5c] bg-[#0c1a2e] p-6 shadow-2xl">
+            <h3
+              className="font-heading mb-2 text-lg font-bold text-[#cce6f7]"
+              style={{ fontFamily: 'var(--font-heading), sans-serif' }}
+            >
+              Excluir Avaliação?
+            </h3>
+            <p className="mb-1 text-sm leading-relaxed text-[#5a7fa0]">
+              Tem certeza que deseja excluir permanentemente o registro de:
+            </p>
+            <p className="mb-5 text-sm font-semibold text-[#cce6f7]">
+              {evaluation.patient_name || 'Paciente sem nome'}
+            </p>
+            <p className="mb-6 text-xs text-[#ff6b85]">
+              Todos os dados, documentos e relatórios serão removidos. Esta ação
+              não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => setShowDeleteConfirm(false)}
+                className="rounded-lg border border-[#1a3a5c] bg-transparent px-4 py-2.5 text-sm font-medium text-[#cce6f7] transition-colors hover:bg-[#0f2240]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => {
+                  deleteMutation.mutate(undefined, {
+                    onSuccess: () => {
+                      router.push(`/${locale}/portal`)
+                    },
+                  })
+                }}
+                className="rounded-lg border border-[#ff4d6d] bg-[#ff4d6d] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#ff6b85] disabled:opacity-50"
+              >
+                {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+            {deleteMutation.isError && (
+              <p className="mt-3 text-xs text-[#ff4d6d]">
+                {deleteMutation.error.message}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
