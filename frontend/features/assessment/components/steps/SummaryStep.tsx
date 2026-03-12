@@ -32,27 +32,43 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
           if (!f.data) continue
 
           const blob = await fetch(f.data).then((r) => r.blob())
-          const formPayload = new FormData()
-          formPayload.append('file', blob, f.name)
 
-          const uploadRes = await fetch('/api/assessment/upload', {
-            method: 'POST',
-            body: formPayload,
+          const params = new URLSearchParams({
+            fileName: f.name,
+            fileSize: String(blob.size),
+            contentType: blob.type || 'application/pdf',
+          })
+          const urlRes = await fetch(
+            `/api/assessment/upload?${params.toString()}`
+          )
+          if (!urlRes.ok) {
+            throw new Error(`Erro ao preparar upload: ${f.name}`)
+          }
+
+          const { signedUrl, token, publicUrl } = (await urlRes.json()) as {
+            signedUrl: string
+            token: string
+            publicUrl: string
+          }
+
+          const putRes = await fetch(signedUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': blob.type || 'application/pdf',
+              'x-upsert': 'false',
+            },
+            body: blob,
           })
 
-          if (!uploadRes.ok) {
+          if (!putRes.ok) {
             throw new Error(`Erro ao enviar arquivo: ${f.name}`)
           }
 
-          const uploadData = (await uploadRes.json()) as {
-            url: string
-            name: string
-            type: string
-          }
+          void token
           uploadedFiles.push({
-            name: uploadData.name,
-            url: uploadData.url,
-            type: uploadData.type,
+            name: f.name,
+            url: publicUrl,
+            type: blob.type || 'application/pdf',
           })
         }
       }

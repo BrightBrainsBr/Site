@@ -1,0 +1,145 @@
+import type { AssessmentFormData } from '../components/assessment.interface'
+import { INITIAL_FORM_DATA } from '../components/assessment.interface'
+import { FAMILY_CONDITIONS } from '../components/constants/medical-options'
+import { SYMPTOM_CATEGORIES } from '../components/constants/symptom-categories'
+
+function pick<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function pickN<T>(arr: readonly T[], min: number, max: number): T[] {
+  const n = Math.floor(Math.random() * (max - min + 1)) + min
+  const shuffled = [...arr].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, n)
+}
+
+function randInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function randScale(length: number, max: number): number[] {
+  return Array.from({ length }, () => randInt(0, max))
+}
+
+export function generateTestFormData(): AssessmentFormData {
+  const allSymptoms = SYMPTOM_CATEGORIES.flatMap((c) => c.items)
+
+  return {
+    ...INITIAL_FORM_DATA,
+
+    nome: 'Paciente Teste Silva',
+    nascimento: '1988-06-15',
+    cpf: '123.456.789-00',
+    telefone: '(11) 98765-4321',
+    email: 'teste@brightbrains.com',
+    sexo: pick(['masculino', 'feminino']),
+    profissao: pick(['Engenheiro', 'Médico', 'Professor', 'Advogado']),
+    escolaridade: pick(['sup_comp', 'pos', 'mestrado']),
+    peso: String(randInt(55, 95)),
+    altura: String(randInt(155, 190)),
+
+    publico: 'adulto',
+    queixaPrincipal:
+      'Dificuldade de concentração, insônia frequente e ansiedade persistente nos últimos meses. Fadiga crônica e dificuldade em manter foco.',
+    tempoSintomas: 'Aproximadamente 8 meses, com piora nos últimos 3.',
+    eventoDesencadeador:
+      'Mudança de emprego e aumento significativo da carga de trabalho.',
+
+    diagAnterior: 'sim',
+    diagAnterioresDetalhe:
+      'Transtorno de Ansiedade Generalizada (F41.1), TDAH (F90.0)',
+    psicoterapia: 'sim',
+    internacao: 'nao',
+    condicoesCronicas: pickN(
+      ['Enxaqueca crônica', 'Hipotireoidismo', 'Hipertensão'],
+      1,
+      2
+    ),
+    examesNeuro: 'sim',
+    examesNeuroDetalhe:
+      'EEG realizado em 2024, RM de crânio sem alterações significativas.',
+
+    sintomasAtuais: pickN(allSymptoms, 5, 10),
+    outrosSintomas: '',
+
+    // Scales — 0-3 for most, 0-4 for some
+    phq9: randScale(9, 3),
+    gad7: randScale(7, 3),
+    isi: randScale(7, 4),
+    asrs: randScale(6, 4),
+    aq10: randScale(10, 3),
+    ocir: randScale(18, 4),
+    pcl5: randScale(8, 4),
+    mdq: randScale(13, 1),
+    mbi: randScale(16, 6),
+    pss10: randScale(10, 4),
+    spin: randScale(3, 4),
+    auditc: randScale(3, 4),
+    ad8: randScale(8, 1),
+    nms: randScale(15, 1),
+    alsfrs: randScale(12, 4),
+    snapiv: randScale(18, 3),
+
+    mdqSimultaneo: pick(['sim', 'nao']),
+    mdqImpacto: pick(['nenhum', 'pouco', 'moderado', 'grave']),
+
+    usaMedicamento: 'sim',
+    medPassado: 'sim',
+    medPassadoDetalhe: 'Sertralina 50mg por 6 meses, descontinuado em 2023.',
+    efeitosAdversos: 'Náusea leve com sertralina anterior.',
+    alergias: 'Nenhuma alergia conhecida.',
+    medicamentos: [
+      { nome: 'Escitalopram', dose: '10mg', tempo: '3 meses' },
+      { nome: 'Melatonina', dose: '3mg', tempo: '2 meses' },
+    ],
+
+    suplementos: [
+      { nome: 'Magnésio Dimalato', dose: '300mg' },
+      { nome: 'Ômega-3', dose: '1000mg' },
+    ],
+    supObs: '',
+
+    uploads: {},
+
+    possuiLaudos: 'sim',
+    laudosAnteriores: [
+      {
+        tipo: 'Laudo Psiquiátrico',
+        data: '2024-08',
+        cid: 'F41.1',
+        resumo: 'TAG moderado, início de tratamento farmacológico.',
+      },
+    ],
+
+    usaWearable: 'nao',
+    wDispositivo: '',
+    wFCRepouso: '',
+    wHRV: '',
+    wSonoDuracao: '',
+    wPassos: '',
+    wEstresse: '',
+    wearableObs: '',
+
+    estadoCivil: pick(['Casado(a)', 'Solteiro(a)', 'União estável']),
+    satisfacaoRelacionamento: pick(['Satisfeito', 'Neutro']),
+    situacaoProfissional: pick(['clt', 'autonomo']),
+    cargaHoraria: pick(['40-50h', '50-60h']),
+    horaDormir: pick(['23:00', '00:00', '01:00']),
+    horaAcordar: pick(['06:00', '07:00', '08:00']),
+    qualidadeSono: pick(['Regular', 'Ruim']),
+    atividadeFisica: pick(['1-2x/sem', '3-4x/sem', 'Não pratico']),
+    cafeina: pick(['1-2/dia', '3-4/dia']),
+    tabaco: 'Nunca',
+    cannabis: 'Nunca',
+    neuromod: 'Nunca',
+    neuromodDetalhes: '',
+    estresse: pick(['Alto', 'Moderado']),
+    redeApoio: pick(['Moderada', 'Forte']),
+    fontesEstresse: pickN(['Trabalho', 'Financeiro', 'Saúde', 'Família'], 2, 3),
+    estiloVidaObs: '',
+
+    familiaCondicoes: pickN(FAMILY_CONDITIONS, 2, 4),
+    familiaDetalhes: 'Mãe com depressão, tio paterno com TDAH.',
+    infoAdicional: '',
+  }
+}

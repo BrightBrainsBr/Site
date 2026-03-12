@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 
 import {
   type FileEntry,
@@ -10,6 +10,8 @@ import {
 import type { StepComponentProps, UploadedFile } from '../assessment.interface'
 import { InfoBox, SectionTitle } from '../fields'
 import { StepNavigation } from '../StepNavigation'
+
+const IS_DEV = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
 
 type UploadCategory = 'triagem' | 'exames'
 
@@ -76,6 +78,31 @@ export function UploadsStep({
   const totalFiles =
     (data.uploads.triagem?.length ?? 0) + (data.uploads.geral?.length ?? 0)
 
+  const [loadingTest, setLoadingTest] = useState(false)
+  const loadTestFiles = useCallback(async () => {
+    if (!IS_DEV) return
+    setLoadingTest(true)
+    try {
+      const res = await fetch('/api/assessment/load-test-files')
+      if (!res.ok) throw new Error('Failed to load')
+      const { files } = (await res.json()) as {
+        files: { name: string; size: number; data: string }[]
+      }
+      const newFiles: UploadedFile[] = files.map((f) => ({
+        name: f.name,
+        size: f.size,
+        data: f.data,
+      }))
+      const existing = data.uploads.geral ?? []
+      setData({
+        ...data,
+        uploads: { ...data.uploads, geral: [...existing, ...newFiles] },
+      })
+    } finally {
+      setLoadingTest(false)
+    }
+  }, [data, setData])
+
   return (
     <div>
       <SectionTitle
@@ -90,6 +117,19 @@ export function UploadsStep({
         clínicos. Os PDFs serão analisados pela IA junto aos dados do
         formulário.
       </InfoBox>
+
+      {IS_DEV && (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={loadTestFiles}
+            disabled={loadingTest}
+            className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-400 transition-colors hover:bg-amber-500/20 disabled:opacity-50"
+          >
+            {loadingTest ? 'Carregando...' : 'Carregar 7 PDFs de teste'}
+          </button>
+        </div>
+      )}
 
       <div className="mt-6 space-y-6">
         {CATEGORIES.map((cat) => {

@@ -125,18 +125,12 @@ export function ReportPreviewComponent({
         <p className="text-sm text-[#5a7fa0]">Relatório ainda não gerado.</p>
       ) : displayMarkdown ? (
         <>
-          <div
-            className="rounded-lg border-l-[3px] border-l-[#00c9b1] bg-[#0f2240] p-4 text-sm leading-[1.75] text-[#cce6f7]"
-            dangerouslySetInnerHTML={{
-              __html: simpleMarkdownToHtml(displayMarkdown),
-            }}
-          />
           {displayPdfUrl && (
             <a
               href={displayPdfUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#00c9b1] bg-transparent px-4 py-2.5 text-sm font-medium text-[#00c9b1] transition-colors hover:bg-[rgba(0,201,177,0.1)]"
+              className="mb-4 inline-flex items-center gap-2 rounded-lg border border-[#00c9b1] bg-transparent px-4 py-2.5 text-sm font-medium text-[#00c9b1] transition-colors hover:bg-[rgba(0,201,177,0.1)]"
             >
               <svg
                 className="h-4 w-4"
@@ -154,6 +148,12 @@ export function ReportPreviewComponent({
               Baixar PDF{!isCurrentVersion ? ` (v${(viewingVersion ?? 0) + 1})` : ''}
             </a>
           )}
+          <div
+            className="rounded-lg border-l-[3px] border-l-[#00c9b1] bg-[#0f2240] p-4 text-sm leading-[1.75] text-[#cce6f7]"
+            dangerouslySetInnerHTML={{
+              __html: simpleMarkdownToHtml(displayMarkdown),
+            }}
+          />
         </>
       ) : null}
     </div>
