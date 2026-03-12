@@ -64,6 +64,77 @@ const kmr = localFont({
 export const revalidate = 60
 export const dynamicParams = true
 
+const globalSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      name: 'Bright Brains - Instituto da Mente',
+      url: 'https://www.brightbrains.com.br/',
+      description:
+        'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica, utilizando técnicas como Estimulação Magnética Transcraniana (TMS) e Estimulação Transcraniana por Corrente Contínua (tDCS) para tratamento de transtornos neuropsiquiátricos, doenças neurológicas e otimização cognitiva.',
+      telephone: '+55-11-97517-8575',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Rua do Rócio, 350, cj 61 - Vila Olímpia',
+        addressLocality: 'São Paulo',
+        addressRegion: 'SP',
+        postalCode: '04552-000',
+        addressCountry: 'BR',
+      },
+      sameAs: [
+        'https://www.instagram.com/brightbrainsbr/',
+        'https://br.linkedin.com/company/bright-brains-brasil',
+        'https://www.youtube.com/@BrightBrainsBr',
+      ],
+    },
+    {
+      '@type': 'MedicalClinic',
+      name: 'Bright Brains - Instituto da Mente',
+      url: 'https://www.brightbrains.com.br/',
+      description:
+        'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica, utilizando técnicas como Estimulação Magnética Transcraniana (TMS) e Estimulação Transcraniana por Corrente Contínua (tDCS) para tratamento de transtornos neuropsiquiátricos, doenças neurológicas e otimização cognitiva.',
+      telephone: '+55-11-97517-8575',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Rua do Rócio, 350, cj 61 - Vila Olímpia',
+        addressLocality: 'São Paulo',
+        addressRegion: 'SP',
+        postalCode: '04552-000',
+        addressCountry: 'BR',
+      },
+      areaServed: 'Brasil',
+      availableService: [
+        {
+          '@type': 'MedicalTherapy',
+          name: 'Estimulação Magnética Transcraniana (TMS)',
+        },
+        {
+          '@type': 'MedicalTherapy',
+          name: 'Estimulação Transcraniana por Corrente Contínua (tDCS)',
+        },
+      ],
+      medicalSpecialty: [
+        'Neuromodulation',
+        'Neurology',
+        'Psychiatry',
+        'MentalHealth',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      name: 'Bright Brains - Instituto da Mente',
+      url: 'https://www.brightbrains.com.br/',
+      inLanguage: 'pt-BR',
+      publisher: {
+        '@type': 'Organization',
+        name: 'Bright Brains - Instituto da Mente',
+        url: 'https://www.brightbrains.com.br/',
+      },
+    },
+  ],
+}
+
 const RootLayout = async ({ children, params }: any) => {
   const { locale } = await params
 
@@ -87,6 +158,14 @@ const RootLayout = async ({ children, params }: any) => {
           href="/apple-touch-icon.png"
         />
         <link rel="manifest" href="/site.webmanifest" />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(globalSchema),
+          }}
+        />
+
         {/* Google Tag Manager */}
         <script
           dangerouslySetInnerHTML={{
@@ -97,6 +176,7 @@ const RootLayout = async ({ children, params }: any) => {
             })(window,document,'script','dataLayer','GTM-WQ538QRM');`,
           }}
         />
+
         {/* Facebook Pixel Code */}
         <script
           dangerouslySetInnerHTML={{
@@ -114,6 +194,7 @@ const RootLayout = async ({ children, params }: any) => {
             `,
           }}
         />
+
         {/* Facebook Pixel Code - Second Pixel */}
         <script
           dangerouslySetInnerHTML={{
@@ -131,7 +212,9 @@ const RootLayout = async ({ children, params }: any) => {
             `,
           }}
         />
+
         <Scripts />
+
         <noscript>
           <img
             height="1"
@@ -140,6 +223,7 @@ const RootLayout = async ({ children, params }: any) => {
             src="https://www.facebook.com/tr?id=1271906851245732&ev=PageView&noscript=1"
           />
         </noscript>
+
         <noscript>
           <img
             height="1"
@@ -149,6 +233,7 @@ const RootLayout = async ({ children, params }: any) => {
           />
         </noscript>
       </head>
+
       <body>
         <noscript>
           <iframe
