@@ -3,12 +3,10 @@ import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
-import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
-import { generateReportBackground } from '~/app/api/assessment/lib/generate-report-background'
-import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
+import { triggerProcessReportJob } from '~/app/api/assessment/lib/trigger-process-report'
 
 export const runtime = 'nodejs'
-export const maxDuration = 300
+export const maxDuration = 60
 
 function createSb() {
   return createClient(
@@ -114,13 +112,13 @@ export async function POST(
       })
     }
 
-    await updateEvaluationStatus(sb, id, 'processing_report', requestId, {
+    const dispatchingStatus = `processing_dispatching_${Date.now()}`
+
+    await updateEvaluationStatus(sb, id, dispatchingStatus, requestId, {
       report_history: existingHistory,
       processing_error: null,
     })
 
-    const formData = (row.form_data ?? {}) as AssessmentFormData
-    const scores = (row.scores ?? {}) as Record<string, number>
     const doctorUploads = (row.doctor_uploads ?? []) as {
       name: string
       url: string
@@ -128,87 +126,25 @@ export async function POST(
     }[]
 
     console.warn(
-      `[regenerate:${requestId}] Starting regeneration for ${id} | uploads=${doctorUploads.length} | history=${existingHistory.length}`
+      `[regenerate:${requestId}] Starting regeneration for ${id} | uploads=${doctorUploads.length} | history=${existingHistory.length} — triggering background job`
     )
 
+    // Primary dispatch (best-effort) plus after() fallback.
+    // The process endpoint is idempotent and will skip duplicate in-flight dispatches.
+    void triggerProcessReportJob({
+      evaluationId: id,
+      mode: 'regenerate',
+      requestId,
+      source: 'regenerate',
+    })
+
     after(async () => {
-      const bgStart = Date.now()
-      const bgSb = createSb()
-
-      const setStatus = async (
-        status: EvaluationProcessingStatus,
-        patch: Record<string, unknown> = {}
-      ) => updateEvaluationStatus(bgSb, id, status, requestId, patch)
-
-      try {
-        await setStatus('processing_report')
-
-        const uploads =
-          doctorUploads.length > 0
-            ? doctorUploads.map((d) => ({
-                name: d.name,
-                url: d.url,
-                type: d.type,
-              }))
-            : undefined
-
-        const report = await generateReportBackground(
-          formData,
-          scores,
-          uploads,
-          requestId,
-          (status) => setStatus(status as EvaluationProcessingStatus)
-        )
-
-        const today = new Date().toLocaleDateString('pt-BR')
-        const reportMarkdown = report.reportMarkdown.replace(
-          /\[Data (?:do relatório|atual)\]/gi,
-          today
-        )
-
-        await setStatus('processing_pdf')
-        const pdfBuffer = buildPdf(formData, reportMarkdown)
-
-        const fileName = `report_${id}_${Date.now()}.pdf`
-        await setStatus('processing_upload')
-
-        const { error: uploadError } = await bgSb.storage
-          .from('assessment-pdfs')
-          .upload(fileName, pdfBuffer, {
-            contentType: 'application/pdf',
-            upsert: false,
-          })
-
-        if (uploadError) {
-          console.error(
-            `[regenerate:${requestId}] PDF upload error:`,
-            uploadError
-          )
-          throw new Error('Erro ao fazer upload do PDF')
-        }
-
-        const {
-          data: { publicUrl },
-        } = bgSb.storage.from('assessment-pdfs').getPublicUrl(fileName)
-
-        await setStatus('completed', {
-          report_markdown: reportMarkdown,
-          report_pdf_url: publicUrl,
-        })
-
-        console.warn(
-          `[regenerate:${requestId}] Done | total=${Date.now() - bgStart}ms`
-        )
-      } catch (err) {
-        const errorMsg =
-          err instanceof Error ? err.message : 'Erro desconhecido'
-        console.error(
-          `[regenerate:${requestId}] Failed after ${Date.now() - bgStart}ms:`,
-          errorMsg
-        )
-
-        await setStatus('error', { processing_error: errorMsg })
-      }
+      await triggerProcessReportJob({
+        evaluationId: id,
+        mode: 'regenerate',
+        requestId,
+        source: 'regenerate-after',
+      })
     })
 
     return NextResponse.json({ status: 'processing_report', requestId })

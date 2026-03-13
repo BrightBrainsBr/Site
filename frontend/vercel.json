@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "app/api/assessment/process-report/route.ts": {
+      "maxDuration": 900
+    }
+  }
+}

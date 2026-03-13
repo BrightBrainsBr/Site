@@ -36,6 +36,11 @@ export function getStatusLabel(status: string): string {
 
 export function getProcessingStatusLabel(status: string | null | undefined): string | null {
   if (!status) return null
+  if (status.startsWith('processing_dispatching_')) return 'Inicializando...'
+  if (status.startsWith('processing_claimed_')) return 'Iniciando worker...'
+  if (status.startsWith('processing_report_')) return 'Gerando relatório...'
+  if (status.startsWith('processing_extract_')) return 'Extraindo anexos...'
+  if (status.startsWith('processing_stage_')) return 'Gerando seções...'
   const labels: Record<string, string> = {
     processing: 'Processando...',
     processing_report: 'Gerando relatório...',

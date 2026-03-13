@@ -5,7 +5,10 @@ import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '~/shared/utils/api-helpers'
 import type { EvaluationDetail } from '../portal.interface'
 
-export function useEvaluationByIdQueryHook(id: string) {
+export function useEvaluationByIdQueryHook(
+  id: string,
+  options?: { enabled?: boolean }
+) {
   return useQuery<EvaluationDetail, Error>({
     queryKey: ['portal', 'evaluations', id],
     queryFn: async () => {
@@ -17,6 +20,6 @@ export function useEvaluationByIdQueryHook(id: string) {
       }
       return result.data!
     },
-    enabled: !!id,
+    enabled: !!id && (options?.enabled ?? true),
   })
 }
