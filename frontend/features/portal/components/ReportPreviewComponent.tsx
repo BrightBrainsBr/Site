@@ -50,15 +50,71 @@ function parseProcessingStatus(status: string | null | undefined) {
   }
 }
 
-function simpleMarkdownToHtml(md: string): string {
-  return md
-    .replace(/^### (.+)$/gm, '<h3 class="text-base font-bold text-[#00c9b1] mt-4 mb-2">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold text-[#cce6f7] mt-6 mb-3 pb-2 border-b border-[rgba(0,201,177,0.2)]">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-[#cce6f7] mt-6 mb-3">$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-[#cce6f7]">$1</strong>')
-    .replace(/^- (.+)$/gm, '<li class="ml-4 text-[#cce6f7]">$1</li>')
-    .replace(/^---$/gm, '<hr class="border-[#1a3a5c] my-4" />')
+interface MarkdownSection {
+  title: string | null
+  content: string
+}
+
+function splitIntoSections(md: string): MarkdownSection[] {
+  const lines = md.split('\n')
+  const sections: MarkdownSection[] = []
+  let currentTitle: string | null = null
+  let currentLines: string[] = []
+
+  for (const line of lines) {
+    const h2Match = line.match(/^## (.+)$/)
+    if (h2Match) {
+      if (currentLines.length > 0 || currentTitle !== null) {
+        sections.push({
+          title: currentTitle,
+          content: currentLines.join('\n').trim(),
+        })
+      }
+      currentTitle = h2Match[1]
+      currentLines = []
+    } else {
+      currentLines.push(line)
+    }
+  }
+
+  if (currentLines.length > 0 || currentTitle !== null) {
+    sections.push({
+      title: currentTitle,
+      content: currentLines.join('\n').trim(),
+    })
+  }
+
+  return sections
+}
+
+function sectionContentToHtml(md: string): string {
+  let html = md
+    .replace(
+      /^#### (.+)$/gm,
+      '<h4 class="text-[0.9375rem] font-semibold text-[#5ec4b6] mt-5 mb-2">$1</h4>'
+    )
+    .replace(
+      /^### (.+)$/gm,
+      '<h3 class="text-base font-bold text-[#00c9b1] mt-6 mb-2">$1</h3>'
+    )
+    .replace(
+      /^# (.+)$/gm,
+      '<h1 class="text-2xl font-bold text-white mb-3">$1</h1>'
+    )
+    .replace(
+      /\*\*(.+?)\*\*/g,
+      '<strong class="font-semibold text-[#e0f0ff]">$1</strong>'
+    )
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^---$/gm, '')
     .replace(/\n\n/g, '<br/><br/>')
+
+  html = html.replace(
+    /(<li>[\s\S]*?<\/li>(?:\s*<li>[\s\S]*?<\/li>)*)/g,
+    '<ul class="ml-5 my-3 space-y-1.5 list-disc marker:text-[#00c9b1]">$1</ul>'
+  )
+
+  return html
 }
 
 function formatDate(iso: string) {
@@ -222,12 +278,39 @@ export function ReportPreviewComponent({
               Baixar PDF{!isCurrentVersion ? ` (v${(viewingVersion ?? 0) + 1})` : ''}
             </a>
           )}
-          <div
-            className="rounded-lg border-l-[3px] border-l-[#00c9b1] bg-[#0f2240] p-4 text-sm leading-[1.75] text-[#cce6f7]"
-            dangerouslySetInnerHTML={{
-              __html: simpleMarkdownToHtml(displayMarkdown),
-            }}
-          />
+          <div className="space-y-3">
+            {splitIntoSections(displayMarkdown).map((section, i) => {
+              const isIntro = section.title === null
+              const isEven = i % 2 === 0
+
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    'rounded-lg px-6 py-5 text-[0.9375rem] leading-[1.8] text-[#b0c8de]',
+                    isIntro
+                      ? 'border-l-[3px] border-l-[#00c9b1] bg-[#0f2240]'
+                      : isEven
+                        ? 'bg-[#0b1a30]'
+                        : 'bg-[#0f2240]'
+                  )}
+                >
+                  {section.title && (
+                    <h2 className="mb-4 text-xl font-bold text-[#e0f0ff]">
+                      {section.title}
+                    </h2>
+                  )}
+                  {section.content && (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: sectionContentToHtml(section.content),
+                      }}
+                    />
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </>
       ) : null}
     </div>

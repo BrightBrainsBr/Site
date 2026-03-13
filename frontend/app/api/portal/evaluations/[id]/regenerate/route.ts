@@ -82,7 +82,9 @@ export async function POST(
       return NextResponse.json({ message: 'Not found' }, { status: 404 })
     }
 
-    const body = await _request.json().catch(() => ({})) as { force?: boolean }
+    const body = (await _request.json().catch(() => ({}))) as {
+      force?: boolean
+    }
 
     if (
       typeof row.status === 'string' &&
@@ -90,7 +92,9 @@ export async function POST(
       !body.force
     ) {
       return NextResponse.json(
-        { error: 'Relatório já está sendo gerado. Use "force" para reiniciar.' },
+        {
+          error: 'Relatório já está sendo gerado. Use "force" para reiniciar.',
+        },
         { status: 409 }
       )
     }

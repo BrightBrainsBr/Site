@@ -1,5 +1,3 @@
-// frontend/app/api/assessment/lib/generate-report-background.ts
-
 import Anthropic from '@anthropic-ai/sdk'
 import { PDFDocument } from 'pdf-lib'
 
@@ -12,12 +10,13 @@ import {
   STAGE_PROMPTS,
 } from './report-prompts'
 
-const MODEL = 'claude-sonnet-4-6'
-const RATE_LIMIT_RETRIES = 3
-const TOKENS_PER_MINUTE = 30_000
+const ANTHROPIC_MODEL = 'claude-sonnet-4-6'
+const OPENROUTER_MODEL = 'anthropic/claude-sonnet-4-6'
+const MAX_RETRIES = 3
 const ANTHROPIC_MAX_DOC_BYTES = 32 * 1024 * 1024
 const ANTHROPIC_MAX_IMAGE_BYTES = 20 * 1024 * 1024
 const MAX_PAGES_PER_CALL = 90
+const PARALLEL_CONCURRENCY = 5
 
 type SupportedImageMime =
   | 'image/jpeg'
@@ -58,15 +57,29 @@ export interface ReportResult {
 }
 
 export type ProgressCallback = (status: string) => Promise<void>
-
-interface StageResult {
+interface LLMResult {
   content: string
   inputTokens: number
+  outputTokens: number
+  provider: 'anthropic' | 'openrouter'
+  durationMs: number
 }
 
-/* ------------------------------------------------------------------ */
-/* File fetching & MIME                                                */
-/* ------------------------------------------------------------------ */
+function log(rid: string, msg: string) {
+  console.warn(`[report:${rid}] ${msg}`)
+}
+
+function estimateCost(r: LLMResult): number {
+  return (r.inputTokens * 3 + r.outputTokens * 15) / 1_000_000
+}
+
+function logLLMCall(rid: string, label: string, r: LLMResult, a: number) {
+  const s = (r.durationMs / 1000).toFixed(1)
+  log(
+    rid,
+    `${label} ✓ ${r.provider}#${a} in=${r.inputTokens} out=${r.outputTokens} $${estimateCost(r).toFixed(4)} ${s}s`
+  )
+}
 
 async function fetchBuf(
   url: string
@@ -82,38 +95,29 @@ async function fetchBuf(
   }
 }
 
+const MIME_MAP: Record<string, string> = {
+  pdf: 'application/pdf',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
+}
 function inferMime(u: Upload): string {
   if (u.type) return u.type
   const ext = u.name.split('.').pop()?.toLowerCase()
-  const MAP: Record<string, string> = {
-    pdf: 'application/pdf',
-    png: 'image/png',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    gif: 'image/gif',
-    webp: 'image/webp',
-  }
-  return (ext && MAP[ext]) || 'application/octet-stream'
+  return (ext && MIME_MAP[ext]) || 'application/octet-stream'
 }
-
-/* ------------------------------------------------------------------ */
-/* PDF splitting (>32 MB or >90 pages per chunk)                       */
-/* ------------------------------------------------------------------ */
 
 async function splitPdf(
   buf: Buffer,
   name: string,
-  rid?: string
+  rid: string
 ): Promise<Buffer[]> {
   const src = await PDFDocument.load(buf, { ignoreEncryption: true })
   const pages = src.getPageCount()
-
-  if (
-    pages <= MAX_PAGES_PER_CALL &&
-    buf.byteLength <= ANTHROPIC_MAX_DOC_BYTES
-  ) {
+  if (pages <= MAX_PAGES_PER_CALL && buf.byteLength <= ANTHROPIC_MAX_DOC_BYTES)
     return [buf]
-  }
 
   const chunks: Buffer[] = []
   for (let s = 0; s < pages; s += MAX_PAGES_PER_CALL) {
@@ -126,63 +130,132 @@ async function splitPdf(
     for (const p of copied) doc.addPage(p)
     chunks.push(Buffer.from(await doc.save()))
   }
-
-  const mb = (buf.byteLength / 1024 / 1024).toFixed(1)
-  console.warn(
-    `[bg-report:${rid}] Split ${name} (${pages}p, ${mb}MB) → ${chunks.length} chunks`
+  log(
+    rid,
+    `Split ${name} (${pages}p, ${(buf.byteLength / 1024 / 1024).toFixed(1)}MB) → ${chunks.length} chunks`
   )
   return chunks
 }
 
-/* ------------------------------------------------------------------ */
-/* Error helpers                                                      */
-/* ------------------------------------------------------------------ */
-
-function errMsg(e: unknown) {
-  return e instanceof Error ? e.message : String(e)
+function isRetryable(e: unknown): boolean {
+  const m = e instanceof Error ? e.message : String(e)
+  return /429|rate_limit|overloaded|500|529/.test(m)
 }
-function isRateLimit(e: unknown) {
-  const m = errMsg(e)
-  return m.includes('429') || m.includes('rate_limit')
+function isCreditsExhausted(e: unknown): boolean {
+  const m = e instanceof Error ? e.message : String(e)
+  return /credit balance|billing|payment/.test(m)
 }
 
-/* ------------------------------------------------------------------ */
-/* Call Claude with retries                                            */
-/* ------------------------------------------------------------------ */
+async function callAnthropic(
+  client: Anthropic,
+  system: string,
+  content: ContentBlock[],
+  _label: string,
+  _rid: string,
+  maxTokens = 8192
+): Promise<LLMResult> {
+  const t0 = Date.now()
+  const msg = await client.messages.create({
+    model: ANTHROPIC_MODEL,
+    max_tokens: maxTokens,
+    system,
+    messages: [{ role: 'user', content }],
+  })
+  const text = msg.content
+    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+    .map((b) => b.text)
+    .join('')
+  return {
+    content: text,
+    inputTokens: msg.usage.input_tokens,
+    outputTokens: msg.usage.output_tokens,
+    provider: 'anthropic',
+    durationMs: Date.now() - t0,
+  }
+}
 
-async function callClaude(
+function toOpenRouterContent(blocks: ContentBlock[]) {
+  return blocks.map((b) => {
+    if (b.type === 'text') return { type: 'text' as const, text: b.text }
+    const url = `data:${b.source.media_type};base64,${b.source.data}`
+    return { type: 'image_url' as const, image_url: { url } }
+  })
+}
+
+interface OpenRouterResponse {
+  choices?: { message?: { content?: string } }[]
+  usage?: { prompt_tokens?: number; completion_tokens?: number }
+}
+
+async function callOpenRouter(
+  system: string,
+  content: ContentBlock[],
+  _label: string,
+  _rid: string,
+  maxTokens = 8192
+): Promise<LLMResult> {
+  const apiKey = process.env.OPENROUTER_API_KEY
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured')
+  const t0 = Date.now()
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: OPENROUTER_MODEL,
+      max_tokens: maxTokens,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: toOpenRouterContent(content) },
+      ],
+    }),
+  })
+  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`)
+  const data = (await res.json()) as OpenRouterResponse
+  return {
+    content: data.choices?.[0]?.message?.content ?? '',
+    inputTokens: data.usage?.prompt_tokens ?? 0,
+    outputTokens: data.usage?.completion_tokens ?? 0,
+    provider: 'openrouter',
+    durationMs: Date.now() - t0,
+  }
+}
+
+async function callLLM(
   client: Anthropic,
   system: string,
   content: ContentBlock[],
   label: string,
   rid: string,
   maxTokens = 8192
-): Promise<StageResult> {
+): Promise<LLMResult> {
   let last: Error | null = null
-  for (let a = 1; a <= RATE_LIMIT_RETRIES; a++) {
+  let useOpenRouter = false
+  for (let a = 1; a <= MAX_RETRIES; a++) {
     try {
-      console.warn(`[bg-report:${rid}] ${label} ${a}/${RATE_LIMIT_RETRIES}`)
-
-      const msg = await client.messages.create({
-        model: MODEL,
-        max_tokens: maxTokens,
-        system,
-        messages: [{ role: 'user', content }],
-      })
-      const text = msg.content
-        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-        .map((b) => b.text)
-        .join('')
-      console.warn(
-        `[bg-report:${rid}] ${label} done | in=${msg.usage.input_tokens} out=${msg.usage.output_tokens}`
-      )
-      return { content: text, inputTokens: msg.usage.input_tokens }
+      const provider = useOpenRouter ? 'OpenRouter' : 'Anthropic'
+      log(rid, `${label} [${provider}] attempt ${a}/${MAX_RETRIES}`)
+      const result = useOpenRouter
+        ? await callOpenRouter(system, content, label, rid, maxTokens)
+        : await callAnthropic(client, system, content, label, rid, maxTokens)
+      logLLMCall(rid, label, result, a)
+      return result
     } catch (e) {
       last = e instanceof Error ? e : new Error(String(e))
-      console.error(`[bg-report:${rid}] ${label} fail #${a}:`, last.message)
-      if (a < RATE_LIMIT_RETRIES) {
-        const ms = isRateLimit(e) ? Math.min(30_000, 10_000 * a) : 2000 * a
-        console.warn(`[bg-report:${rid}] Retry in ${(ms / 1000).toFixed(0)}s`)
+      log(rid, `${label} FAIL #${a}: ${last.message.slice(0, 200)}`)
+      if (!useOpenRouter && (isCreditsExhausted(e) || !isRetryable(e))) {
+        const reason = isCreditsExhausted(e)
+          ? 'credits exhausted'
+          : 'non-retryable error'
+        log(rid, `${label} → Anthropic ${reason}, switching to OpenRouter`)
+        useOpenRouter = true
+        continue
+      }
+      if (a < MAX_RETRIES) {
+        const ms = isRetryable(e) ? Math.min(30_000, 5_000 * a) : 2_000 * a
+        log(rid, `${label} → Retry in ${(ms / 1000).toFixed(0)}s`)
         await new Promise((r) => setTimeout(r, ms))
       }
     }
@@ -190,79 +263,87 @@ async function callClaude(
   throw last!
 }
 
-async function cooldown(tokens: number, rid: string) {
-  if (tokens <= TOKENS_PER_MINUTE) return
-  const ms = 5_000
-  console.warn(
-    `[bg-report:${rid}] Cooldown 5s (${tokens} tok > ${TOKENS_PER_MINUTE} limit)`
-  )
-  await new Promise((r) => setTimeout(r, ms))
+interface ExtractionJob {
+  label: string
+  content: ContentBlock[]
 }
 
-/* ------------------------------------------------------------------ */
-/* Document extraction — process each file individually                */
-/* ------------------------------------------------------------------ */
-
-async function extractFromPdfChunk(
-  client: Anthropic,
-  chunk: Buffer,
-  fileName: string,
-  chunkLabel: string,
+async function prepareExtractionJobs(
+  uploads: Upload[],
   rid: string
-): Promise<string> {
-  const content: ContentBlock[] = [
-    {
-      type: 'document',
-      source: {
-        type: 'base64',
-        media_type: 'application/pdf',
-        data: chunk.toString('base64'),
-      },
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    { type: 'text', text: DOCUMENT_EXTRACTION_USER(fileName) as string },
-  ]
+): Promise<ExtractionJob[]> {
+  const jobs: ExtractionJob[] = []
 
-  const result = await callClaude(
-    client,
-    DOCUMENT_EXTRACTION_SYSTEM,
-    content,
-    `Extract ${chunkLabel}`,
-    rid
-  )
-  await cooldown(result.inputTokens, rid)
-  return result.content
-}
+  for (const file of uploads) {
+    const t0 = Date.now()
+    const f = await fetchBuf(file.url)
+    if (!f) {
+      log(rid, `FETCH FAIL: ${file.name} (skipping)`)
+      continue
+    }
+    const mb = (f.buffer.byteLength / 1024 / 1024).toFixed(1)
+    log(rid, `Fetched ${file.name} (${mb}MB) in ${Date.now() - t0}ms`)
 
-async function extractFromImage(
-  client: Anthropic,
-  buffer: Buffer,
-  mime: SupportedImageMime,
-  fileName: string,
-  rid: string
-): Promise<string> {
-  const content: ContentBlock[] = [
-    {
-      type: 'image',
-      source: {
-        type: 'base64',
-        media_type: mime,
-        data: buffer.toString('base64'),
-      },
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    { type: 'text', text: DOCUMENT_EXTRACTION_USER(fileName) as string },
-  ]
+    const mime =
+      f.mime === 'application/octet-stream' ? inferMime(file) : f.mime
 
-  const result = await callClaude(
-    client,
-    DOCUMENT_EXTRACTION_SYSTEM,
-    content,
-    `Extract image ${fileName}`,
-    rid
-  )
-  await cooldown(result.inputTokens, rid)
-  return result.content
+    if (mime === 'application/pdf') {
+      const chunks = await splitPdf(f.buffer, file.name, rid)
+      for (let i = 0; i < chunks.length; i++) {
+        if (chunks[i].byteLength > ANTHROPIC_MAX_DOC_BYTES) {
+          log(rid, `Skipping oversized chunk ${i + 1} of ${file.name}`)
+          continue
+        }
+        const label =
+          chunks.length > 1
+            ? `${file.name} (part ${i + 1}/${chunks.length})`
+            : file.name
+        jobs.push({
+          label,
+          content: [
+            {
+              type: 'document',
+              source: {
+                type: 'base64',
+                media_type: 'application/pdf',
+                data: chunks[i].toString('base64'),
+              },
+            },
+            {
+              type: 'text',
+              text: DOCUMENT_EXTRACTION_USER(file.name),
+            },
+          ],
+        })
+      }
+    } else if (SUPPORTED_IMAGES.includes(mime as SupportedImageMime)) {
+      if (f.buffer.byteLength > ANTHROPIC_MAX_IMAGE_BYTES) {
+        log(rid, `Skipping oversized image: ${file.name}`)
+        continue
+      }
+      jobs.push({
+        label: file.name,
+        content: [
+          {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: mime as SupportedImageMime,
+              data: f.buffer.toString('base64'),
+            },
+          },
+          {
+            type: 'text',
+            text: DOCUMENT_EXTRACTION_USER(file.name),
+          },
+        ],
+      })
+    } else {
+      log(rid, `Unsupported type ${mime}: ${file.name} (skipping)`)
+    }
+  }
+
+  return jobs
 }
 
 async function extractAllDocuments(
@@ -273,76 +354,64 @@ async function extractAllDocuments(
 ): Promise<string> {
   if (!uploads?.length) return ''
 
-  const extractions: string[] = []
-  const total = uploads.length
+  log(rid, `=== EXTRACTION PHASE: ${uploads.length} files ===`)
+  const t0 = Date.now()
 
-  for (let fileIdx = 0; fileIdx < uploads.length; fileIdx++) {
-    const file = uploads[fileIdx]
-    await onProgress?.(`processing_extract_${fileIdx + 1}_of_${total}`)
+  const jobs = await prepareExtractionJobs(uploads, rid)
+  log(rid, `Prepared ${jobs.length} jobs from ${uploads.length} files`)
 
-    const f = await fetchBuf(file.url)
-    if (!f) {
-      console.warn(`[bg-report:${rid}] Fetch failed: ${file.name}`)
-      continue
-    }
-    const mime =
-      f.mime === 'application/octet-stream' ? inferMime(file) : f.mime
+  if (!jobs.length) return ''
 
-    if (mime === 'application/pdf') {
-      const chunks = await splitPdf(f.buffer, file.name, rid)
-      for (let i = 0; i < chunks.length; i++) {
-        if (chunks[i].byteLength > ANTHROPIC_MAX_DOC_BYTES) {
-          console.warn(
-            `[bg-report:${rid}] Skipping oversized chunk ${i + 1} of ${file.name}`
-          )
-          continue
-        }
-        const label =
-          chunks.length > 1
-            ? `${file.name} (parte ${i + 1}/${chunks.length})`
-            : file.name
-        const text = await extractFromPdfChunk(
-          client,
-          chunks[i],
-          file.name,
-          label,
-          rid
-        )
-        extractions.push(`### DOCUMENTO: ${label}\n\n${text}`)
-      }
-    } else if (SUPPORTED_IMAGES.includes(mime as SupportedImageMime)) {
-      if (f.buffer.byteLength > ANTHROPIC_MAX_IMAGE_BYTES) {
-        console.warn(
-          `[bg-report:${rid}] Skipping oversized image: ${file.name}`
-        )
-        continue
-      }
-      const text = await extractFromImage(
+  let completed = 0
+  const total = jobs.length
+  const results: (string | null)[] = new Array(jobs.length).fill(null)
+
+  const runJob = async (idx: number) => {
+    const job = jobs[idx]
+    const jobT0 = Date.now()
+    log(rid, `→ Extracting [${idx + 1}/${total}]: ${job.label}`)
+
+    try {
+      const result = await callLLM(
         client,
-        f.buffer,
-        mime as SupportedImageMime,
-        file.name,
+        DOCUMENT_EXTRACTION_SYSTEM,
+        job.content,
+        `Extract:${job.label}`,
         rid
       )
-      extractions.push(`### DOCUMENTO (imagem): ${file.name}\n\n${text}`)
-    } else {
-      console.warn(
-        `[bg-report:${rid}] Unsupported file type ${mime}: ${file.name}`
-      )
+      results[idx] = `### DOCUMENTO: ${job.label}\n\n${result.content}`
+      completed++
+      await onProgress?.(`processing_extract_${completed}_of_${total}`)
+      const secs = ((Date.now() - jobT0) / 1000).toFixed(1)
+      log(rid, `✓ [${completed}/${total}] ${job.label} in ${secs}s`)
+    } catch (e) {
+      completed++
+      const msg = e instanceof Error ? e.message : String(e)
+      log(rid, `✗ [${completed}/${total}] ${job.label}: ${msg.slice(0, 150)}`)
     }
   }
 
-  if (!extractions.length) return ''
-
-  console.warn(
-    `[bg-report:${rid}] Extracted content from ${extractions.length} document(s)`
+  const queue = jobs.map((_, i) => i)
+  const workers = Array.from(
+    { length: Math.min(PARALLEL_CONCURRENCY, jobs.length) },
+    async () => {
+      while (queue.length > 0) {
+        const idx = queue.shift()!
+        await runJob(idx)
+      }
+    }
   )
-  return `\n\n---\nDADOS EXTRAÍDOS DOS DOCUMENTOS DO PACIENTE (exames, laudos, relatórios):\n\n${extractions.join('\n\n---\n\n')}`
-}
+  await Promise.all(workers)
 
-/* ------------------------------------------------------------------ */
-/* Main                                                               */
-/* ------------------------------------------------------------------ */
+  const extracted = results.filter(Boolean) as string[]
+  log(
+    rid,
+    `=== EXTRACTION DONE: ${extracted.length}/${total} docs in ${((Date.now() - t0) / 1000).toFixed(1)}s ===`
+  )
+
+  if (!extracted.length) return ''
+  return `\n\n---\nDADOS EXTRAÍDOS DOS DOCUMENTOS DO PACIENTE (exames, laudos, relatórios):\n\n${extracted.join('\n\n---\n\n')}`
+}
 
 export async function generateReportBackground(
   formData: AssessmentFormData,
@@ -353,55 +422,67 @@ export async function generateReportBackground(
 ): Promise<ReportResult> {
   const t0 = Date.now()
   const rid = requestId
-  console.warn(
-    `[bg-report:${rid}] Start | patient=${formData.nome || '?'} | files=${uploads?.length ?? 0}`
+  log(
+    rid,
+    `START | patient=${formData.nome || '?'} | files=${uploads?.length ?? 0}`
   )
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
   const patientData = buildReportPromptData(formData, scores)
-
   const extractedDocs = await extractAllDocuments(
     client,
     uploads,
     rid,
     onProgress
   )
-  console.warn(
-    `[bg-report:${rid}] Extraction done | ${Date.now() - t0}ms | ${extractedDocs.length} chars`
+  log(
+    rid,
+    `Extraction done | ${extractedDocs.length} chars | ${((Date.now() - t0) / 1000).toFixed(1)}s`
   )
 
   const fullPatientData = patientData + extractedDocs
-
   let prev = ''
   const stages: { stage: number; content: string }[] = []
+  let totalInputTokens = 0,
+    totalOutputTokens = 0,
+    totalCost = 0
 
+  log(rid, '=== REPORT STAGES ===')
   for (const cfg of STAGE_PROMPTS) {
     const st = Date.now()
     await onProgress?.(
       `processing_stage_${cfg.stage}_of_${STAGE_PROMPTS.length}`
     )
+    log(rid, `→ Stage ${cfg.stage}/${STAGE_PROMPTS.length}: ${cfg.name}`)
 
     const txt =
       cfg.stage === 1
         ? `${cfg.userPrefix}${fullPatientData}`
         : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${fullPatientData}`
 
-    const res = await callClaude(
+    const res = await callLLM(
       client,
       cfg.system,
       [{ type: 'text' as const, text: txt }],
-      `Stage ${cfg.stage}`,
+      `Stage ${cfg.stage}: ${cfg.name}`,
       rid
     )
-
     prev += `\n\n${res.content}`
     stages.push({ stage: cfg.stage, content: res.content })
-    console.warn(`[bg-report:${rid}] Stage ${cfg.stage} ${Date.now() - st}ms`)
-
-    if (cfg.stage < STAGE_PROMPTS.length) await cooldown(res.inputTokens, rid)
+    totalInputTokens += res.inputTokens
+    totalOutputTokens += res.outputTokens
+    totalCost += estimateCost(res)
+    log(
+      rid,
+      `✓ Stage ${cfg.stage} done in ${((Date.now() - st) / 1000).toFixed(1)}s`
+    )
   }
 
-  console.warn(`[bg-report:${rid}] All done | ${Date.now() - t0}ms`)
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
+  log(
+    rid,
+    `DONE | ${elapsed}s | tok=${totalInputTokens}+${totalOutputTokens} | $${totalCost.toFixed(4)}`
+  )
   return {
     reportMarkdown: stages.map((s) => s.content).join('\n\n---\n\n'),
     stages,
