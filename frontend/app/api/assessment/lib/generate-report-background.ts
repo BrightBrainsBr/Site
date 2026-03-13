@@ -1,18 +1,23 @@
+// frontend/app/api/assessment/lib/generate-report-background.ts
+
 import Anthropic from '@anthropic-ai/sdk'
 import { PDFDocument } from 'pdf-lib'
 
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 import { buildReportPromptData } from '~/features/assessment/helpers/build-report-data'
 
-import { STAGE_PROMPTS } from './report-prompts'
+import {
+  DOCUMENT_EXTRACTION_SYSTEM,
+  DOCUMENT_EXTRACTION_USER,
+  STAGE_PROMPTS,
+} from './report-prompts'
 
-const MODEL = 'claude-sonnet-4-20250514'
-const BETA_1M = 'context-1m-2025-08-07'
+const MODEL = 'claude-sonnet-4-6'
 const RATE_LIMIT_RETRIES = 3
 const TOKENS_PER_MINUTE = 30_000
 const ANTHROPIC_MAX_DOC_BYTES = 32 * 1024 * 1024
 const ANTHROPIC_MAX_IMAGE_BYTES = 20 * 1024 * 1024
-const PAGES_PER_CHUNK = 90
+const MAX_PAGES_PER_CALL = 90
 
 type SupportedImageMime =
   | 'image/jpeg'
@@ -52,6 +57,8 @@ export interface ReportResult {
   stages: { stage: number; content: string }[]
 }
 
+export type ProgressCallback = (status: string) => Promise<void>
+
 interface StageResult {
   content: string
   inputTokens: number
@@ -90,7 +97,7 @@ function inferMime(u: Upload): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* PDF splitting (>32 MB or >90 pages → chunks)                       */
+/* PDF splitting (>32 MB or >90 pages per chunk)                       */
 /* ------------------------------------------------------------------ */
 
 async function splitPdf(
@@ -101,13 +108,16 @@ async function splitPdf(
   const src = await PDFDocument.load(buf, { ignoreEncryption: true })
   const pages = src.getPageCount()
 
-  if (pages <= PAGES_PER_CHUNK && buf.byteLength <= ANTHROPIC_MAX_DOC_BYTES) {
+  if (
+    pages <= MAX_PAGES_PER_CALL &&
+    buf.byteLength <= ANTHROPIC_MAX_DOC_BYTES
+  ) {
     return [buf]
   }
 
   const chunks: Buffer[] = []
-  for (let s = 0; s < pages; s += PAGES_PER_CHUNK) {
-    const e = Math.min(s + PAGES_PER_CHUNK, pages)
+  for (let s = 0; s < pages; s += MAX_PAGES_PER_CALL) {
+    const e = Math.min(s + MAX_PAGES_PER_CALL, pages)
     const doc = await PDFDocument.create()
     const copied = await doc.copyPages(
       src,
@@ -125,138 +135,37 @@ async function splitPdf(
 }
 
 /* ------------------------------------------------------------------ */
-/* Build Anthropic content blocks                                     */
-/* ------------------------------------------------------------------ */
-
-async function buildBlocks(
-  uploads?: Upload[],
-  rid?: string
-): Promise<ContentBlock[]> {
-  if (!uploads?.length) return []
-  const blocks: ContentBlock[] = []
-
-  for (const file of uploads) {
-    const f = await fetchBuf(file.url)
-    if (!f) {
-      console.warn(`[bg-report:${rid}] Fetch failed: ${file.name}`)
-      continue
-    }
-    const mime =
-      f.mime === 'application/octet-stream' ? inferMime(file) : f.mime
-
-    if (mime === 'application/pdf') {
-      for (const chunk of await splitPdf(f.buffer, file.name, rid)) {
-        if (chunk.byteLength > ANTHROPIC_MAX_DOC_BYTES) continue
-        blocks.push({
-          type: 'document',
-          source: {
-            type: 'base64',
-            media_type: 'application/pdf',
-            data: chunk.toString('base64'),
-          },
-        })
-      }
-    } else if (SUPPORTED_IMAGES.includes(mime as SupportedImageMime)) {
-      if (f.buffer.byteLength > ANTHROPIC_MAX_IMAGE_BYTES) continue
-      blocks.push({
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: mime as SupportedImageMime,
-          data: f.buffer.toString('base64'),
-        },
-      })
-    }
-  }
-
-  console.warn(
-    `[bg-report:${rid}] ${blocks.length} blocks from ${uploads.length} files`
-  )
-  return blocks
-}
-
-/* ------------------------------------------------------------------ */
 /* Error helpers                                                      */
 /* ------------------------------------------------------------------ */
 
 function errMsg(e: unknown) {
   return e instanceof Error ? e.message : String(e)
 }
-function isPageLimit(e: unknown) {
-  const m = errMsg(e)
-  return m.includes('PDF pages') || (m.includes('maximum') && m.includes('100'))
-}
 function isRateLimit(e: unknown) {
   const m = errMsg(e)
   return m.includes('429') || m.includes('rate_limit')
 }
-function isHardRateLimit(e: unknown) {
-  const m = errMsg(e).toLowerCase()
-  return (
-    m.includes('rate limit of 0 input tokens per minute') ||
-    m.includes("organization's rate limit of 0") ||
-    m.includes('contact-sales')
-  )
-}
-function isCtxLimit(e: unknown) {
-  const m = errMsg(e)
-  return (
-    m.includes('context window') ||
-    m.includes('token limit') ||
-    m.includes('too many tokens') ||
-    m.includes('prompt is too long')
-  )
-}
-function b64Size(b: ContentBlock) {
-  return b.type === 'document' || b.type === 'image' ? b.source.data.length : 0
-}
 
 /* ------------------------------------------------------------------ */
-/* Stage caller (retries + rate-limit wait + 1M beta support)         */
+/* Call Claude with retries                                            */
 /* ------------------------------------------------------------------ */
 
-async function callStage(
+async function callClaude(
   client: Anthropic,
   system: string,
   content: ContentBlock[],
-  stage: number,
+  label: string,
   rid: string,
-  use1m = false
+  maxTokens = 8192
 ): Promise<StageResult> {
   let last: Error | null = null
   for (let a = 1; a <= RATE_LIMIT_RETRIES; a++) {
     try {
-      const tag = use1m ? '[1M]' : ''
-      console.warn(
-        `[bg-report:${rid}] Stage ${stage}${tag} ${a}/${RATE_LIMIT_RETRIES}`
-      )
-
-      if (use1m) {
-        const msg = await client.beta.messages.create({
-          model: MODEL,
-          betas: [BETA_1M],
-          max_tokens: 8192,
-          system,
-          messages: [
-            {
-              role: 'user',
-              content: content as Anthropic.Beta.BetaContentBlockParam[],
-            },
-          ],
-        })
-        const text = msg.content
-          .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')
-          .map((b) => b.text)
-          .join('')
-        console.warn(
-          `[bg-report:${rid}] Stage ${stage}${tag} done | in=${msg.usage.input_tokens} out=${msg.usage.output_tokens}`
-        )
-        return { content: text, inputTokens: msg.usage.input_tokens }
-      }
+      console.warn(`[bg-report:${rid}] ${label} ${a}/${RATE_LIMIT_RETRIES}`)
 
       const msg = await client.messages.create({
         model: MODEL,
-        max_tokens: 8192,
+        max_tokens: maxTokens,
         system,
         messages: [{ role: 'user', content }],
       })
@@ -265,16 +174,12 @@ async function callStage(
         .map((b) => b.text)
         .join('')
       console.warn(
-        `[bg-report:${rid}] Stage ${stage} done | in=${msg.usage.input_tokens} out=${msg.usage.output_tokens}`
+        `[bg-report:${rid}] ${label} done | in=${msg.usage.input_tokens} out=${msg.usage.output_tokens}`
       )
       return { content: text, inputTokens: msg.usage.input_tokens }
     } catch (e) {
       last = e instanceof Error ? e : new Error(String(e))
-      console.error(
-        `[bg-report:${rid}] Stage ${stage} fail #${a}:`,
-        last.message
-      )
-      if (isPageLimit(e) || isCtxLimit(e) || isHardRateLimit(e)) throw last
+      console.error(`[bg-report:${rid}] ${label} fail #${a}:`, last.message)
       if (a < RATE_LIMIT_RETRIES) {
         const ms = isRateLimit(e) ? Math.min(30_000, 10_000 * a) : 2000 * a
         console.warn(`[bg-report:${rid}] Retry in ${(ms / 1000).toFixed(0)}s`)
@@ -287,102 +192,152 @@ async function callStage(
 
 async function cooldown(tokens: number, rid: string) {
   if (tokens <= TOKENS_PER_MINUTE) return
-  const ms = Math.ceil((tokens / TOKENS_PER_MINUTE) * 60_000) + 5_000
+  const ms = 5_000
   console.warn(
-    `[bg-report:${rid}] Cooldown ${(ms / 1000).toFixed(0)}s (${tokens} tok)`
+    `[bg-report:${rid}] Cooldown 5s (${tokens} tok > ${TOKENS_PER_MINUTE} limit)`
   )
   await new Promise((r) => setTimeout(r, ms))
 }
 
 /* ------------------------------------------------------------------ */
-/* Stage 1: try standard → 1M beta → progressive reduction            */
+/* Document extraction — process each file individually                */
 /* ------------------------------------------------------------------ */
 
-function stage1Content(docs: ContentBlock[], text: string): ContentBlock[] {
-  if (!docs.length) return [{ type: 'text' as const, text }]
-  return [
-    ...docs,
+async function extractFromPdfChunk(
+  client: Anthropic,
+  chunk: Buffer,
+  fileName: string,
+  chunkLabel: string,
+  rid: string
+): Promise<string> {
+  const content: ContentBlock[] = [
     {
-      type: 'text' as const,
-      text: `Os documentos acima foram enviados pelo paciente (transcrição da triagem, exames, laudos). Considere-os na análise.\n\n${text}`,
+      type: 'document',
+      source: {
+        type: 'base64',
+        media_type: 'application/pdf',
+        data: chunk.toString('base64'),
+      },
     },
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    { type: 'text', text: DOCUMENT_EXTRACTION_USER(fileName) as string },
   ]
+
+  const result = await callClaude(
+    client,
+    DOCUMENT_EXTRACTION_SYSTEM,
+    content,
+    `Extract ${chunkLabel}`,
+    rid
+  )
+  await cooldown(result.inputTokens, rid)
+  return result.content
 }
 
-async function stage1Fallback(
+async function extractFromImage(
   client: Anthropic,
-  system: string,
-  docs: ContentBlock[],
-  text: string,
+  buffer: Buffer,
+  mime: SupportedImageMime,
+  fileName: string,
   rid: string
-): Promise<{ result: StageResult; used1m: boolean }> {
-  const pool = [...docs]
+): Promise<string> {
+  const content: ContentBlock[] = [
+    {
+      type: 'image',
+      source: {
+        type: 'base64',
+        media_type: mime,
+        data: buffer.toString('base64'),
+      },
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    { type: 'text', text: DOCUMENT_EXTRACTION_USER(fileName) as string },
+  ]
 
-  try {
-    return {
-      result: await callStage(
-        client,
-        system,
-        stage1Content(pool, text),
-        1,
-        rid
-      ),
-      used1m: false,
+  const result = await callClaude(
+    client,
+    DOCUMENT_EXTRACTION_SYSTEM,
+    content,
+    `Extract image ${fileName}`,
+    rid
+  )
+  await cooldown(result.inputTokens, rid)
+  return result.content
+}
+
+async function extractAllDocuments(
+  client: Anthropic,
+  uploads: Upload[] | undefined,
+  rid: string,
+  onProgress?: ProgressCallback
+): Promise<string> {
+  if (!uploads?.length) return ''
+
+  const extractions: string[] = []
+  const total = uploads.length
+
+  for (let fileIdx = 0; fileIdx < uploads.length; fileIdx++) {
+    const file = uploads[fileIdx]
+    await onProgress?.(`processing_extract_${fileIdx + 1}_of_${total}`)
+
+    const f = await fetchBuf(file.url)
+    if (!f) {
+      console.warn(`[bg-report:${rid}] Fetch failed: ${file.name}`)
+      continue
     }
-  } catch (e) {
-    if (!isPageLimit(e) && !isCtxLimit(e)) throw e
-    console.warn(`[bg-report:${rid}] Standard limit → escalating to 1M beta`)
-  }
+    const mime =
+      f.mime === 'application/octet-stream' ? inferMime(file) : f.mime
 
-  try {
-    return {
-      result: await callStage(
-        client,
-        system,
-        stage1Content(pool, text),
-        1,
-        rid,
-        true
-      ),
-      used1m: true,
-    }
-  } catch (e) {
-    if (!isPageLimit(e)) throw e
-    console.warn(`[bg-report:${rid}] 1M also hit page limit → reducing`)
-  }
-
-  while (pool.length > 0) {
-    pool.sort((a, b) => b64Size(b) - b64Size(a))
-    pool.shift()
-    console.warn(`[bg-report:${rid}] Docs remaining: ${pool.length}`)
-    try {
-      return {
-        result: await callStage(
+    if (mime === 'application/pdf') {
+      const chunks = await splitPdf(f.buffer, file.name, rid)
+      for (let i = 0; i < chunks.length; i++) {
+        if (chunks[i].byteLength > ANTHROPIC_MAX_DOC_BYTES) {
+          console.warn(
+            `[bg-report:${rid}] Skipping oversized chunk ${i + 1} of ${file.name}`
+          )
+          continue
+        }
+        const label =
+          chunks.length > 1
+            ? `${file.name} (parte ${i + 1}/${chunks.length})`
+            : file.name
+        const text = await extractFromPdfChunk(
           client,
-          system,
-          stage1Content(pool, text),
-          1,
-          rid,
-          true
-        ),
-        used1m: true,
+          chunks[i],
+          file.name,
+          label,
+          rid
+        )
+        extractions.push(`### DOCUMENTO: ${label}\n\n${text}`)
       }
-    } catch (e) {
-      if (!isPageLimit(e)) throw e
+    } else if (SUPPORTED_IMAGES.includes(mime as SupportedImageMime)) {
+      if (f.buffer.byteLength > ANTHROPIC_MAX_IMAGE_BYTES) {
+        console.warn(
+          `[bg-report:${rid}] Skipping oversized image: ${file.name}`
+        )
+        continue
+      }
+      const text = await extractFromImage(
+        client,
+        f.buffer,
+        mime as SupportedImageMime,
+        file.name,
+        rid
+      )
+      extractions.push(`### DOCUMENTO (imagem): ${file.name}\n\n${text}`)
+    } else {
+      console.warn(
+        `[bg-report:${rid}] Unsupported file type ${mime}: ${file.name}`
+      )
     }
   }
 
-  return {
-    result: await callStage(
-      client,
-      system,
-      stage1Content([], text),
-      1,
-      rid,
-      true
-    ),
-    used1m: true,
-  }
+  if (!extractions.length) return ''
+
+  console.warn(
+    `[bg-report:${rid}] Extracted content from ${extractions.length} document(s)`
+  )
+  return `\n\n---\nDADOS EXTRAÍDOS DOS DOCUMENTOS DO PACIENTE (exames, laudos, relatórios):\n\n${extractions.join('\n\n---\n\n')}`
 }
 
 /* ------------------------------------------------------------------ */
@@ -393,7 +348,8 @@ export async function generateReportBackground(
   formData: AssessmentFormData,
   scores: Record<string, number>,
   uploads?: Upload[],
-  requestId: string = crypto.randomUUID().slice(0, 8)
+  requestId: string = crypto.randomUUID().slice(0, 8),
+  onProgress?: ProgressCallback
 ): Promise<ReportResult> {
   const t0 = Date.now()
   const rid = requestId
@@ -403,34 +359,40 @@ export async function generateReportBackground(
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
   const patientData = buildReportPromptData(formData, scores)
-  const docBlocks = await buildBlocks(uploads, rid)
+
+  const extractedDocs = await extractAllDocuments(
+    client,
+    uploads,
+    rid,
+    onProgress
+  )
+  console.warn(
+    `[bg-report:${rid}] Extraction done | ${Date.now() - t0}ms | ${extractedDocs.length} chars`
+  )
+
+  const fullPatientData = patientData + extractedDocs
 
   let prev = ''
   const stages: { stage: number; content: string }[] = []
-  let use1m = false
 
   for (const cfg of STAGE_PROMPTS) {
     const st = Date.now()
+    await onProgress?.(
+      `processing_stage_${cfg.stage}_of_${STAGE_PROMPTS.length}`
+    )
+
     const txt =
       cfg.stage === 1
-        ? `${cfg.userPrefix}${patientData}`
-        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${patientData}`
+        ? `${cfg.userPrefix}${fullPatientData}`
+        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${fullPatientData}`
 
-    let res: StageResult
-    if (cfg.stage === 1) {
-      const s1 = await stage1Fallback(client, cfg.system, docBlocks, txt, rid)
-      res = s1.result
-      use1m = s1.used1m
-    } else {
-      res = await callStage(
-        client,
-        cfg.system,
-        [{ type: 'text' as const, text: txt }],
-        cfg.stage,
-        rid,
-        use1m
-      )
-    }
+    const res = await callClaude(
+      client,
+      cfg.system,
+      [{ type: 'text' as const, text: txt }],
+      `Stage ${cfg.stage}`,
+      rid
+    )
 
     prev += `\n\n${res.content}`
     stages.push({ stage: cfg.stage, content: res.content })

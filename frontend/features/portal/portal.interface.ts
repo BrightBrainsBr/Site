@@ -47,4 +47,5 @@ export interface EvaluationDetail extends EvaluationListItem {
   form_data_history: FormDataHistoryEntry[] | null
   doctor_uploads: DoctorUploadEntry[] | null
   report_history: ReportHistoryEntry[] | null
+  processing_error: string | null
 }

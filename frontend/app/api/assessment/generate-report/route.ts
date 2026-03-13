@@ -7,7 +7,7 @@ import { buildReportPromptData } from '~/features/assessment/helpers/build-repor
 export const runtime = 'nodejs'
 export const maxDuration = 300
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-sonnet-4-6'
 type SupportedImageMime =
   | 'image/jpeg'
   | 'image/png'
