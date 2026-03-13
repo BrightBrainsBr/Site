@@ -26,6 +26,7 @@ type EvaluationProcessingStatus =
   | 'processing_notify'
   | 'completed'
   | 'error'
+  | (string & {})
 
 async function updateEvaluationStatus(
   sb: ReturnType<typeof createSupabaseClient>,
@@ -48,6 +49,15 @@ async function updateEvaluationStatus(
       error.message
     )
   }
+}
+
+const BUCKET = 'assessment-pdfs'
+
+function extractStoragePath(publicUrl: string): string {
+  const marker = `/object/public/${BUCKET}/`
+  const idx = publicUrl.indexOf(marker)
+  if (idx === -1) return ''
+  return publicUrl.slice(idx + marker.length)
 }
 
 export async function POST(request: NextRequest) {
@@ -75,6 +85,17 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { uploads: _stripUploads, ...cleanFormData } = formData
 
+    const doctorUploads =
+      uploads && uploads.length > 0
+        ? uploads.map((u) => ({
+            name: u.name,
+            url: u.url,
+            type: u.type || 'application/pdf',
+            path: extractStoragePath(u.url),
+            uploaded_at: new Date().toISOString(),
+          }))
+        : null
+
     const { data: row, error } = await sb
       .from('mental_health_evaluations')
       .insert({
@@ -88,6 +109,7 @@ export async function POST(request: NextRequest) {
         form_data: cleanFormData,
         scores,
         status: 'processing_report',
+        doctor_uploads: doctorUploads,
       })
       .select('id')
       .single()
@@ -124,13 +146,14 @@ export async function POST(request: NextRequest) {
       )
 
       try {
-        await setStatus('processing_report')
+        await setStatus('processing_report', { processing_error: null })
 
         const report = await generateReportBackground(
           formData,
           scores,
           uploads,
-          requestId
+          requestId,
+          (status) => setStatus(status as EvaluationProcessingStatus)
         )
 
         console.warn(
@@ -199,7 +222,7 @@ export async function POST(request: NextRequest) {
           errorMsg
         )
 
-        await setStatus('error')
+        await setStatus('error', { processing_error: errorMsg })
 
         await sendErrorEmail({
           patientName: nome,

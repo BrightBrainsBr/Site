@@ -46,6 +46,7 @@ export function EvaluationDetailPageComponent({
   const [showRegenConfirm, setShowRegenConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
+  const [errorCopied, setErrorCopied] = useState(false)
   const statusDropdownRef = useRef<HTMLDivElement>(null)
 
   const deleteMutation = useDeleteEvaluationMutationHook(evaluationId)
@@ -74,10 +75,14 @@ export function EvaluationDetailPageComponent({
   }, [isRegenerating, refetch])
 
   const regenerateMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (opts?: { force?: boolean }) => {
       const res = await fetch(
         `/api/portal/evaluations/${evaluationId}/regenerate`,
-        { method: 'POST' }
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ force: opts?.force }),
+        }
       )
       if (!res.ok) {
         const body = (await res.json()) as { error?: string; message?: string }
@@ -92,8 +97,9 @@ export function EvaluationDetailPageComponent({
 
   const handleRegenerate = useCallback(() => {
     setShowRegenConfirm(false)
-    regenerateMutation.mutate()
-  }, [regenerateMutation])
+    const force = isProcessingStatus(evaluation?.status)
+    regenerateMutation.mutate({ force })
+  }, [regenerateMutation, evaluation?.status])
 
   const updateStatusMutation = useMutation({
     mutationFn: async (newStatus: string) => {
@@ -315,10 +321,47 @@ export function EvaluationDetailPageComponent({
 
       {evaluation.status === 'error' && (
         <div className="mb-6 rounded-lg border border-[rgba(255,77,109,0.3)] bg-[rgba(255,77,109,0.08)] px-4 py-3">
-          <p className="text-sm text-[#ff4d6d]">
-            Falha no processamento em segundo plano. Clique em Regenerar para
-            tentar novamente.
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-[#ff4d6d]">
+                Falha no processamento. Clique em Regenerar para tentar
+                novamente.
+              </p>
+              {evaluation.processing_error && (
+                <pre
+                  className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all rounded border border-[rgba(255,77,109,0.15)] bg-[rgba(0,0,0,0.25)] px-3 py-2 text-xs leading-relaxed text-[#ff8fa3]"
+                  style={{ fontFamily: 'var(--font-mono-portal), monospace' }}
+                >
+                  {evaluation.processing_error}
+                </pre>
+              )}
+            </div>
+            {evaluation.processing_error && (
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard
+                    .writeText(evaluation.processing_error!)
+                    .then(() => {
+                      setErrorCopied(true)
+                      setTimeout(() => setErrorCopied(false), 2000)
+                    })
+                }}
+                className="mt-0.5 flex-shrink-0 rounded border border-[rgba(255,77,109,0.25)] p-1.5 text-[#ff8fa3] transition-colors hover:bg-[rgba(255,77,109,0.1)]"
+                title="Copiar erro"
+              >
+                {errorCopied ? (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       )}
 

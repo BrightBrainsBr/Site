@@ -24,6 +24,7 @@ type EvaluationProcessingStatus =
   | 'processing_upload'
   | 'completed'
   | 'error'
+  | (string & {})
 
 async function updateEvaluationStatus(
   sb: ReturnType<typeof createSb>,
@@ -81,9 +82,19 @@ export async function POST(
       return NextResponse.json({ message: 'Not found' }, { status: 404 })
     }
 
-    if (typeof row.status === 'string' && row.status.startsWith('processing')) {
+    const body = (await _request.json().catch(() => ({}))) as {
+      force?: boolean
+    }
+
+    if (
+      typeof row.status === 'string' &&
+      row.status.startsWith('processing') &&
+      !body.force
+    ) {
       return NextResponse.json(
-        { error: 'Relatório já está sendo gerado' },
+        {
+          error: 'Relatório já está sendo gerado. Use "force" para reiniciar.',
+        },
         { status: 409 }
       )
     }
@@ -105,6 +116,7 @@ export async function POST(
 
     await updateEvaluationStatus(sb, id, 'processing_report', requestId, {
       report_history: existingHistory,
+      processing_error: null,
     })
 
     const formData = (row.form_data ?? {}) as AssessmentFormData
@@ -144,7 +156,8 @@ export async function POST(
           formData,
           scores,
           uploads,
-          requestId
+          requestId,
+          (status) => setStatus(status as EvaluationProcessingStatus)
         )
 
         const today = new Date().toLocaleDateString('pt-BR')
@@ -194,7 +207,7 @@ export async function POST(
           errorMsg
         )
 
-        await setStatus('error')
+        await setStatus('error', { processing_error: errorMsg })
       }
     })
 

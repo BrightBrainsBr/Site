@@ -11,7 +11,17 @@ const NotFoundLayout: React.FC = async () => {
   const locale = await getLocale()
   const { options } = await getGlobalData(locale)
 
-  const data = options.notFound
+  const data = options?.notFound
+
+  if (!data) {
+    return (
+      <Main className="flex items-center" themeVariant="midnight-950">
+        <div className="h-screen flex items-center justify-center">
+          <h1 className="heading-6xl">404 - Page Not Found</h1>
+        </div>
+      </Main>
+    )
+  }
 
   return (
     <Main className="flex items-center" themeVariant="midnight-950">
@@ -43,7 +53,7 @@ const NotFoundLayout: React.FC = async () => {
               <CMSButton
                 className="w-fit"
                 attributes={{
-                  text: options.dictionary.goBack,
+                  text: options?.dictionary?.goBack ?? 'Go Back',
                   url: '/',
                   variant: 'midnight-950',
                   id: 6485,

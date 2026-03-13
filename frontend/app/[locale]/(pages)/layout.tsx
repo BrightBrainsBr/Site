@@ -15,13 +15,26 @@ interface IRootLayoutProps {
   params: Promise<{ locale: string }>
 }
 
+function withSuppressedErrors<T>(
+  fn: () => Promise<T>,
+  fallback: T
+): Promise<T> {
+  const orig = console.error
+  console.error = (() => {}) as typeof console.error
+  return fn()
+    .catch(() => fallback)
+    .finally(() => {
+      console.error = orig
+    })
+}
+
 export async function generateMetadata({ params }: IRootLayoutProps) {
   let { locale } = await params
   const router = await getHelpersRouter()
   if (!router.localization.locales.includes(locale)) {
     locale = router.localization.defaultLocale
   }
-  return await router.seo.getGlobalMetadata(locale)
+  return withSuppressedErrors(() => router.seo.getGlobalMetadata(locale), {})
 }
 
 export async function generateViewport({ params }: IRootLayoutProps) {
@@ -30,8 +43,7 @@ export async function generateViewport({ params }: IRootLayoutProps) {
   if (!router.localization.locales.includes(locale)) {
     locale = router.localization.defaultLocale
   }
-
-  return await router.seo.getViewport(locale)
+  return withSuppressedErrors(() => router.seo.getViewport(locale), {})
 }
 
 const RootLayout: React.FC<IRootLayoutProps> = async ({
@@ -49,7 +61,7 @@ const RootLayout: React.FC<IRootLayoutProps> = async ({
   setRequestLocale(locale)
   const { options, structure } = await getGlobalData(locale)
 
-  const { dictionary } = options
+  const dictionary = options?.dictionary ?? {}
 
   return (
     <HelpersContexts
@@ -58,9 +70,9 @@ const RootLayout: React.FC<IRootLayoutProps> = async ({
       locale={locale}
     >
       <StateControllerProvider>
-        <Header {...structure.header} locale={locale} />
+        {structure?.header && <Header {...structure.header} locale={locale} />}
         {children}
-        <Footer {...structure.footer} locale={locale} />
+        {structure?.footer && <Footer {...structure.footer} locale={locale} />}
         <div id="modals">
           <ContentModalWrapper.Context>{modal}</ContentModalWrapper.Context>
         </div>

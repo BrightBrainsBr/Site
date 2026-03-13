@@ -86,7 +86,11 @@ const RootLayout = async ({ children, params }: any) => {
           sizes="180x180"
           href="/apple-touch-icon.png"
         />
-        <link rel="manifest" href="/site.webmanifest" />
+        <link
+          rel="manifest"
+          href="/site.webmanifest"
+          crossOrigin="use-credentials"
+        />
 
         {/* Google Tag Manager */}
         <script
