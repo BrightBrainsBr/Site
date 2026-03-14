@@ -60,7 +60,12 @@ function buildPipelineSteps(
 
   const stageMatch = status.match(/^processing_stage_(\d+)_of_(\d+)$/)
   if (stageMatch) {
-    markUpTo('report', 'Gerando todas as seções...')
+    const stageNum = stageMatch[1]
+    const detail =
+      stageNum === '1'
+        ? 'Gerando seções 1-5 (análise clínica)…'
+        : 'Gerando seções 6-10 (terapêutica)…'
+    markUpTo('report', detail)
     return steps
   }
 

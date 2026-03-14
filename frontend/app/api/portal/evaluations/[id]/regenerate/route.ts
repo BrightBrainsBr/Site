@@ -4,13 +4,8 @@ import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
-import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
 import type { LogCallback } from '~/app/api/assessment/lib/generate-report-background'
-import {
-  extractAllDocuments,
-  generateStagesFromExtraction,
-} from '~/app/api/assessment/lib/generate-report-background'
-import { sendErrorEmail } from '~/app/api/assessment/lib/send-email'
+import { extractAllDocuments } from '~/app/api/assessment/lib/generate-report-background'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 
 export const runtime = 'nodejs'
@@ -21,6 +16,14 @@ function createSb() {
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
+}
+
+function getProductionUrl(): string {
+  if (process.env.SITE_URL) return process.env.SITE_URL
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return 'http://localhost:3000'
 }
 
 async function requirePortalSession() {
@@ -114,7 +117,11 @@ export async function POST(
     const nome = (row.patient_name as string) || formData?.nome || ''
     const uploads =
       doctorUploads.length > 0
-        ? doctorUploads.map((d) => ({ name: d.name, url: d.url, type: d.type }))
+        ? doctorUploads.map((d) => ({
+            name: d.name,
+            url: d.url,
+            type: d.type,
+          }))
         : undefined
 
     const hasCachedExtraction = typeof row.extracted_documents_text === 'string'
@@ -149,9 +156,7 @@ export async function POST(
           .then(({ error: rpcErr }) => {
             if (rpcErr) {
               sb.from('mental_health_evaluations')
-                .update({
-                  processing_logs: [entry],
-                })
+                .update({ processing_logs: [entry] })
                 .eq('id', id)
                 .then(() => {})
             }
@@ -164,13 +169,12 @@ export async function POST(
           processing_logs: [],
         })
 
-        let extractedText: string
-
         if (hasCachedExtraction) {
-          extractedText = row.extracted_documents_text as string
-          p(`Using cached extraction (${extractedText.length}ch)`)
+          p(
+            `Using cached extraction (${(row.extracted_documents_text as string).length}ch)`
+          )
           await appendLog(
-            `Usando extração em cache (${(extractedText.length / 1000).toFixed(0)}k chars)`
+            `Usando extração em cache (${((row.extracted_documents_text as string).length / 1000).toFixed(0)}k chars)`
           )
         } else if (uploads?.length) {
           p(
@@ -180,7 +184,7 @@ export async function POST(
           const client = new Anthropic({
             apiKey: process.env.ANTHROPIC_API_KEY!,
           })
-          extractedText = await extractAllDocuments(
+          const extractedText = await extractAllDocuments(
             client,
             uploads,
             requestId,
@@ -196,71 +200,43 @@ export async function POST(
             .update({ extracted_documents_text: extractedText })
             .eq('id', id)
 
-          p(`Extraction cached to DB`)
+          await appendLog(
+            `Extração concluída (${(extractedText.length / 1000).toFixed(0)}k chars)`
+          )
         } else {
-          extractedText = ''
           await sb
             .from('mental_health_evaluations')
             .update({ extracted_documents_text: '' })
             .eq('id', id)
         }
 
-        p(`Generating report (${extractedText.length}ch)...`)
-        await appendLog('Gerando relatório com IA…')
-        const report = await generateStagesFromExtraction(
-          formData,
-          row.scores as Record<string, number>,
-          extractedText,
-          requestId,
-          (status) => setStatus(status),
-          appendLog
-        )
-        p(`AI done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`)
+        const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
+        p(`Extraction phase done in ${elapsed}s — triggering report generation`)
+        await appendLog('Iniciando geração do relatório…')
 
-        const today = new Date().toLocaleDateString('pt-BR')
-        const reportMarkdown = report.reportMarkdown.replace(
-          /\[Data (?:do relatório|atual)\]/gi,
-          today
-        )
+        const baseUrl = getProductionUrl()
+        const triggerUrl = `${baseUrl}/api/assessment/continue-report`
+        p(`Trigger URL: ${triggerUrl}`)
 
-        p(`Building PDF...`)
-        await setStatus('processing_pdf')
-        await appendLog('Montando PDF…')
-        const t2 = Date.now()
-        const pdfBuffer = buildPdf(formData, reportMarkdown)
-        const pdfKB = (pdfBuffer.byteLength / 1024).toFixed(0)
-        p(`PDF built — ${pdfKB}KB in ${Date.now() - t2}ms`)
-        await appendLog(`PDF montado (${pdfKB}KB)`)
-
-        const fileName = `report_${id}_${Date.now()}.pdf`
-        p(`Uploading PDF — ${fileName}`)
-        await setStatus('processing_upload')
-        await appendLog('Enviando PDF…')
-
-        const { error: uploadError } = await sb.storage
-          .from('assessment-pdfs')
-          .upload(fileName, pdfBuffer, {
-            contentType: 'application/pdf',
-            upsert: false,
-          })
-
-        if (uploadError) {
-          throw new Error(`Erro ao fazer upload do PDF: ${uploadError.message}`)
-        }
-
-        const {
-          data: { publicUrl },
-        } = sb.storage.from('assessment-pdfs').getPublicUrl(fileName)
-
-        p(`Saving report to DB...`)
-        await setStatus('completed', {
-          report_markdown: reportMarkdown,
-          report_pdf_url: publicUrl,
+        const triggerRes = await fetch(triggerUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            evaluationId: id,
+            mode: 'regenerate',
+            phase: 'stage1',
+            callerRequestId: requestId,
+          }),
         })
 
-        const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
-        p(`✅ DONE | patient="${nome}" | ${elapsed}s total`)
-        await appendLog(`✅ Concluído em ${elapsed}s`)
+        if (!triggerRes.ok) {
+          const text = await triggerRes.text().catch(() => '(no body)')
+          throw new Error(
+            `continue-report trigger failed: ${triggerRes.status} ${text.slice(0, 200)}`
+          )
+        }
+
+        p(`✅ Report generation triggered`)
       } catch (err) {
         const errorMsg =
           err instanceof Error ? err.message : 'Erro desconhecido'
@@ -270,15 +246,6 @@ export async function POST(
         )
         await setStatus('error', { processing_error: errorMsg })
         await appendLog(`❌ Erro: ${errorMsg}`)
-        await sendErrorEmail({
-          patientName: nome,
-          evaluationId: id,
-          errorMessage: errorMsg,
-          patientEmail: (row.patient_email as string) || formData?.email,
-          patientPhone: (row.patient_phone as string) || formData?.telefone,
-          patientProfile:
-            (row.patient_profile as string) || (formData?.publico as string),
-        })
       }
     })
 

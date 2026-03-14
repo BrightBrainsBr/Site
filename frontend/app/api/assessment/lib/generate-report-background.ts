@@ -8,8 +8,10 @@ import { buildReportPromptData } from '~/features/assessment/helpers/build-repor
 import {
   DOCUMENT_EXTRACTION_SYSTEM,
   DOCUMENT_EXTRACTION_USER,
-  REPORT_SYSTEM,
-  REPORT_USER_PREFIX,
+  STAGE_1_SYSTEM,
+  STAGE_1_USER_PREFIX,
+  STAGE_2_SYSTEM,
+  STAGE_2_USER_PREFIX,
 } from './report-prompts'
 
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6'
@@ -566,95 +568,85 @@ export async function extractAllDocuments(
   return `\n\n---\nDADOS EXTRAÍDOS DOS DOCUMENTOS DO PACIENTE (exames, laudos, relatórios):\n\n${extracted.join('\n\n---\n\n')}`
 }
 
-async function runStages(
-  patientData: string,
-  extractedDocs: string,
-  rid: string,
-  onProgress?: ProgressCallback,
-  onLog?: LogCallback
-): Promise<ReportResult> {
-  const t0 = Date.now()
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
-  const fullData = patientData + extractedDocs
-  const userPrompt = `${REPORT_USER_PREFIX}${fullData}`
-
-  log(rid, `=== REPORT GENERATION === total=${userPrompt.length}ch`)
-  await onLog?.(
-    `Gerando relatório: ${(userPrompt.length / 1000).toFixed(0)}k chars de dados`
-  )
-  await onProgress?.('processing_stage_1_of_1')
-
-  const res = await callLLM(
-    client,
-    REPORT_SYSTEM,
-    [{ type: 'text', text: userPrompt }],
-    'Report',
-    rid,
-    24576,
-    onLog
-  )
-
-  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
-  const cost = estimateCost(res).toFixed(4)
-  log(
-    rid,
-    `✅ REPORT DONE | ${elapsed}s | in=${res.inputTokens} out=${res.outputTokens} | $${cost} | ${res.provider}`
-  )
-  await onLog?.(
-    `✅ Relatório gerado em ${elapsed}s (${res.outputTokens} tokens, $${cost})`
-  )
-  return {
-    reportMarkdown: res.content,
-    stages: [{ stage: 1, content: res.content }],
-  }
-}
-
-export async function generateReportBackground(
-  formData: AssessmentFormData,
-  scores: Record<string, number>,
-  uploads?: Upload[],
-  requestId?: string,
-  onProgress?: ProgressCallback,
-  onLog?: LogCallback
-): Promise<ReportResult> {
-  const rid = requestId ?? crypto.randomUUID().slice(0, 8)
-  const t0 = Date.now()
-  log(
-    rid,
-    `START | patient=${formData.nome || '?'} | files=${uploads?.length ?? 0}`
-  )
-
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
-  const patientData = buildReportPromptData(formData, scores)
-  const extractedDocs = await extractAllDocuments(
-    client,
-    uploads,
-    rid,
-    onProgress,
-    onLog
-  )
-  log(
-    rid,
-    `Extraction done | ${extractedDocs.length}ch | ${((Date.now() - t0) / 1000).toFixed(1)}s`
-  )
-
-  return runStages(patientData, extractedDocs, rid, onProgress, onLog)
-}
-
-export async function generateStagesFromExtraction(
+/**
+ * Stage 1: Sections 1–5 (Clinical Analysis).
+ * Receives FULL data (patient + extracted documents).
+ */
+export async function runReportStage1(
   formData: AssessmentFormData,
   scores: Record<string, number>,
   extractedDocsText: string,
   requestId?: string,
   onProgress?: ProgressCallback,
   onLog?: LogCallback
-): Promise<ReportResult> {
+): Promise<string> {
   const rid = requestId ?? crypto.randomUUID().slice(0, 8)
-  return runStages(
-    buildReportPromptData(formData, scores),
-    extractedDocsText,
+  const t0 = Date.now()
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const patientData = buildReportPromptData(formData, scores)
+  const fullData = patientData + extractedDocsText
+  const userPrompt = `${STAGE_1_USER_PREFIX}${fullData}`
+
+  log(rid, `=== STAGE 1 (sections 1-5) === input=${userPrompt.length}ch`)
+  await onLog?.(
+    `Stage 1 (seções 1-5): ${(userPrompt.length / 1000).toFixed(0)}k chars`
+  )
+  await onProgress?.('processing_stage_1_of_2')
+
+  const res = await callLLM(
+    client,
+    STAGE_1_SYSTEM,
+    [{ type: 'text', text: userPrompt }],
+    'Stage1',
     rid,
-    onProgress,
+    16384,
     onLog
   )
+
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
+  const cost = estimateCost(res).toFixed(4)
+  log(rid, `✅ STAGE 1 DONE | ${elapsed}s | out=${res.outputTokens} | $${cost}`)
+  await onLog?.(`✅ Seções 1-5 prontas em ${elapsed}s ($${cost})`)
+  return res.content
+}
+
+/**
+ * Stage 2: Sections 6–10 (Treatment & Monitoring).
+ * Receives patient data + stage 1 output. Does NOT receive raw extracted docs.
+ */
+export async function runReportStage2(
+  formData: AssessmentFormData,
+  scores: Record<string, number>,
+  stage1Output: string,
+  requestId?: string,
+  onProgress?: ProgressCallback,
+  onLog?: LogCallback
+): Promise<string> {
+  const rid = requestId ?? crypto.randomUUID().slice(0, 8)
+  const t0 = Date.now()
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const patientData = buildReportPromptData(formData, scores)
+  const userPrompt = `${STAGE_2_USER_PREFIX}DADOS DO PACIENTE:\n${patientData}\n\n---\nANÁLISE CLÍNICA (seções 1-5):\n${stage1Output}`
+
+  log(rid, `=== STAGE 2 (sections 6-10) === input=${userPrompt.length}ch`)
+  await onLog?.(
+    `Stage 2 (seções 6-10): ${(userPrompt.length / 1000).toFixed(0)}k chars`
+  )
+  await onProgress?.('processing_stage_2_of_2')
+
+  const res = await callLLM(
+    client,
+    STAGE_2_SYSTEM,
+    [{ type: 'text', text: userPrompt }],
+    'Stage2',
+    rid,
+    16384,
+    onLog
+  )
+
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
+  const cost = estimateCost(res).toFixed(4)
+  log(rid, `✅ STAGE 2 DONE | ${elapsed}s | out=${res.outputTokens} | $${cost}`)
+  await onLog?.(`✅ Seções 6-10 prontas em ${elapsed}s ($${cost})`)
+  return res.content
 }

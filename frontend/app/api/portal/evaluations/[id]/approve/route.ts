@@ -6,7 +6,10 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
-import { generateReportBackground } from '~/app/api/assessment/lib/generate-report-background'
+import {
+  runReportStage1,
+  runReportStage2,
+} from '~/app/api/assessment/lib/generate-report-background'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 
 export const runtime = 'nodejs'
@@ -54,12 +57,9 @@ export async function POST(
     const scores = (row.scores ?? {}) as Record<string, number>
 
     const requestId = crypto.randomUUID().slice(0, 8)
-    const { reportMarkdown } = await generateReportBackground(
-      formData,
-      scores,
-      undefined,
-      requestId
-    )
+    const stage1 = await runReportStage1(formData, scores, '', requestId)
+    const stage2 = await runReportStage2(formData, scores, stage1, requestId)
+    const reportMarkdown = `${stage1}\n\n${stage2}`
 
     const today = new Date().toLocaleDateString('pt-BR')
     const reportMarkdownWithDate = reportMarkdown.replace(
