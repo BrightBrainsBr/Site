@@ -14,8 +14,10 @@ import {
   STAGE_2_USER_PREFIX,
 } from './report-prompts'
 
-const ANTHROPIC_MODEL = 'claude-sonnet-4-6'
-const OPENROUTER_MODEL = 'anthropic/claude-sonnet-4-6'
+const ANTHROPIC_EXTRACTION_MODEL = 'claude-sonnet-4-6'
+const ANTHROPIC_REPORT_MODEL = 'claude-3-5-sonnet-20241022'
+const OPENROUTER_EXTRACTION_MODEL = 'anthropic/claude-sonnet-4-6'
+const OPENROUTER_REPORT_MODEL = 'anthropic/claude-3.5-sonnet'
 const MAX_RETRIES = 3
 const ANTHROPIC_MAX_DOC_BYTES = 32 * 1024 * 1024
 const ANTHROPIC_MAX_IMAGE_BYTES = 20 * 1024 * 1024
@@ -159,15 +161,16 @@ async function callAnthropic(
   label: string,
   rid: string,
   maxTokens = 8192,
-  onLog?: LogCallback
+  onLog?: LogCallback,
+  model = ANTHROPIC_EXTRACTION_MODEL
 ): Promise<LLMResult> {
   const t0 = Date.now()
-  const startMsg = `[Anthropic] Streaming… model=${ANTHROPIC_MODEL}`
+  const startMsg = `[Anthropic] Streaming… model=${model}`
   log(rid, `${label} ${startMsg}`)
   await onLog?.(startMsg)
 
   const stream = client.messages.stream({
-    model: ANTHROPIC_MODEL,
+    model,
     max_tokens: maxTokens,
     system,
     messages: [{ role: 'user', content }],
@@ -255,12 +258,13 @@ async function callOpenRouter(
   label: string,
   rid: string,
   maxTokens = 8192,
-  onLog?: LogCallback
+  onLog?: LogCallback,
+  model = OPENROUTER_EXTRACTION_MODEL
 ): Promise<LLMResult> {
   const apiKey = process.env.OPENROUTER_API_KEY
   if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured')
   const t0 = Date.now()
-  const startMsg = `[OpenRouter] Streaming… model=${OPENROUTER_MODEL}`
+  const startMsg = `[OpenRouter] Streaming… model=${model}`
   log(rid, `${label} ${startMsg}`)
   await onLog?.(startMsg)
 
@@ -271,7 +275,7 @@ async function callOpenRouter(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: OPENROUTER_MODEL,
+      model,
       max_tokens: maxTokens,
       stream: true,
       messages: [
@@ -333,6 +337,21 @@ async function callOpenRouter(
   }
 }
 
+interface ModelConfig {
+  anthropic: string
+  openrouter: string
+}
+
+const EXTRACTION_MODELS: ModelConfig = {
+  anthropic: ANTHROPIC_EXTRACTION_MODEL,
+  openrouter: OPENROUTER_EXTRACTION_MODEL,
+}
+
+const REPORT_MODELS: ModelConfig = {
+  anthropic: ANTHROPIC_REPORT_MODEL,
+  openrouter: OPENROUTER_REPORT_MODEL,
+}
+
 async function callLLM(
   client: Anthropic,
   system: string,
@@ -340,7 +359,8 @@ async function callLLM(
   label: string,
   rid: string,
   maxTokens = 8192,
-  onLog?: LogCallback
+  onLog?: LogCallback,
+  models: ModelConfig = EXTRACTION_MODELS
 ): Promise<LLMResult> {
   const callStart = Date.now()
   const inputSize = content.reduce(
@@ -357,7 +377,15 @@ async function callLLM(
     try {
       log(rid, `${label} attempt ${a}/${MAX_RETRIES} [${provider}]`)
       const result = useOpenRouter
-        ? await callOpenRouter(system, content, label, rid, maxTokens, onLog)
+        ? await callOpenRouter(
+            system,
+            content,
+            label,
+            rid,
+            maxTokens,
+            onLog,
+            models.openrouter
+          )
         : await callAnthropic(
             client,
             system,
@@ -365,7 +393,8 @@ async function callLLM(
             label,
             rid,
             maxTokens,
-            onLog
+            onLog,
+            models.anthropic
           )
       logLLMCall(rid, label, result, a)
 
@@ -599,8 +628,9 @@ export async function runReportStage1(
     [{ type: 'text', text: userPrompt }],
     'Stage1',
     rid,
-    16384,
-    onLog
+    12288,
+    onLog,
+    REPORT_MODELS
   )
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
@@ -640,8 +670,9 @@ export async function runReportStage2(
     [{ type: 'text', text: userPrompt }],
     'Stage2',
     rid,
-    16384,
-    onLog
+    12288,
+    onLog,
+    REPORT_MODELS
   )
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
