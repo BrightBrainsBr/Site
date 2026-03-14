@@ -8,7 +8,8 @@ import { buildReportPromptData } from '~/features/assessment/helpers/build-repor
 import {
   DOCUMENT_EXTRACTION_SYSTEM,
   DOCUMENT_EXTRACTION_USER,
-  STAGE_PROMPTS,
+  REPORT_SYSTEM,
+  REPORT_USER_PREFIX,
 } from './report-prompts'
 
 const ANTHROPIC_MODEL = 'claude-sonnet-4-6'
@@ -423,54 +424,29 @@ async function runStages(
   const t0 = Date.now()
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
   const fullData = patientData + extractedDocs
-  let prev = ''
-  const stages: { stage: number; content: string }[] = []
-  let inTok = 0,
-    outTok = 0,
-    cost = 0
 
   log(
     rid,
-    `=== REPORT STAGES === patient=${patientData.length}ch docs=${extractedDocs.length}ch`
+    `=== SINGLE REPORT CALL === patient=${patientData.length}ch docs=${extractedDocs.length}ch`
   )
-  for (const cfg of STAGE_PROMPTS) {
-    const st = Date.now()
-    await onProgress?.(
-      `processing_stage_${cfg.stage}_of_${STAGE_PROMPTS.length}`
-    )
-    log(rid, `→ Stage ${cfg.stage}/${STAGE_PROMPTS.length}: ${cfg.name}`)
+  await onProgress?.('processing_stage_1_of_1')
 
-    // Stage 1 gets everything; stages 2-3 only get form data + previous output
-    const txt =
-      cfg.stage === 1
-        ? `${cfg.userPrefix}${fullData}`
-        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${patientData}`
-
-    const res = await callLLM(
-      client,
-      cfg.system,
-      [{ type: 'text', text: txt }],
-      `Stage ${cfg.stage}: ${cfg.name}`,
-      rid
-    )
-    prev += `\n\n${res.content}`
-    stages.push({ stage: cfg.stage, content: res.content })
-    inTok += res.inputTokens
-    outTok += res.outputTokens
-    cost += estimateCost(res)
-    log(
-      rid,
-      `✓ Stage ${cfg.stage} done in ${((Date.now() - st) / 1000).toFixed(1)}s`
-    )
-  }
+  const res = await callLLM(
+    client,
+    REPORT_SYSTEM,
+    [{ type: 'text', text: `${REPORT_USER_PREFIX}${fullData}` }],
+    'Report (all sections)',
+    rid,
+    24576
+  )
 
   log(
     rid,
-    `STAGES DONE | ${((Date.now() - t0) / 1000).toFixed(1)}s | tok=${inTok}+${outTok} | $${cost.toFixed(4)}`
+    `REPORT DONE | ${((Date.now() - t0) / 1000).toFixed(1)}s | tok=${res.inputTokens}+${res.outputTokens} | $${estimateCost(res).toFixed(4)}`
   )
   return {
-    reportMarkdown: stages.map((s) => s.content).join('\n\n---\n\n'),
-    stages,
+    reportMarkdown: res.content,
+    stages: [{ stage: 1, content: res.content }],
   }
 }
 

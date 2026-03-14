@@ -51,10 +51,7 @@ export function getProcessingStatusLabel(
     return '📄 Extraindo documentos...'
   }
   if (status.startsWith('processing_stage_')) {
-    const match = status.match(/processing_stage_(\d+)_of_(\d+)/)
-    if (match)
-      return `🧠 Gerando relatório — seção ${match[1]} de ${match[2]}...`
-    return '🧠 Gerando seções do relatório...'
+    return '🧠 Gerando relatório completo...'
   }
 
   const labels: Record<string, string> = {
