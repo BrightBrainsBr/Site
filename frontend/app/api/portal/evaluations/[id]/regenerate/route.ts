@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
-import { after, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 import { triggerProcessReportJob } from '~/app/api/assessment/lib/trigger-process-report'
 
@@ -129,25 +129,24 @@ export async function POST(
       `[regenerate:${requestId}] Starting regeneration for ${id} | uploads=${doctorUploads.length} | history=${existingHistory.length} — triggering background job`
     )
 
-    // Primary dispatch (best-effort) plus after() fallback.
-    // The process endpoint is idempotent and will skip duplicate in-flight dispatches.
-    void triggerProcessReportJob({
+    const trigger = await triggerProcessReportJob({
       evaluationId: id,
       mode: 'regenerate',
       requestId,
       source: 'regenerate',
     })
 
-    after(async () => {
-      await triggerProcessReportJob({
-        evaluationId: id,
-        mode: 'regenerate',
-        requestId,
-        source: 'regenerate-after',
-      })
-    })
+    if (!trigger.ok) {
+      console.error(
+        `[regenerate:${requestId}] Trigger failed | id=${id} | ${trigger.detail}`
+      )
+    }
 
-    return NextResponse.json({ status: 'processing_report', requestId })
+    return NextResponse.json({
+      status: 'processing_report',
+      requestId,
+      triggered: trigger.ok,
+    })
   } catch (err) {
     console.error(`[regenerate:${requestId}] Error:`, err)
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })

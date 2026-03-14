@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
-import { after, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 import { triggerProcessReportJob } from '~/app/api/assessment/lib/trigger-process-report'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
+
+export const maxDuration = 30
 
 const BUCKET = 'assessment-pdfs'
 
@@ -87,26 +89,18 @@ export async function POST(request: NextRequest) {
       `[submit:${requestId}] Evaluation saved | patient="${nome}" | id=${evaluationId} — dispatching background job`
     )
 
-    // Primary dispatch (best-effort) plus after() fallback.
-    // The process endpoint is idempotent and will skip duplicate in-flight dispatches.
-    void triggerProcessReportJob({
+    const trigger = await triggerProcessReportJob({
       evaluationId,
       mode: 'submit',
       requestId,
       source: 'submit',
     })
 
-    after(async () => {
-      console.warn(
-        `[submit:${requestId}] after() dispatch fired | id=${evaluationId}`
+    if (!trigger.ok) {
+      console.error(
+        `[submit:${requestId}] Trigger failed but evaluation saved | id=${evaluationId} | ${trigger.detail}`
       )
-      await triggerProcessReportJob({
-        evaluationId,
-        mode: 'submit',
-        requestId,
-        source: 'submit-after',
-      })
-    })
+    }
 
     return NextResponse.json({
       evaluationId,

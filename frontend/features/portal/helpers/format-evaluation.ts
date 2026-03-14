@@ -34,21 +34,37 @@ export function getStatusLabel(status: string): string {
   return labels[status] ?? status
 }
 
-export function getProcessingStatusLabel(status: string | null | undefined): string | null {
+export function getProcessingStatusLabel(
+  status: string | null | undefined
+): string | null {
   if (!status) return null
-  if (status.startsWith('processing_dispatching_')) return 'Inicializando...'
-  if (status.startsWith('processing_claimed_')) return 'Iniciando worker...'
-  if (status.startsWith('processing_report_')) return 'Gerando relatório...'
-  if (status.startsWith('processing_extract_')) return 'Extraindo anexos...'
-  if (status.startsWith('processing_stage_')) return 'Gerando seções...'
+  if (status.startsWith('processing_dispatching_'))
+    return '⏳ Inicializando processamento...'
+  if (status.startsWith('processing_claimed_'))
+    return '⚙️ Worker iniciado, preparando...'
+  if (status.startsWith('processing_report_'))
+    return '🧠 Conectando com IA...'
+
+  if (status.startsWith('processing_extract_')) {
+    const match = status.match(/processing_extract_(\d+)_of_(\d+)/)
+    if (match) return `📄 Extraindo documento ${match[1]} de ${match[2]}...`
+    return '📄 Extraindo documentos...'
+  }
+  if (status.startsWith('processing_stage_')) {
+    const match = status.match(/processing_stage_(\d+)_of_(\d+)/)
+    if (match)
+      return `🧠 Gerando relatório — seção ${match[1]} de ${match[2]}...`
+    return '🧠 Gerando seções do relatório...'
+  }
+
   const labels: Record<string, string> = {
-    processing: 'Processando...',
-    processing_report: 'Gerando relatório...',
-    processing_pdf: 'Gerando PDF...',
-    processing_upload: 'Salvando PDF...',
-    processing_notify: 'Notificando...',
-    completed: 'Completo',
-    error: 'Erro no processamento',
+    processing: '⏳ Processando...',
+    processing_report: '🧠 Gerando relatório...',
+    processing_pdf: '📝 Gerando PDF...',
+    processing_upload: '☁️ Salvando PDF...',
+    processing_notify: '📧 Enviando notificação...',
+    completed: '✅ Completo',
+    error: '❌ Erro no processamento',
   }
   return labels[status] ?? null
 }
