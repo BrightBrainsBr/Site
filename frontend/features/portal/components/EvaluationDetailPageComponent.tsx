@@ -46,6 +46,7 @@ export function EvaluationDetailPageComponent({
 
   const [activeTab, setActiveTab] = useState<Tab>('dados')
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [jobStartedAt, setJobStartedAt] = useState<number | null>(null)
   const [mode, setMode] = useState<'read' | 'edit'>('read')
   const [showRegenConfirm, setShowRegenConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -86,8 +87,25 @@ export function EvaluationDetailPageComponent({
   }, [error?.message])
 
   useEffect(() => {
-    setIsRegenerating(isProcessingStatus(evaluation?.status))
-  }, [evaluation?.status])
+    const processing = isProcessingStatus(evaluation?.status)
+    setIsRegenerating(processing)
+    if (processing && !jobStartedAt) {
+      const status = evaluation?.status ?? ''
+      const prefixes = ['processing_dispatching_', 'processing_claimed_', 'processing_report_']
+      let ts: number | null = null
+      for (const p of prefixes) {
+        if (status.startsWith(p)) {
+          const raw = Number(status.slice(p.length).split('_')[0])
+          if (Number.isFinite(raw) && raw > 1_600_000_000_000) {
+            ts = raw
+            break
+          }
+        }
+      }
+      setJobStartedAt(ts ?? Date.now())
+    }
+    if (!processing) setJobStartedAt(null)
+  }, [evaluation?.status, jobStartedAt])
 
   useEffect(() => {
     if (!isRegenerating) return
@@ -543,6 +561,7 @@ export function EvaluationDetailPageComponent({
           reportHistory={evaluation.report_history ?? []}
           isRegenerating={isRegenerating}
           processingStatus={evaluation.status}
+          jobStartedAt={jobStartedAt}
         />
       )}
 
