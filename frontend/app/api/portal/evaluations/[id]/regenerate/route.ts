@@ -1,12 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 
-import { triggerProcessReportJob } from '~/app/api/assessment/lib/trigger-process-report'
+import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
+import { generateReportBackground } from '~/app/api/assessment/lib/generate-report-background'
+import { sendErrorEmail } from '~/app/api/assessment/lib/send-email'
+import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 300
 
 function createSb() {
   return createClient(
@@ -15,44 +18,13 @@ function createSb() {
   )
 }
 
-type EvaluationProcessingStatus =
-  | 'processing'
-  | 'processing_report'
-  | 'processing_pdf'
-  | 'processing_upload'
-  | 'completed'
-  | 'error'
-  | (string & {})
-
-async function updateEvaluationStatus(
-  sb: ReturnType<typeof createSb>,
-  evaluationId: string,
-  status: EvaluationProcessingStatus,
-  requestId: string,
-  patch: Record<string, unknown> = {}
-) {
-  const { error } = await sb
-    .from('mental_health_evaluations')
-    .update({
-      status,
-      ...patch,
-    })
-    .eq('id', evaluationId)
-
-  if (error) {
-    console.error(
-      `[regenerate:${requestId}] Failed to set status=${status}:`,
-      error.message
-    )
-  }
-}
-
 async function requirePortalSession() {
   const cookieStore = await cookies()
   const session = cookieStore.get('portal_session')
   return session?.value ?? null
 }
 
+/* eslint-disable complexity -- report job has many sequential steps */
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -71,7 +43,7 @@ export async function POST(
     const { data: row, error: fetchErr } = await sb
       .from('mental_health_evaluations')
       .select(
-        'form_data, scores, doctor_uploads, status, report_markdown, report_pdf_url, report_history'
+        'form_data, scores, doctor_uploads, status, report_markdown, report_pdf_url, report_history, patient_name, patient_email, patient_phone, patient_profile'
       )
       .eq('id', id)
       .single()
@@ -97,7 +69,6 @@ export async function POST(
       )
     }
 
-    // Archive current report before regenerating
     const existingHistory = (row.report_history ?? []) as {
       report_markdown: string
       report_pdf_url: string | null
@@ -114,38 +85,150 @@ export async function POST(
 
     const dispatchingStatus = `processing_dispatching_${Date.now()}`
 
-    await updateEvaluationStatus(sb, id, dispatchingStatus, requestId, {
-      report_history: existingHistory,
-      processing_error: null,
-    })
+    const { error: statusErr } = await sb
+      .from('mental_health_evaluations')
+      .update({
+        status: dispatchingStatus,
+        report_history: existingHistory,
+        processing_error: null,
+      })
+      .eq('id', id)
 
+    if (statusErr) {
+      console.error(
+        `[regenerate:${requestId}] Failed to set status:`,
+        statusErr.message
+      )
+    }
+
+    const formData = (row.form_data ?? {}) as AssessmentFormData
+    const scores = (row.scores ?? {}) as Record<string, number>
     const doctorUploads = (row.doctor_uploads ?? []) as {
       name: string
       url: string
-      type: string
+      type?: string
     }[]
 
+    const nome = (row.patient_name as string) || formData?.nome || ''
+    const uploads =
+      doctorUploads.length > 0
+        ? doctorUploads.map((d) => ({
+            name: d.name,
+            url: d.url,
+            type: d.type,
+          }))
+        : undefined
+
     console.warn(
-      `[regenerate:${requestId}] Starting regeneration for ${id} | uploads=${doctorUploads.length} | history=${existingHistory.length} — triggering background job`
+      `[regenerate:${requestId}] ✅ Regeneration started | id=${id} | patient="${nome}" | uploads=${uploads?.length ?? 0} | history=${existingHistory.length} — job will run in after()`
     )
 
-    const trigger = await triggerProcessReportJob({
-      evaluationId: id,
-      mode: 'regenerate',
-      requestId,
-      source: 'regenerate',
-    })
+    after(async () => {
+      const p = (msg: string) =>
+        console.warn(`[regenerate:${requestId}] ${msg}`)
+      const bgStart = Date.now()
 
-    if (!trigger.ok) {
-      console.error(
-        `[regenerate:${requestId}] Trigger failed | id=${id} | ${trigger.detail}`
+      p(
+        `▶ START REGENERATE | patient="${nome}" | id=${id} | uploads=${uploads?.length ?? 0}`
       )
-    }
+
+      const setStatus = async (
+        status: string,
+        patch: Record<string, unknown> = {}
+      ) => {
+        const { error: upErr } = await sb
+          .from('mental_health_evaluations')
+          .update({ status, ...patch })
+          .eq('id', id)
+        if (upErr) p(`Failed to set status=${status}: ${upErr.message}`)
+      }
+
+      try {
+        await setStatus(`processing_report_${Date.now()}`, {
+          processing_error: null,
+        })
+
+        p(`[1/5] Generating report via AI...`)
+        const report = await generateReportBackground(
+          formData,
+          scores,
+          uploads,
+          requestId,
+          (status) => setStatus(status)
+        )
+        p(
+          `[1/5] AI generation done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`
+        )
+
+        const today = new Date().toLocaleDateString('pt-BR')
+        const reportMarkdown = report.reportMarkdown.replace(
+          /\[Data (?:do relatório|atual)\]/gi,
+          today
+        )
+
+        p(`[2/5] Building PDF...`)
+        await setStatus('processing_pdf')
+        const t2 = Date.now()
+        const pdfBuffer = buildPdf(formData, reportMarkdown)
+        p(
+          `[2/5] PDF built — ${(pdfBuffer.byteLength / 1024).toFixed(0)}KB in ${Date.now() - t2}ms`
+        )
+
+        const fileName = `report_${id}_${Date.now()}.pdf`
+        p(`[3/5] Uploading PDF to storage — ${fileName}`)
+        await setStatus('processing_upload')
+        const t3 = Date.now()
+
+        const { error: uploadError } = await sb.storage
+          .from('assessment-pdfs')
+          .upload(fileName, pdfBuffer, {
+            contentType: 'application/pdf',
+            upsert: false,
+          })
+
+        if (uploadError) {
+          throw new Error(`Erro ao fazer upload do PDF: ${uploadError.message}`)
+        }
+        p(`[3/5] Upload done in ${Date.now() - t3}ms`)
+
+        const {
+          data: { publicUrl },
+        } = sb.storage.from('assessment-pdfs').getPublicUrl(fileName)
+
+        p(`[4/5] Saving regenerated report to DB...`)
+        await setStatus('completed', {
+          report_markdown: reportMarkdown,
+          report_pdf_url: publicUrl,
+        })
+        p(`[5/5] Regenerate complete — no email sent`)
+
+        const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
+        p(`✅ DONE REGENERATE | patient="${nome}" | ${elapsed}s total`)
+      } catch (err) {
+        const errorMsg =
+          err instanceof Error ? err.message : 'Erro desconhecido'
+        const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
+        console.error(
+          `[regenerate:${requestId}] ❌ FAIL REGENERATE | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
+        )
+
+        await setStatus('error', { processing_error: errorMsg })
+
+        await sendErrorEmail({
+          patientName: nome,
+          evaluationId: id,
+          errorMessage: errorMsg,
+          patientEmail: (row.patient_email as string) || formData?.email,
+          patientPhone: (row.patient_phone as string) || formData?.telefone,
+          patientProfile:
+            (row.patient_profile as string) || (formData?.publico as string),
+        })
+      }
+    })
 
     return NextResponse.json({
       status: 'processing_report',
       requestId,
-      triggered: trigger.ok,
     })
   } catch (err) {
     console.error(`[regenerate:${requestId}] Error:`, err)

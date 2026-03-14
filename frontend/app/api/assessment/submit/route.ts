@@ -1,11 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 
-import { triggerProcessReportJob } from '~/app/api/assessment/lib/trigger-process-report'
+import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
+import { generateReportBackground } from '~/app/api/assessment/lib/generate-report-background'
+import {
+  sendErrorEmail,
+  sendReportEmail,
+} from '~/app/api/assessment/lib/send-email'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 
-export const maxDuration = 30
+export const runtime = 'nodejs'
+export const maxDuration = 300
 
 const BUCKET = 'assessment-pdfs'
 
@@ -16,7 +22,7 @@ function extractStoragePath(publicUrl: string): string {
   return publicUrl.slice(idx + marker.length)
 }
 
-function createSupabaseClient() {
+function createSb() {
   return createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -43,7 +49,7 @@ export async function POST(request: NextRequest) {
       `[submit:${requestId}] Saving evaluation | patient=${nome} | uploads=${uploads?.length ?? 0}`
     )
 
-    const sb = createSupabaseClient()
+    const sb = createSb()
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { uploads: _stripUploads, ...cleanFormData } = formData
@@ -59,8 +65,6 @@ export async function POST(request: NextRequest) {
           }))
         : null
 
-    const dispatchingStatus = `processing_dispatching_${Date.now()}`
-
     const { data: row, error } = await sb
       .from('mental_health_evaluations')
       .insert({
@@ -73,7 +77,7 @@ export async function POST(request: NextRequest) {
         patient_profile: (formData.publico as string) || null,
         form_data: cleanFormData,
         scores,
-        status: dispatchingStatus,
+        status: `processing_dispatching_${Date.now()}`,
         doctor_uploads: doctorUploads,
       })
       .select('id')
@@ -86,21 +90,132 @@ export async function POST(request: NextRequest) {
 
     const evaluationId = row.id
     console.warn(
-      `[submit:${requestId}] Evaluation saved | patient="${nome}" | id=${evaluationId} — dispatching background job`
+      `[submit:${requestId}] ✅ Evaluation saved | patient="${nome}" | id=${evaluationId} — job will run in after()`
     )
 
-    const trigger = await triggerProcessReportJob({
-      evaluationId,
-      mode: 'submit',
-      requestId,
-      source: 'submit',
-    })
+    after(async () => {
+      const p = (msg: string) => console.warn(`[submit:${requestId}] ${msg}`)
+      const bgStart = Date.now()
 
-    if (!trigger.ok) {
-      console.error(
-        `[submit:${requestId}] Trigger failed but evaluation saved | id=${evaluationId} | ${trigger.detail}`
+      p(
+        `▶ START SUBMIT | patient="${nome}" | id=${evaluationId} | uploads=${uploads?.length ?? 0}`
       )
-    }
+
+      const setStatus = async (
+        status: string,
+        patch: Record<string, unknown> = {}
+      ) => {
+        const { error: upErr } = await sb
+          .from('mental_health_evaluations')
+          .update({ status, ...patch })
+          .eq('id', evaluationId)
+        if (upErr) p(`Failed to set status=${status}: ${upErr.message}`)
+      }
+
+      try {
+        await setStatus(`processing_report_${Date.now()}`, {
+          processing_error: null,
+        })
+
+        p(`[1/5] Generating report via AI...`)
+        const report = await generateReportBackground(
+          cleanFormData as AssessmentFormData,
+          scores,
+          uploads,
+          requestId,
+          (status) => setStatus(status)
+        )
+        p(
+          `[1/5] AI generation done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`
+        )
+
+        const today = new Date().toLocaleDateString('pt-BR')
+        const reportMarkdown = report.reportMarkdown.replace(
+          /\[Data (?:do relatório|atual)\]/gi,
+          today
+        )
+
+        p(`[2/5] Building PDF...`)
+        await setStatus('processing_pdf')
+        const t2 = Date.now()
+        const pdfBuffer = buildPdf(
+          cleanFormData as AssessmentFormData,
+          reportMarkdown
+        )
+        p(
+          `[2/5] PDF built — ${(pdfBuffer.byteLength / 1024).toFixed(0)}KB in ${Date.now() - t2}ms`
+        )
+
+        const fileName = `report_${evaluationId}_${Date.now()}.pdf`
+        p(`[3/5] Uploading PDF to storage — ${fileName}`)
+        await setStatus('processing_upload')
+        const t3 = Date.now()
+
+        const { error: uploadError } = await sb.storage
+          .from('assessment-pdfs')
+          .upload(fileName, pdfBuffer, {
+            contentType: 'application/pdf',
+            upsert: false,
+          })
+
+        if (uploadError) {
+          throw new Error(`Erro ao fazer upload do PDF: ${uploadError.message}`)
+        }
+        p(`[3/5] Upload done in ${Date.now() - t3}ms`)
+
+        const {
+          data: { publicUrl },
+        } = sb.storage.from('assessment-pdfs').getPublicUrl(fileName)
+
+        p(`[4/5] Saving report to DB...`)
+        await setStatus('processing_notify', {
+          report_markdown: reportMarkdown,
+          report_pdf_url: publicUrl,
+        })
+
+        p(`[5/5] Sending notification email to patient/team...`)
+        const t5 = Date.now()
+        const reportWebhookSent = await sendReportEmail({
+          patientName: nome,
+          pdfUrl: publicUrl,
+          evaluationId,
+          patientEmail: formData.email,
+          patientPhone: formData.telefone,
+          patientProfile: formData.publico as string,
+        })
+
+        if (!reportWebhookSent) {
+          throw new Error('Falha ao notificar webhook de relatório')
+        }
+        p(`[5/5] Email sent in ${Date.now() - t5}ms`)
+
+        await setStatus('completed', {
+          report_markdown: reportMarkdown,
+          report_pdf_url: publicUrl,
+        })
+
+        const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
+        p(`✅ DONE SUBMIT | patient="${nome}" | ${elapsed}s total`)
+      } catch (err) {
+        const errorMsg =
+          err instanceof Error ? err.message : 'Erro desconhecido'
+        const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
+        console.error(
+          `[submit:${requestId}] ❌ FAIL SUBMIT | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
+        )
+
+        await setStatus('error', { processing_error: errorMsg })
+
+        await sendErrorEmail({
+          patientName: nome,
+          evaluationId,
+          errorMessage: errorMsg,
+          patientEmail: formData.email,
+          patientPhone: formData.telefone,
+          patientProfile: formData.publico as string,
+        })
+      }
+    })
 
     return NextResponse.json({
       evaluationId,
