@@ -5,12 +5,14 @@ function getBaseUrl(): string {
   return process.env.SITE_URL || 'http://localhost:3000'
 }
 
+const TRIGGER_TIMEOUT_MS = 15_000
+
 export async function triggerProcessReportJob(args: {
   evaluationId: string
   mode: ProcessReportMode
   requestId: string
   source: string
-}): Promise<void> {
+}): Promise<{ ok: boolean; detail?: string }> {
   const { evaluationId, mode, requestId, source } = args
 
   const url = `${getBaseUrl()}/api/assessment/process-report`
@@ -20,21 +22,40 @@ export async function triggerProcessReportJob(args: {
   }
   if (secret) headers['x-report-job-secret'] = secret
 
+  console.warn(
+    `[${source}:${requestId}] Triggering process-report | url=${url} | id=${evaluationId} | mode=${mode}`
+  )
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), TRIGGER_TIMEOUT_MS)
+
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify({ evaluationId, mode }),
+      signal: controller.signal,
     })
+    clearTimeout(timer)
+
+    const text = await res.text()
     if (!res.ok && res.status !== 202) {
       console.error(
-        `[${source}:${requestId}] process-report failed: ${res.status} ${await res.text()}`
+        `[${source}:${requestId}] process-report returned ${res.status}: ${text}`
       )
+      return { ok: false, detail: `${res.status}: ${text}` }
     }
-  } catch (error) {
-    console.error(
-      `[${source}:${requestId}] process-report fetch failed:`,
-      error
+
+    console.warn(
+      `[${source}:${requestId}] process-report acknowledged: ${res.status} ${text}`
     )
+    return { ok: true, detail: text }
+  } catch (error) {
+    clearTimeout(timer)
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error(
+      `[${source}:${requestId}] process-report fetch failed: ${msg}`
+    )
+    return { ok: false, detail: msg }
   }
 }

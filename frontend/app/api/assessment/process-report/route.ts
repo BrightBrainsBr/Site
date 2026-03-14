@@ -1,12 +1,18 @@
 /**
  * Internal background job endpoint for report generation.
- * Called via fire-and-forget fetch from submit/regenerate routes.
- * Runs in a separate serverless invocation with maxDuration 900s (15 min).
- * Never use after() for long work — Vercel can kill it. This runs synchronously.
+ * Called from submit/regenerate routes.
+ *
+ * Architecture: Responds immediately after claiming the job (< 1s),
+ * then runs the actual work inside after(). The after() callback runs
+ * within THIS function's invocation (maxDuration=300s on Pro plan),
+ * so it gets the full 5 minutes.
+ *
+ * Callers MUST await the trigger to ensure this endpoint receives the
+ * request before their own function terminates.
  */
 import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 
 import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
 import { generateReportBackground } from '~/app/api/assessment/lib/generate-report-background'
@@ -362,13 +368,12 @@ export async function POST(request: NextRequest) {
   }
 
   console.warn(
-    `[process:${requestId}] Job claimed | id=${evaluationId} | mode=${mode} | prev_status=${currentStatus}`
+    `[process:${requestId}] Job claimed | id=${evaluationId} | mode=${mode} | prev_status=${currentStatus} — responding now, work runs in after()`
   )
 
-  const result = await runReportJob(sb, evaluationId, mode, row, requestId)
+  after(async () => {
+    await runReportJob(sb, evaluationId, mode, row, requestId)
+  })
 
-  if (result.success) {
-    return NextResponse.json({ success: true })
-  }
-  return NextResponse.json({ error: result.error }, { status: 500 })
+  return NextResponse.json({ success: true, claimed: true })
 }
