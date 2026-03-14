@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
 import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
+import type { LogCallback } from '~/app/api/assessment/lib/generate-report-background'
 import {
   extractAllDocuments,
   generateStagesFromExtraction,
@@ -101,9 +102,7 @@ export async function POST(request: NextRequest) {
       const p = (msg: string) => console.warn(`[submit:${requestId}] ${msg}`)
       const bgStart = Date.now()
 
-      p(
-        `▶ START | patient="${nome}" | id=${evaluationId} | uploads=${uploads?.length ?? 0}`
-      )
+      p(`▶ START | patient="${nome}" | id=${evaluationId}`)
 
       const setStatus = async (
         status: string,
@@ -116,41 +115,58 @@ export async function POST(request: NextRequest) {
         if (upErr) p(`Failed to set status=${status}: ${upErr.message}`)
       }
 
+      const appendLog: LogCallback = async (message: string) => {
+        const entry = { t: Date.now(), m: message }
+        await sb
+          .rpc('append_processing_log', {
+            eval_id: evaluationId,
+            log_entry: entry,
+          })
+          .then(({ error: rpcErr }) => {
+            if (rpcErr) {
+              sb.from('mental_health_evaluations')
+                .update({
+                  processing_logs: [entry],
+                })
+                .eq('id', evaluationId)
+                .then(() => {})
+            }
+          })
+      }
+
       try {
         await setStatus(`processing_report_${Date.now()}`, {
           processing_error: null,
+          processing_logs: [],
         })
 
+        await appendLog(`Extraindo ${uploads?.length ?? 0} documentos…`)
         const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
         const extractedText = await extractAllDocuments(
           client,
           uploads,
           requestId,
-          (status) => setStatus(status)
+          (status) => setStatus(status),
+          appendLog
         )
-        p(
-          `Extraction done | ${extractedText.length} chars | ${((Date.now() - bgStart) / 1000).toFixed(1)}s`
-        )
+        p(`Extraction done | ${extractedText.length}ch`)
 
         await sb
           .from('mental_health_evaluations')
           .update({ extracted_documents_text: extractedText })
           .eq('id', evaluationId)
-        p(`Extraction cached to DB`)
 
-        p(
-          `[1/4] Generating report from extraction (${extractedText.length}ch)...`
-        )
+        p(`Generating report...`)
+        await appendLog('Gerando relatório com IA…')
         const report = await generateStagesFromExtraction(
           formData,
           scores,
           extractedText,
           requestId,
-          (status) => setStatus(status)
+          (status) => setStatus(status),
+          appendLog
         )
-        p(
-          `[1/4] AI generation done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`
-        )
+        p(`AI done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`)
 
         const today = new Date().toLocaleDateString('pt-BR')
         const reportMarkdown = report.reportMarkdown.replace(
@@ -158,17 +174,17 @@ export async function POST(request: NextRequest) {
           today
         )
 
-        p(`[2/4] Building PDF...`)
         await setStatus('processing_pdf')
+        await appendLog('Montando PDF…')
         const t2 = Date.now()
         const pdfBuffer = buildPdf(formData, reportMarkdown)
-        p(
-          `[2/4] PDF built — ${(pdfBuffer.byteLength / 1024).toFixed(0)}KB in ${Date.now() - t2}ms`
-        )
+        const pdfKB = (pdfBuffer.byteLength / 1024).toFixed(0)
+        p(`PDF built — ${pdfKB}KB in ${Date.now() - t2}ms`)
+        await appendLog(`PDF montado (${pdfKB}KB)`)
 
         const fileName = `report_${evaluationId}_${Date.now()}.pdf`
-        p(`[3/4] Uploading PDF — ${fileName}`)
         await setStatus('processing_upload')
+        await appendLog('Enviando PDF…')
 
         const { error: uploadError } = await sb.storage
           .from('assessment-pdfs')
@@ -185,11 +201,11 @@ export async function POST(request: NextRequest) {
           data: { publicUrl },
         } = sb.storage.from('assessment-pdfs').getPublicUrl(fileName)
 
-        p(`[4/4] Saving report & sending notification...`)
         await setStatus('processing_notify', {
           report_markdown: reportMarkdown,
           report_pdf_url: publicUrl,
         })
+        await appendLog('Enviando notificação…')
 
         const t5 = Date.now()
         const sent = await sendReportEmail({
@@ -201,7 +217,7 @@ export async function POST(request: NextRequest) {
           patientProfile: formData?.publico as string,
         })
         if (!sent) throw new Error('Falha ao notificar webhook de relatório')
-        p(`[4/4] Email sent in ${Date.now() - t5}ms`)
+        p(`Email sent in ${Date.now() - t5}ms`)
 
         await setStatus('completed', {
           report_markdown: reportMarkdown,
@@ -209,7 +225,8 @@ export async function POST(request: NextRequest) {
         })
 
         const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
-        p(`✅ DONE SUBMIT | patient="${nome}" | ${elapsed}s total`)
+        p(`✅ DONE | patient="${nome}" | ${elapsed}s total`)
+        await appendLog(`✅ Concluído em ${elapsed}s`)
       } catch (err) {
         const errorMsg =
           err instanceof Error ? err.message : 'Erro desconhecido'
@@ -218,6 +235,7 @@ export async function POST(request: NextRequest) {
           `[submit:${requestId}] ❌ FAIL | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
         )
         await setStatus('error', { processing_error: errorMsg })
+        await appendLog(`❌ Erro: ${errorMsg}`)
         await sendErrorEmail({
           patientName: nome,
           evaluationId,

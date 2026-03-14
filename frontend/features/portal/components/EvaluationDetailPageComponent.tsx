@@ -562,6 +562,7 @@ export function EvaluationDetailPageComponent({
           isRegenerating={isRegenerating}
           processingStatus={evaluation.status}
           jobStartedAt={jobStartedAt}
+          processingLogs={evaluation.processing_logs}
         />
       )}
 
