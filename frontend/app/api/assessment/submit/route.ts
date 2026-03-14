@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     const evaluationId = row.id
     console.warn(
-      `[submit:${requestId}] Evaluation saved | id=${evaluationId} — triggering background job`
+      `[submit:${requestId}] Evaluation saved | patient="${nome}" | id=${evaluationId} — dispatching background job`
     )
 
     // Primary dispatch (best-effort) plus after() fallback.
@@ -97,6 +97,9 @@ export async function POST(request: NextRequest) {
     })
 
     after(async () => {
+      console.warn(
+        `[submit:${requestId}] after() dispatch fired | id=${evaluationId}`
+      )
       await triggerProcessReportJob({
         evaluationId,
         mode: 'submit',
