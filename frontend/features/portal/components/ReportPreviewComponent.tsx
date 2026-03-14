@@ -95,36 +95,22 @@ function buildPipelineSteps(
   return steps
 }
 
-function extractStartTimestamp(status: string | null | undefined): number | null {
-  if (!status) return null
-  const prefixes = ['processing_dispatching_', 'processing_claimed_', 'processing_report_']
-  for (const p of prefixes) {
-    if (status.startsWith(p)) {
-      const raw = status.slice(p.length).split('_')[0]
-      const ts = Number(raw)
-      if (Number.isFinite(ts) && ts > 1_600_000_000_000) return ts
-    }
-  }
-  return null
-}
-
-function useElapsedTimer(isRunning: boolean, processingStatus: string | null | undefined) {
+function useElapsedTimer(isRunning: boolean, startedAt: number | null) {
   const [elapsed, setElapsed] = useState(0)
-  const startTs = extractStartTimestamp(processingStatus)
 
   useEffect(() => {
     if (!isRunning) {
       setElapsed(0)
       return
     }
-    const origin = startTs ?? Date.now()
+    const origin = startedAt ?? Date.now()
     setElapsed(Math.max(0, Math.floor((Date.now() - origin) / 1000)))
     const id = setInterval(
       () => setElapsed(Math.max(0, Math.floor((Date.now() - origin) / 1000))),
       1000
     )
     return () => clearInterval(id)
-  }, [isRunning, startTs])
+  }, [isRunning, startedAt])
 
   const m = Math.floor(elapsed / 60)
   const s = elapsed % 60
@@ -214,6 +200,7 @@ interface ReportPreviewComponentProps {
   reportHistory: ReportHistoryEntry[]
   isRegenerating?: boolean
   processingStatus?: string | null
+  jobStartedAt?: number | null
 }
 
 export function ReportPreviewComponent({
@@ -222,6 +209,7 @@ export function ReportPreviewComponent({
   reportHistory,
   isRegenerating = false,
   processingStatus = null,
+  jobStartedAt = null,
 }: ReportPreviewComponentProps) {
   const totalVersions = reportHistory.length + (markdown ? 1 : 0)
   const [viewingVersion, setViewingVersion] = useState<number | null>(null)
@@ -232,7 +220,7 @@ export function ReportPreviewComponent({
   const displayPdfUrl = viewingHistory?.report_pdf_url ?? pdfUrl
   const isCurrentVersion = viewingVersion === null
   const pipeline = buildPipelineSteps(processingStatus)
-  const elapsedStr = useElapsedTimer(isRegenerating, processingStatus)
+  const elapsedStr = useElapsedTimer(isRegenerating, jobStartedAt)
 
   return (
     <div>

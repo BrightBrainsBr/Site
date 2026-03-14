@@ -1,11 +1,10 @@
+import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
-import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
-import { generateReportBackground } from '~/app/api/assessment/lib/generate-report-background'
-import { sendErrorEmail } from '~/app/api/assessment/lib/send-email'
+import { extractAllDocuments } from '~/app/api/assessment/lib/generate-report-background'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 
 export const runtime = 'nodejs'
@@ -18,13 +17,17 @@ function createSb() {
   )
 }
 
+function getBaseUrl(): string {
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return process.env.SITE_URL || 'http://localhost:3000'
+}
+
 async function requirePortalSession() {
   const cookieStore = await cookies()
   const session = cookieStore.get('portal_session')
   return session?.value ?? null
 }
 
-/* eslint-disable complexity -- report job has many sequential steps */
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -43,7 +46,7 @@ export async function POST(
     const { data: row, error: fetchErr } = await sb
       .from('mental_health_evaluations')
       .select(
-        'form_data, scores, doctor_uploads, status, report_markdown, report_pdf_url, report_history, patient_name, patient_email, patient_phone, patient_profile'
+        'form_data, scores, doctor_uploads, status, report_markdown, report_pdf_url, report_history, patient_name, patient_email, patient_phone, patient_profile, extracted_documents_text'
       )
       .eq('id', id)
       .single()
@@ -102,35 +105,27 @@ export async function POST(
     }
 
     const formData = (row.form_data ?? {}) as AssessmentFormData
-    const scores = (row.scores ?? {}) as Record<string, number>
     const doctorUploads = (row.doctor_uploads ?? []) as {
       name: string
       url: string
       type?: string
     }[]
-
     const nome = (row.patient_name as string) || formData?.nome || ''
     const uploads =
       doctorUploads.length > 0
-        ? doctorUploads.map((d) => ({
-            name: d.name,
-            url: d.url,
-            type: d.type,
-          }))
+        ? doctorUploads.map((d) => ({ name: d.name, url: d.url, type: d.type }))
         : undefined
 
+    const hasCachedExtraction = typeof row.extracted_documents_text === 'string'
+
     console.warn(
-      `[regenerate:${requestId}] ✅ Regeneration started | id=${id} | patient="${nome}" | uploads=${uploads?.length ?? 0} | history=${existingHistory.length} — job will run in after()`
+      `[regenerate:${requestId}] Regeneration started | id=${id} | patient="${nome}" | uploads=${uploads?.length ?? 0} | cachedExtraction=${hasCachedExtraction} | history=${existingHistory.length}`
     )
 
     after(async () => {
       const p = (msg: string) =>
         console.warn(`[regenerate:${requestId}] ${msg}`)
       const bgStart = Date.now()
-
-      p(
-        `▶ START REGENERATE | patient="${nome}" | id=${id} | uploads=${uploads?.length ?? 0}`
-      )
 
       const setStatus = async (
         status: string,
@@ -148,81 +143,70 @@ export async function POST(
           processing_error: null,
         })
 
-        p(`[1/5] Generating report via AI...`)
-        const report = await generateReportBackground(
-          formData,
-          scores,
-          uploads,
-          requestId,
-          (status) => setStatus(status)
-        )
-        p(
-          `[1/5] AI generation done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`
-        )
-
-        const today = new Date().toLocaleDateString('pt-BR')
-        const reportMarkdown = report.reportMarkdown.replace(
-          /\[Data (?:do relatório|atual)\]/gi,
-          today
-        )
-
-        p(`[2/5] Building PDF...`)
-        await setStatus('processing_pdf')
-        const t2 = Date.now()
-        const pdfBuffer = buildPdf(formData, reportMarkdown)
-        p(
-          `[2/5] PDF built — ${(pdfBuffer.byteLength / 1024).toFixed(0)}KB in ${Date.now() - t2}ms`
-        )
-
-        const fileName = `report_${id}_${Date.now()}.pdf`
-        p(`[3/5] Uploading PDF to storage — ${fileName}`)
-        await setStatus('processing_upload')
-        const t3 = Date.now()
-
-        const { error: uploadError } = await sb.storage
-          .from('assessment-pdfs')
-          .upload(fileName, pdfBuffer, {
-            contentType: 'application/pdf',
-            upsert: false,
+        if (hasCachedExtraction) {
+          p(
+            `Skipping extraction — using cached extraction (${(row.extracted_documents_text as string).length}ch)`
+          )
+        } else if (uploads?.length) {
+          p(
+            `▶ START EXTRACTION | patient="${nome}" | id=${id} | uploads=${uploads.length}`
+          )
+          const client = new Anthropic({
+            apiKey: process.env.ANTHROPIC_API_KEY!,
           })
+          const extractedDocs = await extractAllDocuments(
+            client,
+            uploads,
+            requestId,
+            (status) => setStatus(status)
+          )
+          p(
+            `Extraction done | ${extractedDocs.length} chars | ${((Date.now() - bgStart) / 1000).toFixed(1)}s`
+          )
 
-        if (uploadError) {
-          throw new Error(`Erro ao fazer upload do PDF: ${uploadError.message}`)
+          await sb
+            .from('mental_health_evaluations')
+            .update({ extracted_documents_text: extractedDocs })
+            .eq('id', id)
+
+          p(`Extraction cached to DB`)
+        } else {
+          p(`No uploads — saving empty extraction`)
+          await sb
+            .from('mental_health_evaluations')
+            .update({ extracted_documents_text: '' })
+            .eq('id', id)
         }
-        p(`[3/5] Upload done in ${Date.now() - t3}ms`)
 
-        const {
-          data: { publicUrl },
-        } = sb.storage.from('assessment-pdfs').getPublicUrl(fileName)
-
-        p(`[4/5] Saving regenerated report to DB...`)
-        await setStatus('completed', {
-          report_markdown: reportMarkdown,
-          report_pdf_url: publicUrl,
+        p(`Triggering generate-stages...`)
+        const url = `${getBaseUrl()}/api/assessment/generate-stages`
+        const triggerRes = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            evaluationId: id,
+            mode: 'regenerate',
+            callerRequestId: requestId,
+          }),
+          signal: AbortSignal.timeout(15_000),
         })
-        p(`[5/5] Regenerate complete — no email sent`)
 
-        const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
-        p(`✅ DONE REGENERATE | patient="${nome}" | ${elapsed}s total`)
+        if (!triggerRes.ok) {
+          const text = await triggerRes.text().catch(() => '')
+          throw new Error(
+            `generate-stages trigger failed: ${triggerRes.status} ${text}`
+          )
+        }
+
+        p(`generate-stages triggered successfully`)
       } catch (err) {
         const errorMsg =
           err instanceof Error ? err.message : 'Erro desconhecido'
         const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
         console.error(
-          `[regenerate:${requestId}] ❌ FAIL REGENERATE | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
+          `[regenerate:${requestId}] ❌ FAIL | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
         )
-
         await setStatus('error', { processing_error: errorMsg })
-
-        await sendErrorEmail({
-          patientName: nome,
-          evaluationId: id,
-          errorMessage: errorMsg,
-          patientEmail: (row.patient_email as string) || formData?.email,
-          patientPhone: (row.patient_phone as string) || formData?.telefone,
-          patientProfile:
-            (row.patient_profile as string) || (formData?.publico as string),
-        })
       }
     })
 

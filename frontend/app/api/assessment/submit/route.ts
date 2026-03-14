@@ -1,13 +1,9 @@
+import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
-import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
-import { generateReportBackground } from '~/app/api/assessment/lib/generate-report-background'
-import {
-  sendErrorEmail,
-  sendReportEmail,
-} from '~/app/api/assessment/lib/send-email'
+import { extractAllDocuments } from '~/app/api/assessment/lib/generate-report-background'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 
 export const runtime = 'nodejs'
@@ -27,6 +23,11 @@ function createSb() {
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
+}
+
+function getBaseUrl(): string {
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return process.env.SITE_URL || 'http://localhost:3000'
 }
 
 export async function POST(request: NextRequest) {
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     const evaluationId = row.id
     console.warn(
-      `[submit:${requestId}] ✅ Evaluation saved | patient="${nome}" | id=${evaluationId} — job will run in after()`
+      `[submit:${requestId}] Evaluation saved | patient="${nome}" | id=${evaluationId} — extraction will run in after()`
     )
 
     after(async () => {
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
       const bgStart = Date.now()
 
       p(
-        `▶ START SUBMIT | patient="${nome}" | id=${evaluationId} | uploads=${uploads?.length ?? 0}`
+        `▶ START EXTRACTION | patient="${nome}" | id=${evaluationId} | uploads=${uploads?.length ?? 0}`
       )
 
       const setStatus = async (
@@ -117,103 +118,52 @@ export async function POST(request: NextRequest) {
           processing_error: null,
         })
 
-        p(`[1/5] Generating report via AI...`)
-        const report = await generateReportBackground(
-          cleanFormData as AssessmentFormData,
-          scores,
+        const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+        const extractedDocs = await extractAllDocuments(
+          client,
           uploads,
           requestId,
           (status) => setStatus(status)
         )
         p(
-          `[1/5] AI generation done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`
+          `Extraction done | ${extractedDocs.length} chars | ${((Date.now() - bgStart) / 1000).toFixed(1)}s`
         )
 
-        const today = new Date().toLocaleDateString('pt-BR')
-        const reportMarkdown = report.reportMarkdown.replace(
-          /\[Data (?:do relatório|atual)\]/gi,
-          today
-        )
+        await sb
+          .from('mental_health_evaluations')
+          .update({ extracted_documents_text: extractedDocs })
+          .eq('id', evaluationId)
 
-        p(`[2/5] Building PDF...`)
-        await setStatus('processing_pdf')
-        const t2 = Date.now()
-        const pdfBuffer = buildPdf(
-          cleanFormData as AssessmentFormData,
-          reportMarkdown
-        )
-        p(
-          `[2/5] PDF built — ${(pdfBuffer.byteLength / 1024).toFixed(0)}KB in ${Date.now() - t2}ms`
-        )
+        p(`Extraction cached to DB — triggering generate-stages`)
 
-        const fileName = `report_${evaluationId}_${Date.now()}.pdf`
-        p(`[3/5] Uploading PDF to storage — ${fileName}`)
-        await setStatus('processing_upload')
-        const t3 = Date.now()
+        const url = `${getBaseUrl()}/api/assessment/generate-stages`
+        const triggerRes = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            evaluationId,
+            mode: 'submit',
+            callerRequestId: requestId,
+          }),
+          signal: AbortSignal.timeout(15_000),
+        })
 
-        const { error: uploadError } = await sb.storage
-          .from('assessment-pdfs')
-          .upload(fileName, pdfBuffer, {
-            contentType: 'application/pdf',
-            upsert: false,
-          })
-
-        if (uploadError) {
-          throw new Error(`Erro ao fazer upload do PDF: ${uploadError.message}`)
+        if (!triggerRes.ok) {
+          const text = await triggerRes.text().catch(() => '')
+          throw new Error(
+            `generate-stages trigger failed: ${triggerRes.status} ${text}`
+          )
         }
-        p(`[3/5] Upload done in ${Date.now() - t3}ms`)
 
-        const {
-          data: { publicUrl },
-        } = sb.storage.from('assessment-pdfs').getPublicUrl(fileName)
-
-        p(`[4/5] Saving report to DB...`)
-        await setStatus('processing_notify', {
-          report_markdown: reportMarkdown,
-          report_pdf_url: publicUrl,
-        })
-
-        p(`[5/5] Sending notification email to patient/team...`)
-        const t5 = Date.now()
-        const reportWebhookSent = await sendReportEmail({
-          patientName: nome,
-          pdfUrl: publicUrl,
-          evaluationId,
-          patientEmail: formData.email,
-          patientPhone: formData.telefone,
-          patientProfile: formData.publico as string,
-        })
-
-        if (!reportWebhookSent) {
-          throw new Error('Falha ao notificar webhook de relatório')
-        }
-        p(`[5/5] Email sent in ${Date.now() - t5}ms`)
-
-        await setStatus('completed', {
-          report_markdown: reportMarkdown,
-          report_pdf_url: publicUrl,
-        })
-
-        const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
-        p(`✅ DONE SUBMIT | patient="${nome}" | ${elapsed}s total`)
+        p(`generate-stages triggered successfully`)
       } catch (err) {
         const errorMsg =
           err instanceof Error ? err.message : 'Erro desconhecido'
         const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
         console.error(
-          `[submit:${requestId}] ❌ FAIL SUBMIT | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
+          `[submit:${requestId}] ❌ FAIL EXTRACTION | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
         )
-
         await setStatus('error', { processing_error: errorMsg })
-
-        await sendErrorEmail({
-          patientName: nome,
-          evaluationId,
-          errorMessage: errorMsg,
-          patientEmail: formData.email,
-          patientPhone: formData.telefone,
-          patientProfile: formData.publico as string,
-        })
       }
     })
 

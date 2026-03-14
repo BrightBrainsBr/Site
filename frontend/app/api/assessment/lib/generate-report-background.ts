@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import Anthropic from '@anthropic-ai/sdk'
 import { PDFDocument } from 'pdf-lib'
 
@@ -16,7 +17,7 @@ const MAX_RETRIES = 3
 const ANTHROPIC_MAX_DOC_BYTES = 32 * 1024 * 1024
 const ANTHROPIC_MAX_IMAGE_BYTES = 20 * 1024 * 1024
 const MAX_PAGES_PER_CALL = 90
-const PARALLEL_CONCURRENCY = 5
+const PARALLEL_CONCURRENCY = 10
 
 type SupportedImageMime =
   | 'image/jpeg'
@@ -346,7 +347,7 @@ async function prepareExtractionJobs(
   return jobs
 }
 
-async function extractAllDocuments(
+export async function extractAllDocuments(
   client: Anthropic,
   uploads: Upload[] | undefined,
   rid: string,
@@ -413,15 +414,75 @@ async function extractAllDocuments(
   return `\n\n---\nDADOS EXTRAÍDOS DOS DOCUMENTOS DO PACIENTE (exames, laudos, relatórios):\n\n${extracted.join('\n\n---\n\n')}`
 }
 
+async function runStages(
+  patientData: string,
+  extractedDocs: string,
+  rid: string,
+  onProgress?: ProgressCallback
+): Promise<ReportResult> {
+  const t0 = Date.now()
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const fullData = patientData + extractedDocs
+  let prev = ''
+  const stages: { stage: number; content: string }[] = []
+  let inTok = 0,
+    outTok = 0,
+    cost = 0
+
+  log(
+    rid,
+    `=== REPORT STAGES === patient=${patientData.length}ch docs=${extractedDocs.length}ch`
+  )
+  for (const cfg of STAGE_PROMPTS) {
+    const st = Date.now()
+    await onProgress?.(
+      `processing_stage_${cfg.stage}_of_${STAGE_PROMPTS.length}`
+    )
+    log(rid, `→ Stage ${cfg.stage}/${STAGE_PROMPTS.length}: ${cfg.name}`)
+
+    // Stage 1 gets everything; stages 2-3 only get form data + previous output
+    const txt =
+      cfg.stage === 1
+        ? `${cfg.userPrefix}${fullData}`
+        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${patientData}`
+
+    const res = await callLLM(
+      client,
+      cfg.system,
+      [{ type: 'text', text: txt }],
+      `Stage ${cfg.stage}: ${cfg.name}`,
+      rid
+    )
+    prev += `\n\n${res.content}`
+    stages.push({ stage: cfg.stage, content: res.content })
+    inTok += res.inputTokens
+    outTok += res.outputTokens
+    cost += estimateCost(res)
+    log(
+      rid,
+      `✓ Stage ${cfg.stage} done in ${((Date.now() - st) / 1000).toFixed(1)}s`
+    )
+  }
+
+  log(
+    rid,
+    `STAGES DONE | ${((Date.now() - t0) / 1000).toFixed(1)}s | tok=${inTok}+${outTok} | $${cost.toFixed(4)}`
+  )
+  return {
+    reportMarkdown: stages.map((s) => s.content).join('\n\n---\n\n'),
+    stages,
+  }
+}
+
 export async function generateReportBackground(
   formData: AssessmentFormData,
   scores: Record<string, number>,
   uploads?: Upload[],
-  requestId: string = crypto.randomUUID().slice(0, 8),
+  requestId?: string,
   onProgress?: ProgressCallback
 ): Promise<ReportResult> {
+  const rid = requestId ?? crypto.randomUUID().slice(0, 8)
   const t0 = Date.now()
-  const rid = requestId
   log(
     rid,
     `START | patient=${formData.nome || '?'} | files=${uploads?.length ?? 0}`
@@ -440,58 +501,22 @@ export async function generateReportBackground(
     `Extraction done | ${extractedDocs.length} chars | ${((Date.now() - t0) / 1000).toFixed(1)}s`
   )
 
-  const fullPatientData = patientData + extractedDocs
-  let prev = ''
-  const stages: { stage: number; content: string }[] = []
-  let totalInputTokens = 0,
-    totalOutputTokens = 0,
-    totalCost = 0
+  return runStages(patientData, extractedDocs, rid, onProgress)
+}
 
-  log(
+/** Runs only the report stages using pre-extracted document text (cached in DB). */
+export async function generateStagesFromExtraction(
+  formData: AssessmentFormData,
+  scores: Record<string, number>,
+  extractedDocsText: string,
+  requestId?: string,
+  onProgress?: ProgressCallback
+): Promise<ReportResult> {
+  const rid = requestId ?? crypto.randomUUID().slice(0, 8)
+  return runStages(
+    buildReportPromptData(formData, scores),
+    extractedDocsText,
     rid,
-    `=== REPORT STAGES === patientData=${patientData.length}ch extractedDocs=${extractedDocs.length}ch`
+    onProgress
   )
-  for (const cfg of STAGE_PROMPTS) {
-    const st = Date.now()
-    await onProgress?.(
-      `processing_stage_${cfg.stage}_of_${STAGE_PROMPTS.length}`
-    )
-    log(rid, `→ Stage ${cfg.stage}/${STAGE_PROMPTS.length}: ${cfg.name}`)
-
-    // Stage 1 gets everything (form data + extracted docs).
-    // Stages 2-3 only get form data + previous output — the extracted doc
-    // data is already synthesized in the stage 1 analysis, so re-sending
-    // the full extraction text would just waste tokens and slow things down.
-    const txt =
-      cfg.stage === 1
-        ? `${cfg.userPrefix}${fullPatientData}`
-        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${patientData}`
-
-    const res = await callLLM(
-      client,
-      cfg.system,
-      [{ type: 'text' as const, text: txt }],
-      `Stage ${cfg.stage}: ${cfg.name}`,
-      rid
-    )
-    prev += `\n\n${res.content}`
-    stages.push({ stage: cfg.stage, content: res.content })
-    totalInputTokens += res.inputTokens
-    totalOutputTokens += res.outputTokens
-    totalCost += estimateCost(res)
-    log(
-      rid,
-      `✓ Stage ${cfg.stage} done in ${((Date.now() - st) / 1000).toFixed(1)}s`
-    )
-  }
-
-  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
-  log(
-    rid,
-    `DONE | ${elapsed}s | tok=${totalInputTokens}+${totalOutputTokens} | $${totalCost.toFixed(4)}`
-  )
-  return {
-    reportMarkdown: stages.map((s) => s.content).join('\n\n---\n\n'),
-    stages,
-  }
 }
