@@ -60,16 +60,7 @@ function buildPipelineSteps(
 
   const stageMatch = status.match(/^processing_stage_(\d+)_of_(\d+)$/)
   if (stageMatch) {
-    const stageNames: Record<string, string> = {
-      '1': 'Seção 1/3 — Análise clínica',
-      '2': 'Seção 2/3 — Terapêutica',
-      '3': 'Seção 3/3 — Monitoramento',
-    }
-    markUpTo(
-      'report',
-      stageNames[stageMatch[1]] ??
-        `Seção ${stageMatch[1]} de ${stageMatch[2]}`
-    )
+    markUpTo('report', 'Gerando todas as seções...')
     return steps
   }
 
