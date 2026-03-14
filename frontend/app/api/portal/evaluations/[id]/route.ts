@@ -3,12 +3,101 @@
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 
+import { triggerProcessReportJob } from '~/app/api/assessment/lib/trigger-process-report'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 import type { EvaluationDetail } from '~/features/portal/portal.interface'
 
 export const runtime = 'nodejs'
+const DISPATCHING_STATUS_PREFIX = 'processing_dispatching_'
+const CLAIMED_STATUS_PREFIX = 'processing_claimed_'
+const REPORT_STATUS_PREFIX = 'processing_report_'
+const WATCHDOG_STALE_MS = 2 * 60 * 1000
+
+function createSb() {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
+function parseStatusTimestamp(status: string, prefix: string): number | null {
+  if (!status.startsWith(prefix)) return null
+  const raw = status.slice(prefix.length).split('_')[0]
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed) || parsed <= 0) return null
+  return parsed
+}
+
+async function maybeRedispatchStalledJob(args: {
+  sb: ReturnType<typeof createSb>
+  id: string
+  row: EvaluationDetail
+  requestId: string
+}) {
+  const { sb, id, row, requestId } = args
+  const status = typeof row.status === 'string' ? row.status : null
+  if (!status || !status.startsWith('processing')) return
+  if (row.report_pdf_url || row.report_markdown || row.processing_error) return
+
+  const now = Date.now()
+
+  let isStale = false
+  if (status.startsWith(DISPATCHING_STATUS_PREFIX)) {
+    const ts = parseStatusTimestamp(status, DISPATCHING_STATUS_PREFIX)
+    isStale = ts != null && now - ts > WATCHDOG_STALE_MS
+  } else if (status.startsWith(CLAIMED_STATUS_PREFIX)) {
+    const ts = parseStatusTimestamp(status, CLAIMED_STATUS_PREFIX)
+    isStale = ts != null && now - ts > WATCHDOG_STALE_MS
+  } else if (status.startsWith(REPORT_STATUS_PREFIX)) {
+    const ts = parseStatusTimestamp(status, REPORT_STATUS_PREFIX)
+    isStale = ts != null && now - ts > WATCHDOG_STALE_MS
+  } else if (status === 'processing' || status === 'processing_report') {
+    // Legacy statuses from older deployments that did not encode timestamps.
+    isStale = true
+  }
+
+  if (!isStale) return
+
+  const dispatchingStatus = `${DISPATCHING_STATUS_PREFIX}${Date.now()}`
+  const { data: claimed, error: claimError } = await sb
+    .from('mental_health_evaluations')
+    .update({ status: dispatchingStatus })
+    .eq('id', id)
+    .eq('status', status)
+    .is('report_pdf_url', null)
+    .is('processing_error', null)
+    .select('id')
+    .maybeSingle()
+
+  if (claimError) {
+    console.error(
+      `[portal:${requestId}] Watchdog claim failed for ${id}:`,
+      claimError.message
+    )
+    return
+  }
+
+  if (!claimed) return
+
+  const hasHistory =
+    Array.isArray(row.report_history) && row.report_history.length > 0
+  const mode = hasHistory ? 'regenerate' : 'submit'
+
+  console.warn(
+    `[portal:${requestId}] Re-dispatching stalled report | id=${id} | from=${status} | mode=${mode}`
+  )
+
+  after(async () => {
+    await triggerProcessReportJob({
+      evaluationId: id,
+      mode,
+      requestId,
+      source: 'portal-watchdog',
+    })
+  })
+}
 
 async function requirePortalSession() {
   const cookieStore = await cookies()
@@ -23,6 +112,8 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const requestId = crypto.randomUUID().slice(0, 8)
+
   try {
     const session = await requirePortalSession()
     if (!session) {
@@ -31,10 +122,7 @@ export async function GET(
 
     const { id } = await params
 
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const sb = createSb()
 
     const { data, error } = await sb
       .from('mental_health_evaluations')
@@ -49,6 +137,13 @@ export async function GET(
       console.error('[portal/evaluations/[id]] Supabase error:', error)
       return NextResponse.json({ message: error.message }, { status: 500 })
     }
+
+    await maybeRedispatchStalledJob({
+      sb,
+      id,
+      row: data as EvaluationDetail,
+      requestId,
+    })
 
     return NextResponse.json(data as EvaluationDetail)
   } catch (err) {
@@ -72,10 +167,7 @@ export async function DELETE(
 
     const { id } = await params
 
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const sb = createSb()
 
     const { data: row, error: fetchError } = await sb
       .from('mental_health_evaluations')
@@ -155,10 +247,7 @@ export async function PATCH(
       )
     }
 
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const sb = createSb()
 
     const { data: currentRow, error: fetchError } = await sb
       .from('mental_health_evaluations')

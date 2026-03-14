@@ -2,54 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
+import { triggerProcessReportJob } from '~/app/api/assessment/lib/trigger-process-report'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
-
-import { buildPdf } from '../generate-pdf/pdf-helpers'
-import { generateReportBackground } from '../lib/generate-report-background'
-import { sendErrorEmail, sendReportEmail } from '../lib/send-email'
-
-export const runtime = 'nodejs'
-export const maxDuration = 300
-
-function createSupabaseClient() {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
-
-type EvaluationProcessingStatus =
-  | 'processing'
-  | 'processing_report'
-  | 'processing_pdf'
-  | 'processing_upload'
-  | 'processing_notify'
-  | 'completed'
-  | 'error'
-  | (string & {})
-
-async function updateEvaluationStatus(
-  sb: ReturnType<typeof createSupabaseClient>,
-  evaluationId: string,
-  status: EvaluationProcessingStatus,
-  requestId: string,
-  patch: Record<string, unknown> = {}
-) {
-  const { error } = await sb
-    .from('mental_health_evaluations')
-    .update({
-      status,
-      ...patch,
-    })
-    .eq('id', evaluationId)
-
-  if (error) {
-    console.error(
-      `[bg:${requestId}] Failed to set status=${status}:`,
-      error.message
-    )
-  }
-}
 
 const BUCKET = 'assessment-pdfs'
 
@@ -58,6 +12,13 @@ function extractStoragePath(publicUrl: string): string {
   const idx = publicUrl.indexOf(marker)
   if (idx === -1) return ''
   return publicUrl.slice(idx + marker.length)
+}
+
+function createSupabaseClient() {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 }
 
 export async function POST(request: NextRequest) {
@@ -96,6 +57,8 @@ export async function POST(request: NextRequest) {
           }))
         : null
 
+    const dispatchingStatus = `processing_dispatching_${Date.now()}`
+
     const { data: row, error } = await sb
       .from('mental_health_evaluations')
       .insert({
@@ -108,7 +71,7 @@ export async function POST(request: NextRequest) {
         patient_profile: (formData.publico as string) || null,
         form_data: cleanFormData,
         scores,
-        status: 'processing_report',
+        status: dispatchingStatus,
         doctor_uploads: doctorUploads,
       })
       .select('id')
@@ -121,118 +84,25 @@ export async function POST(request: NextRequest) {
 
     const evaluationId = row.id
     console.warn(
-      `[submit:${requestId}] Evaluation saved | id=${evaluationId} — starting background processing`
+      `[submit:${requestId}] Evaluation saved | id=${evaluationId} — triggering background job`
     )
 
+    // Primary dispatch (best-effort) plus after() fallback.
+    // The process endpoint is idempotent and will skip duplicate in-flight dispatches.
+    void triggerProcessReportJob({
+      evaluationId,
+      mode: 'submit',
+      requestId,
+      source: 'submit',
+    })
+
     after(async () => {
-      const bgStart = Date.now()
-      const bgSb = createSupabaseClient()
-
-      const setStatus = async (
-        status: EvaluationProcessingStatus,
-        patch: Record<string, unknown> = {}
-      ) => {
-        await updateEvaluationStatus(
-          bgSb,
-          evaluationId,
-          status,
-          requestId,
-          patch
-        )
-      }
-
-      console.warn(
-        `[bg:${requestId}] Background processing started for ${evaluationId}`
-      )
-
-      try {
-        await setStatus('processing_report', { processing_error: null })
-
-        const report = await generateReportBackground(
-          formData,
-          scores,
-          uploads,
-          requestId,
-          (status) => setStatus(status as EvaluationProcessingStatus)
-        )
-
-        console.warn(
-          `[bg:${requestId}] Report generated | ${Date.now() - bgStart}ms — generating PDF`
-        )
-
-        const today = new Date().toLocaleDateString('pt-BR')
-        const reportMarkdown = report.reportMarkdown.replace(
-          /\[Data (?:do relatório|atual)\]/gi,
-          today
-        )
-
-        await setStatus('processing_pdf')
-        const pdfBuffer = buildPdf(formData, reportMarkdown)
-
-        const fileName = `report_${evaluationId}_${Date.now()}.pdf`
-        await setStatus('processing_upload')
-
-        const { error: uploadError } = await bgSb.storage
-          .from('assessment-pdfs')
-          .upload(fileName, pdfBuffer, {
-            contentType: 'application/pdf',
-            upsert: false,
-          })
-
-        if (uploadError) {
-          console.error(`[bg:${requestId}] PDF upload error:`, uploadError)
-          throw new Error('Erro ao fazer upload do PDF')
-        }
-
-        const {
-          data: { publicUrl },
-        } = bgSb.storage.from('assessment-pdfs').getPublicUrl(fileName)
-
-        await setStatus('processing_notify', {
-          report_markdown: reportMarkdown,
-          report_pdf_url: publicUrl,
-        })
-
-        console.warn(
-          `[bg:${requestId}] PDF ready | pdf=${publicUrl} | elapsed=${Date.now() - bgStart}ms`
-        )
-
-        const reportWebhookSent = await sendReportEmail({
-          patientName: nome,
-          pdfUrl: publicUrl,
-          evaluationId,
-          patientEmail: formData.email || undefined,
-          patientPhone: formData.telefone || undefined,
-          patientProfile: (formData.publico as string) || undefined,
-        })
-
-        if (!reportWebhookSent) {
-          throw new Error('Falha ao notificar webhook de relatório')
-        }
-
-        await setStatus('completed')
-        console.warn(
-          `[bg:${requestId}] Evaluation completed | total=${Date.now() - bgStart}ms`
-        )
-      } catch (err) {
-        const errorMsg =
-          err instanceof Error ? err.message : 'Erro desconhecido'
-        console.error(
-          `[bg:${requestId}] Background processing FAILED after ${Date.now() - bgStart}ms:`,
-          errorMsg
-        )
-
-        await setStatus('error', { processing_error: errorMsg })
-
-        await sendErrorEmail({
-          patientName: nome,
-          evaluationId,
-          errorMessage: errorMsg,
-          patientEmail: formData.email || undefined,
-          patientPhone: formData.telefone || undefined,
-          patientProfile: (formData.publico as string) || undefined,
-        })
-      }
+      await triggerProcessReportJob({
+        evaluationId,
+        mode: 'submit',
+        requestId,
+        source: 'submit-after',
+      })
     })
 
     return NextResponse.json({

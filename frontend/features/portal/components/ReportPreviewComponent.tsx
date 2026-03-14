@@ -7,6 +7,33 @@ import type { ReportHistoryEntry } from '../portal.interface'
 function parseProcessingStatus(status: string | null | undefined) {
   if (!status || !status.startsWith('processing')) return null
 
+  if (status.startsWith('processing_dispatching_')) {
+    return {
+      phase: 'fixed' as const,
+      current: 0,
+      total: 0,
+      label: 'Inicializando processamento',
+    }
+  }
+
+  if (status.startsWith('processing_claimed_')) {
+    return {
+      phase: 'fixed' as const,
+      current: 0,
+      total: 0,
+      label: 'Alocando worker de processamento',
+    }
+  }
+
+  if (status.startsWith('processing_report_')) {
+    return {
+      phase: 'fixed' as const,
+      current: 0,
+      total: 0,
+      label: 'Iniciando geração do relatório',
+    }
+  }
+
   const extractMatch = status.match(/^processing_extract_(\d+)_of_(\d+)$/)
   if (extractMatch) {
     return {

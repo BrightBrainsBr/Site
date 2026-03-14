@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 
+import { apiGet } from '~/shared/utils/api-helpers'
 import { cn } from '~/shared/utils/cn'
 import { formatDate, getStatusLabel } from '../helpers/format-evaluation'
 import { useDeleteEvaluationMutationHook } from '../hooks/useDeleteEvaluationMutationHook'
@@ -13,6 +14,7 @@ import { ActivityTimelineComponent } from './ActivityTimelineComponent'
 import { DocumentUploadsComponent } from './DocumentUploadsComponent'
 import { EvaluationDetailViewComponent } from './EvaluationDetailViewComponent'
 import { EvaluationEditFormComponent } from './EvaluationEditFormComponent'
+import { PortalCodeGateComponent } from './PortalCodeGateComponent'
 import { ProfileBadgeComponent } from './ProfileBadgeComponent'
 import { ReportPreviewComponent } from './ReportPreviewComponent'
 import { StatusBadgeComponent } from './StatusBadgeComponent'
@@ -39,6 +41,8 @@ export function EvaluationDetailPageComponent({
   const params = useParams()
   const router = useRouter()
   const locale = (params?.locale as string) ?? 'pt'
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
 
   const [activeTab, setActiveTab] = useState<Tab>('dados')
   const [isRegenerating, setIsRegenerating] = useState(false)
@@ -56,7 +60,30 @@ export function EvaluationDetailPageComponent({
     isLoading,
     error,
     refetch,
-  } = useEvaluationByIdQueryHook(evaluationId)
+  } = useEvaluationByIdQueryHook(evaluationId, {
+    enabled: isAuthenticated,
+  })
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const result = await apiGet('/api/portal/evaluations')
+      setIsAuthenticated(result.success)
+    } catch {
+      setIsAuthenticated(false)
+    } finally {
+      setIsCheckingAuth(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void checkAuth()
+  }, [checkAuth])
+
+  useEffect(() => {
+    if (error?.message === 'Unauthorized') {
+      setIsAuthenticated(false)
+    }
+  }, [error?.message])
 
   useEffect(() => {
     setIsRegenerating(isProcessingStatus(evaluation?.status))
@@ -137,6 +164,24 @@ export function EvaluationDetailPageComponent({
     { value: 'approved', color: '#00d896', bg: 'rgba(0,216,150,0.12)', border: 'rgba(0,216,150,0.3)' },
     { value: 'rejected', color: '#ff6b85', bg: 'rgba(255,77,109,0.15)', border: 'rgba(255,77,109,0.3)' },
   ] as const
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#1a3a5c] border-t-[#00c9b1]" />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <PortalCodeGateComponent
+        onSuccess={() => {
+          setIsAuthenticated(true)
+        }}
+      />
+    )
+  }
 
   if (isLoading) {
     return (
