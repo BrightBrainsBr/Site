@@ -144,9 +144,11 @@ async function runReportJob(
     patch: Record<string, unknown> = {}
   ) => updateStatus(sb, evaluationId, status, requestId, patch)
 
+  const p = (msg: string) => console.warn(`[process:${requestId}] ${msg}`)
+
   const bgStart = Date.now()
-  console.warn(
-    `[process:${requestId}] START ${mode} | id=${evaluationId} | uploads=${uploads?.length ?? 0}`
+  p(
+    `▶ START ${mode.toUpperCase()} | patient="${nome}" | id=${evaluationId} | uploads=${uploads?.length ?? 0}`
   )
 
   try {
@@ -154,12 +156,16 @@ async function runReportJob(
       processing_error: null,
     })
 
+    p(`[1/5] Generating report via AI...`)
     const report = await generateReportBackground(
       formData,
       scores,
       uploads,
       requestId,
       (status) => setStatus(status as EvaluationProcessingStatus)
+    )
+    p(
+      `[1/5] AI generation done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`
     )
 
     const today = new Date().toLocaleDateString('pt-BR')
@@ -168,11 +174,18 @@ async function runReportJob(
       today
     )
 
+    p(`[2/5] Building PDF...`)
     await setStatus('processing_pdf')
+    const t2 = Date.now()
     const pdfBuffer = buildPdf(formData, reportMarkdown)
+    p(
+      `[2/5] PDF built — ${(pdfBuffer.byteLength / 1024).toFixed(0)}KB in ${Date.now() - t2}ms`
+    )
 
     const fileName = `report_${evaluationId}_${Date.now()}.pdf`
+    p(`[3/5] Uploading PDF to storage — ${fileName}`)
     await setStatus('processing_upload')
+    const t3 = Date.now()
 
     const { error: uploadError } = await sb.storage
       .from('assessment-pdfs')
@@ -182,19 +195,23 @@ async function runReportJob(
       })
 
     if (uploadError) {
-      throw new Error('Erro ao fazer upload do PDF')
+      throw new Error(`Erro ao fazer upload do PDF: ${uploadError.message}`)
     }
+    p(`[3/5] Upload done in ${Date.now() - t3}ms`)
 
     const {
       data: { publicUrl },
     } = sb.storage.from('assessment-pdfs').getPublicUrl(fileName)
 
     if (mode === 'submit') {
+      p(`[4/5] Saving report to DB...`)
       await setStatus('processing_notify', {
         report_markdown: reportMarkdown,
         report_pdf_url: publicUrl,
       })
 
+      p(`[5/5] Sending notification email to patient/team...`)
+      const t5 = Date.now()
       const reportWebhookSent = await sendReportEmail({
         patientName: nome,
         pdfUrl: publicUrl,
@@ -207,27 +224,29 @@ async function runReportJob(
       if (!reportWebhookSent) {
         throw new Error('Falha ao notificar webhook de relatório')
       }
+      p(`[5/5] Email sent in ${Date.now() - t5}ms`)
 
       await setStatus('completed', {
         report_markdown: reportMarkdown,
         report_pdf_url: publicUrl,
       })
     } else {
+      p(`[4/5] Saving regenerated report to DB...`)
       await setStatus('completed', {
         report_markdown: reportMarkdown,
         report_pdf_url: publicUrl,
       })
+      p(`[5/5] Regenerate complete — no email sent`)
     }
 
-    console.warn(
-      `[process:${requestId}] DONE ${mode} | ${Date.now() - bgStart}ms`
-    )
+    const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
+    p(`✅ DONE ${mode.toUpperCase()} | patient="${nome}" | ${elapsed}s total`)
     return { success: true }
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Erro desconhecido'
+    const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
     console.error(
-      `[process:${requestId}] FAIL after ${Date.now() - bgStart}ms:`,
-      errorMsg
+      `[process:${requestId}] ❌ FAIL ${mode.toUpperCase()} | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
     )
 
     await setStatus('error', { processing_error: errorMsg })
@@ -324,7 +343,6 @@ export async function POST(request: NextRequest) {
     .update({ status: claimStatus, processing_error: null })
     .eq('id', evaluationId)
     .eq('status', currentStatus)
-    .is('report_pdf_url', null)
     .select('id')
     .maybeSingle()
 
@@ -334,11 +352,18 @@ export async function POST(request: NextRequest) {
   }
 
   if (!claimRow) {
+    console.warn(
+      `[process:${requestId}] Skipped — job already claimed | id=${evaluationId} | status=${currentStatus}`
+    )
     return NextResponse.json(
       { success: true, skipped: 'already_claimed' },
       { status: 202 }
     )
   }
+
+  console.warn(
+    `[process:${requestId}] Job claimed | id=${evaluationId} | mode=${mode} | prev_status=${currentStatus}`
+  )
 
   const result = await runReportJob(sb, evaluationId, mode, row, requestId)
 
