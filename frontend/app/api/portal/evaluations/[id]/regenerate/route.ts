@@ -5,6 +5,7 @@ import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
 import { buildPdf } from '~/app/api/assessment/generate-pdf/pdf-helpers'
+import type { LogCallback } from '~/app/api/assessment/lib/generate-report-background'
 import {
   extractAllDocuments,
   generateStagesFromExtraction,
@@ -138,22 +139,44 @@ export async function POST(
         if (upErr) p(`Failed to set status=${status}: ${upErr.message}`)
       }
 
+      const appendLog: LogCallback = async (message: string) => {
+        const entry = { t: Date.now(), m: message }
+        await sb
+          .rpc('append_processing_log', {
+            eval_id: id,
+            log_entry: entry,
+          })
+          .then(({ error: rpcErr }) => {
+            if (rpcErr) {
+              sb.from('mental_health_evaluations')
+                .update({
+                  processing_logs: [entry],
+                })
+                .eq('id', id)
+                .then(() => {})
+            }
+          })
+      }
+
       try {
         await setStatus(`processing_report_${Date.now()}`, {
           processing_error: null,
+          processing_logs: [],
         })
 
         let extractedText: string
 
         if (hasCachedExtraction) {
           extractedText = row.extracted_documents_text as string
-          p(
-            `Skipping extraction — using cached extraction (${extractedText.length}ch)`
+          p(`Using cached extraction (${extractedText.length}ch)`)
+          await appendLog(
+            `Usando extração em cache (${(extractedText.length / 1000).toFixed(0)}k chars)`
           )
         } else if (uploads?.length) {
           p(
             `▶ START EXTRACTION | patient="${nome}" | id=${id} | uploads=${uploads.length}`
           )
+          await appendLog(`Extraindo ${uploads.length} documentos…`)
           const client = new Anthropic({
             apiKey: process.env.ANTHROPIC_API_KEY!,
           })
@@ -161,7 +184,8 @@ export async function POST(
             client,
             uploads,
             requestId,
-            (status) => setStatus(status)
+            (status) => setStatus(status),
+            appendLog
           )
           p(
             `Extraction done | ${extractedText.length} chars | ${((Date.now() - bgStart) / 1000).toFixed(1)}s`
@@ -181,19 +205,17 @@ export async function POST(
             .eq('id', id)
         }
 
-        p(
-          `[1/4] Generating report from extraction (${extractedText.length}ch)...`
-        )
+        p(`Generating report (${extractedText.length}ch)...`)
+        await appendLog('Gerando relatório com IA…')
         const report = await generateStagesFromExtraction(
           formData,
           row.scores as Record<string, number>,
           extractedText,
           requestId,
-          (status) => setStatus(status)
+          (status) => setStatus(status),
+          appendLog
         )
-        p(
-          `[1/4] AI generation done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`
-        )
+        p(`AI done (${((Date.now() - bgStart) / 1000).toFixed(1)}s)`)
 
         const today = new Date().toLocaleDateString('pt-BR')
         const reportMarkdown = report.reportMarkdown.replace(
@@ -201,17 +223,19 @@ export async function POST(
           today
         )
 
-        p(`[2/4] Building PDF...`)
+        p(`Building PDF...`)
         await setStatus('processing_pdf')
+        await appendLog('Montando PDF…')
         const t2 = Date.now()
         const pdfBuffer = buildPdf(formData, reportMarkdown)
-        p(
-          `[2/4] PDF built — ${(pdfBuffer.byteLength / 1024).toFixed(0)}KB in ${Date.now() - t2}ms`
-        )
+        const pdfKB = (pdfBuffer.byteLength / 1024).toFixed(0)
+        p(`PDF built — ${pdfKB}KB in ${Date.now() - t2}ms`)
+        await appendLog(`PDF montado (${pdfKB}KB)`)
 
         const fileName = `report_${id}_${Date.now()}.pdf`
-        p(`[3/4] Uploading PDF — ${fileName}`)
+        p(`Uploading PDF — ${fileName}`)
         await setStatus('processing_upload')
+        await appendLog('Enviando PDF…')
 
         const { error: uploadError } = await sb.storage
           .from('assessment-pdfs')
@@ -228,14 +252,15 @@ export async function POST(
           data: { publicUrl },
         } = sb.storage.from('assessment-pdfs').getPublicUrl(fileName)
 
-        p(`[4/4] Saving regenerated report to DB...`)
+        p(`Saving report to DB...`)
         await setStatus('completed', {
           report_markdown: reportMarkdown,
           report_pdf_url: publicUrl,
         })
 
         const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
-        p(`✅ DONE REGENERATE | patient="${nome}" | ${elapsed}s total`)
+        p(`✅ DONE | patient="${nome}" | ${elapsed}s total`)
+        await appendLog(`✅ Concluído em ${elapsed}s`)
       } catch (err) {
         const errorMsg =
           err instanceof Error ? err.message : 'Erro desconhecido'
@@ -244,6 +269,7 @@ export async function POST(
           `[regenerate:${requestId}] ❌ FAIL | patient="${nome}" | ${elapsed}s | error: ${errorMsg}`
         )
         await setStatus('error', { processing_error: errorMsg })
+        await appendLog(`❌ Erro: ${errorMsg}`)
         await sendErrorEmail({
           patientName: nome,
           evaluationId: id,

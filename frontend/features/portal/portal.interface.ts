@@ -38,6 +38,11 @@ export interface ReportHistoryEntry {
   generated_at: string
 }
 
+export interface ProcessingLogEntry {
+  t: number
+  m: string
+}
+
 export interface EvaluationDetail extends EvaluationListItem {
   form_data: AssessmentFormData | null
   report_markdown: string | null
@@ -48,4 +53,5 @@ export interface EvaluationDetail extends EvaluationListItem {
   doctor_uploads: DoctorUploadEntry[] | null
   report_history: ReportHistoryEntry[] | null
   processing_error: string | null
+  processing_logs: ProcessingLogEntry[] | null
 }

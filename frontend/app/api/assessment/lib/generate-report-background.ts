@@ -59,6 +59,8 @@ export interface ReportResult {
 }
 
 export type ProgressCallback = (status: string) => Promise<void>
+export type LogCallback = (message: string) => Promise<void>
+
 interface LLMResult {
   content: string
   inputTokens: number
@@ -152,25 +154,55 @@ async function callAnthropic(
   client: Anthropic,
   system: string,
   content: ContentBlock[],
-  _label: string,
-  _rid: string,
-  maxTokens = 8192
+  label: string,
+  rid: string,
+  maxTokens = 8192,
+  onLog?: LogCallback
 ): Promise<LLMResult> {
   const t0 = Date.now()
-  const msg = await client.messages.create({
+  const startMsg = `[Anthropic] Streaming… model=${ANTHROPIC_MODEL}`
+  log(rid, `${label} ${startMsg}`)
+  await onLog?.(startMsg)
+
+  const stream = client.messages.stream({
     model: ANTHROPIC_MODEL,
     max_tokens: maxTokens,
     system,
     messages: [{ role: 'user', content }],
   })
-  const text = msg.content
+
+  let outputTokens = 0
+  let lastLog = Date.now()
+  const LOG_INTERVAL = 15_000
+
+  stream.on('text', () => {
+    outputTokens++
+    const now = Date.now()
+    if (now - lastLog > LOG_INTERVAL) {
+      const elapsed = ((now - t0) / 1000).toFixed(0)
+      const msg = `[Anthropic] ${outputTokens} tokens recebidos (${elapsed}s)`
+      log(rid, `${label} ${msg}`)
+      void onLog?.(msg)
+      lastLog = now
+    }
+  })
+
+  const finalMsg = await stream.finalMessage()
+
+  const text = finalMsg.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
     .map((b) => b.text)
     .join('')
+
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
+  const doneMsg = `[Anthropic] ✓ ${finalMsg.usage.output_tokens} tokens em ${elapsed}s (stop=${finalMsg.stop_reason})`
+  log(rid, `${label} ${doneMsg}`)
+  await onLog?.(doneMsg)
+
   return {
     content: text,
-    inputTokens: msg.usage.input_tokens,
-    outputTokens: msg.usage.output_tokens,
+    inputTokens: finalMsg.usage.input_tokens,
+    outputTokens: finalMsg.usage.output_tokens,
     provider: 'anthropic',
     durationMs: Date.now() - t0,
   }
@@ -184,21 +216,52 @@ function toOpenRouterContent(blocks: ContentBlock[]) {
   })
 }
 
-interface OpenRouterResponse {
-  choices?: { message?: { content?: string } }[]
-  usage?: { prompt_tokens?: number; completion_tokens?: number }
+interface SSEAccumulator {
+  chunks: string[]
+  tokenCount: number
+  inputTokens: number
+  outputTokens: number
+}
+
+function parseSSELine(line: string, acc: SSEAccumulator) {
+  const trimmed = line.trim()
+  if (!trimmed || !trimmed.startsWith('data: ')) return
+  const payload = trimmed.slice(6)
+  if (payload === '[DONE]') return
+  try {
+    const evt = JSON.parse(payload) as {
+      choices?: { delta?: { content?: string } }[]
+      usage?: { prompt_tokens?: number; completion_tokens?: number }
+    }
+    const delta = evt.choices?.[0]?.delta?.content
+    if (delta) {
+      acc.chunks.push(delta)
+      acc.tokenCount++
+    }
+    if (evt.usage) {
+      acc.inputTokens = evt.usage.prompt_tokens ?? 0
+      acc.outputTokens = evt.usage.completion_tokens ?? 0
+    }
+  } catch {
+    // skip malformed SSE lines
+  }
 }
 
 async function callOpenRouter(
   system: string,
   content: ContentBlock[],
-  _label: string,
-  _rid: string,
-  maxTokens = 8192
+  label: string,
+  rid: string,
+  maxTokens = 8192,
+  onLog?: LogCallback
 ): Promise<LLMResult> {
   const apiKey = process.env.OPENROUTER_API_KEY
   if (!apiKey) throw new Error('OPENROUTER_API_KEY not configured')
   const t0 = Date.now()
+  const startMsg = `[OpenRouter] Streaming… model=${OPENROUTER_MODEL}`
+  log(rid, `${label} ${startMsg}`)
+  await onLog?.(startMsg)
+
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -208,18 +271,61 @@ async function callOpenRouter(
     body: JSON.stringify({
       model: OPENROUTER_MODEL,
       max_tokens: maxTokens,
+      stream: true,
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: toOpenRouterContent(content) },
       ],
     }),
   })
-  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`)
-  const data = (await res.json()) as OpenRouterResponse
+
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '')
+    throw new Error(`OpenRouter ${res.status}: ${errBody.slice(0, 300)}`)
+  }
+
+  if (!res.body) throw new Error('OpenRouter returned no stream body')
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  const acc: SSEAccumulator = {
+    chunks: [],
+    tokenCount: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+  }
+  let lastLog = Date.now()
+  let buffer = ''
+
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+
+    const lines = buffer.split('\n')
+    buffer = lines.pop() ?? ''
+    for (const line of lines) parseSSELine(line, acc)
+
+    const now = Date.now()
+    if (now - lastLog > 15_000) {
+      const msg = `[OpenRouter] ${acc.tokenCount} chunks recebidos (${((now - t0) / 1000).toFixed(0)}s)`
+      log(rid, `${label} ${msg}`)
+      void onLog?.(msg)
+      lastLog = now
+    }
+  }
+
+  const text = acc.chunks.join('')
+  if (!acc.outputTokens) acc.outputTokens = acc.tokenCount
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
+  const doneMsg = `[OpenRouter] ✓ ${acc.outputTokens} tokens em ${elapsed}s`
+  log(rid, `${label} ${doneMsg}`)
+  await onLog?.(doneMsg)
+
   return {
-    content: data.choices?.[0]?.message?.content ?? '',
-    inputTokens: data.usage?.prompt_tokens ?? 0,
-    outputTokens: data.usage?.completion_tokens ?? 0,
+    content: text,
+    inputTokens: acc.inputTokens,
+    outputTokens: acc.outputTokens,
     provider: 'openrouter',
     durationMs: Date.now() - t0,
   }
@@ -231,37 +337,68 @@ async function callLLM(
   content: ContentBlock[],
   label: string,
   rid: string,
-  maxTokens = 8192
+  maxTokens = 8192,
+  onLog?: LogCallback
 ): Promise<LLMResult> {
+  const callStart = Date.now()
+  const inputSize = content.reduce(
+    (acc, b) => acc + ('text' in b ? b.text.length : 0),
+    0
+  )
+  log(rid, `${label} START | inputChars=${inputSize} maxTokens=${maxTokens}`)
+
   let last: Error | null = null
   let useOpenRouter = false
+
   for (let a = 1; a <= MAX_RETRIES; a++) {
+    const provider = useOpenRouter ? 'OpenRouter' : 'Anthropic'
     try {
-      const provider = useOpenRouter ? 'OpenRouter' : 'Anthropic'
-      log(rid, `${label} [${provider}] attempt ${a}/${MAX_RETRIES}`)
+      log(rid, `${label} attempt ${a}/${MAX_RETRIES} [${provider}]`)
       const result = useOpenRouter
-        ? await callOpenRouter(system, content, label, rid, maxTokens)
-        : await callAnthropic(client, system, content, label, rid, maxTokens)
+        ? await callOpenRouter(system, content, label, rid, maxTokens, onLog)
+        : await callAnthropic(
+            client,
+            system,
+            content,
+            label,
+            rid,
+            maxTokens,
+            onLog
+          )
       logLLMCall(rid, label, result, a)
+
+      if (!result.content || result.content.length < 50) {
+        log(rid, `${label} ⚠ short response (${result.content.length}ch)`)
+      }
+
       return result
     } catch (e) {
       last = e instanceof Error ? e : new Error(String(e))
-      log(rid, `${label} FAIL #${a}: ${last.message.slice(0, 200)}`)
+      const elapsed = ((Date.now() - callStart) / 1000).toFixed(1)
+      const errMsg = `❌ ${provider} falhou (#${a}): ${last.message.slice(0, 150)}`
+      log(rid, `${label} ${errMsg} (${elapsed}s)`)
+      await onLog?.(errMsg)
+
       if (!useOpenRouter && (isCreditsExhausted(e) || !isRetryable(e))) {
         const reason = isCreditsExhausted(e)
           ? 'credits exhausted'
-          : 'non-retryable error'
-        log(rid, `${label} → Anthropic ${reason}, switching to OpenRouter`)
+          : 'non-retryable'
+        log(rid, `${label} → switching to OpenRouter (${reason})`)
+        await onLog?.(`Alternando para OpenRouter (${reason})`)
         useOpenRouter = true
         continue
       }
       if (a < MAX_RETRIES) {
         const ms = isRetryable(e) ? Math.min(30_000, 5_000 * a) : 2_000 * a
-        log(rid, `${label} → Retry in ${(ms / 1000).toFixed(0)}s`)
+        log(rid, `${label} → retry in ${(ms / 1000).toFixed(0)}s...`)
         await new Promise((r) => setTimeout(r, ms))
       }
     }
   }
+
+  const totalElapsed = ((Date.now() - callStart) / 1000).toFixed(1)
+  log(rid, `${label} ALL ATTEMPTS FAILED after ${totalElapsed}s`)
+  await onLog?.(`☠ Todas tentativas falharam após ${totalElapsed}s`)
   throw last!
 }
 
@@ -352,11 +489,13 @@ export async function extractAllDocuments(
   client: Anthropic,
   uploads: Upload[] | undefined,
   rid: string,
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  onLog?: LogCallback
 ): Promise<string> {
   if (!uploads?.length) return ''
 
   log(rid, `=== EXTRACTION PHASE: ${uploads.length} files ===`)
+  await onLog?.(`Iniciando extração de ${uploads.length} documentos`)
   const t0 = Date.now()
 
   const jobs = await prepareExtractionJobs(uploads, rid)
@@ -366,6 +505,8 @@ export async function extractAllDocuments(
 
   let completed = 0
   const total = jobs.length
+
+  await onLog?.(`${total} documentos preparados para extração (paralelo)`)
   const results: (string | null)[] = new Array(jobs.length).fill(null)
 
   const runJob = async (idx: number) => {
@@ -379,17 +520,23 @@ export async function extractAllDocuments(
         DOCUMENT_EXTRACTION_SYSTEM,
         job.content,
         `Extract:${job.label}`,
-        rid
+        rid,
+        8192,
+        onLog
       )
       results[idx] = `### DOCUMENTO: ${job.label}\n\n${result.content}`
       completed++
       await onProgress?.(`processing_extract_${completed}_of_${total}`)
       const secs = ((Date.now() - jobT0) / 1000).toFixed(1)
       log(rid, `✓ [${completed}/${total}] ${job.label} in ${secs}s`)
+      await onLog?.(`✓ Doc ${completed}/${total}: ${job.label} (${secs}s)`)
     } catch (e) {
       completed++
       const msg = e instanceof Error ? e.message : String(e)
       log(rid, `✗ [${completed}/${total}] ${job.label}: ${msg.slice(0, 150)}`)
+      await onLog?.(
+        `✗ Doc ${completed}/${total}: ${job.label} FALHOU: ${msg.slice(0, 80)}`
+      )
     }
   }
 
@@ -406,9 +553,13 @@ export async function extractAllDocuments(
   await Promise.all(workers)
 
   const extracted = results.filter(Boolean) as string[]
+  const secs = ((Date.now() - t0) / 1000).toFixed(1)
   log(
     rid,
-    `=== EXTRACTION DONE: ${extracted.length}/${total} docs in ${((Date.now() - t0) / 1000).toFixed(1)}s ===`
+    `=== EXTRACTION DONE: ${extracted.length}/${total} docs in ${secs}s ===`
+  )
+  await onLog?.(
+    `✅ Extração completa: ${extracted.length}/${total} docs em ${secs}s`
   )
 
   if (!extracted.length) return ''
@@ -419,30 +570,38 @@ async function runStages(
   patientData: string,
   extractedDocs: string,
   rid: string,
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  onLog?: LogCallback
 ): Promise<ReportResult> {
   const t0 = Date.now()
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
   const fullData = patientData + extractedDocs
+  const userPrompt = `${REPORT_USER_PREFIX}${fullData}`
 
-  log(
-    rid,
-    `=== SINGLE REPORT CALL === patient=${patientData.length}ch docs=${extractedDocs.length}ch`
+  log(rid, `=== REPORT GENERATION === total=${userPrompt.length}ch`)
+  await onLog?.(
+    `Gerando relatório: ${(userPrompt.length / 1000).toFixed(0)}k chars de dados`
   )
   await onProgress?.('processing_stage_1_of_1')
 
   const res = await callLLM(
     client,
     REPORT_SYSTEM,
-    [{ type: 'text', text: `${REPORT_USER_PREFIX}${fullData}` }],
-    'Report (all sections)',
+    [{ type: 'text', text: userPrompt }],
+    'Report',
     rid,
-    24576
+    24576,
+    onLog
   )
 
+  const elapsed = ((Date.now() - t0) / 1000).toFixed(1)
+  const cost = estimateCost(res).toFixed(4)
   log(
     rid,
-    `REPORT DONE | ${((Date.now() - t0) / 1000).toFixed(1)}s | tok=${res.inputTokens}+${res.outputTokens} | $${estimateCost(res).toFixed(4)}`
+    `✅ REPORT DONE | ${elapsed}s | in=${res.inputTokens} out=${res.outputTokens} | $${cost} | ${res.provider}`
+  )
+  await onLog?.(
+    `✅ Relatório gerado em ${elapsed}s (${res.outputTokens} tokens, $${cost})`
   )
   return {
     reportMarkdown: res.content,
@@ -455,7 +614,8 @@ export async function generateReportBackground(
   scores: Record<string, number>,
   uploads?: Upload[],
   requestId?: string,
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  onLog?: LogCallback
 ): Promise<ReportResult> {
   const rid = requestId ?? crypto.randomUUID().slice(0, 8)
   const t0 = Date.now()
@@ -470,29 +630,31 @@ export async function generateReportBackground(
     client,
     uploads,
     rid,
-    onProgress
+    onProgress,
+    onLog
   )
   log(
     rid,
-    `Extraction done | ${extractedDocs.length} chars | ${((Date.now() - t0) / 1000).toFixed(1)}s`
+    `Extraction done | ${extractedDocs.length}ch | ${((Date.now() - t0) / 1000).toFixed(1)}s`
   )
 
-  return runStages(patientData, extractedDocs, rid, onProgress)
+  return runStages(patientData, extractedDocs, rid, onProgress, onLog)
 }
 
-/** Runs only the report stages using pre-extracted document text (cached in DB). */
 export async function generateStagesFromExtraction(
   formData: AssessmentFormData,
   scores: Record<string, number>,
   extractedDocsText: string,
   requestId?: string,
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  onLog?: LogCallback
 ): Promise<ReportResult> {
   const rid = requestId ?? crypto.randomUUID().slice(0, 8)
   return runStages(
     buildReportPromptData(formData, scores),
     extractedDocsText,
     rid,
-    onProgress
+    onProgress,
+    onLog
   )
 }

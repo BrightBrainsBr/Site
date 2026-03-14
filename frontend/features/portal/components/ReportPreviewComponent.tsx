@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '~/shared/utils/cn'
-import type { ReportHistoryEntry } from '../portal.interface'
+import type { ProcessingLogEntry, ReportHistoryEntry } from '../portal.interface'
 
 type PipelineStep = {
   id: string
@@ -185,6 +185,16 @@ function formatDate(iso: string) {
   })
 }
 
+function formatLogTime(ts: number, origin: number | null) {
+  if (!origin) return ''
+  const diff = Math.max(0, Math.floor((ts - origin) / 1000))
+  const m = Math.floor(diff / 60)
+  const s = diff % 60
+  return m > 0
+    ? `${m}:${s.toString().padStart(2, '0')}`
+    : `0:${s.toString().padStart(2, '0')}`
+}
+
 interface ReportPreviewComponentProps {
   markdown: string | null
   pdfUrl: string | null
@@ -192,6 +202,7 @@ interface ReportPreviewComponentProps {
   isRegenerating?: boolean
   processingStatus?: string | null
   jobStartedAt?: number | null
+  processingLogs?: ProcessingLogEntry[] | null
 }
 
 export function ReportPreviewComponent({
@@ -201,6 +212,7 @@ export function ReportPreviewComponent({
   isRegenerating = false,
   processingStatus = null,
   jobStartedAt = null,
+  processingLogs = null,
 }: ReportPreviewComponentProps) {
   const totalVersions = reportHistory.length + (markdown ? 1 : 0)
   const [viewingVersion, setViewingVersion] = useState<number | null>(null)
@@ -212,6 +224,14 @@ export function ReportPreviewComponent({
   const isCurrentVersion = viewingVersion === null
   const pipeline = buildPipelineSteps(processingStatus)
   const elapsedStr = useElapsedTimer(isRegenerating, jobStartedAt)
+  const logsEndRef = useRef<HTMLDivElement>(null)
+  const logs = processingLogs ?? []
+
+  useEffect(() => {
+    if (logs.length > 0) {
+      logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [logs.length])
 
   return (
     <div>
@@ -262,6 +282,30 @@ export function ReportPreviewComponent({
               </div>
             ))}
           </div>
+
+          {logs.length > 0 && (
+            <div className="mt-3 max-h-40 overflow-y-auto rounded border border-[#1a3a5c] bg-[#0a1525] px-3 py-2 font-mono text-[11px] leading-relaxed">
+              {logs.map((entry, i) => (
+                <div key={i} className="flex gap-2">
+                  <span className="flex-shrink-0 text-[#3a5a75]">
+                    {formatLogTime(entry.t, jobStartedAt)}
+                  </span>
+                  <span
+                    className={cn(
+                      entry.m.startsWith('✅')
+                        ? 'text-[#00c9b1]'
+                        : entry.m.startsWith('❌') || entry.m.startsWith('✗')
+                          ? 'text-red-400'
+                          : 'text-[#7a9ab8]'
+                    )}
+                  >
+                    {entry.m}
+                  </span>
+                </div>
+              ))}
+              <div ref={logsEndRef} />
+            </div>
+          )}
         </div>
       )}
 
