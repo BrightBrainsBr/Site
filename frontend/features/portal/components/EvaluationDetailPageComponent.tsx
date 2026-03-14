@@ -97,7 +97,7 @@ export function EvaluationDetailPageComponent({
           setIsRegenerating(false)
         }
       })
-    }, 8000)
+    }, 4000)
     return () => clearInterval(interval)
   }, [isRegenerating, refetch])
 

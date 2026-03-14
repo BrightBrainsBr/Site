@@ -1,80 +1,117 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '~/shared/utils/cn'
 import type { ReportHistoryEntry } from '../portal.interface'
 
-function parseProcessingStatus(status: string | null | undefined) {
+type PipelineStep = {
+  id: string
+  label: string
+  state: 'pending' | 'active' | 'done'
+  detail?: string
+}
+
+function buildPipelineSteps(
+  status: string | null | undefined
+): PipelineStep[] | null {
   if (!status || !status.startsWith('processing')) return null
 
-  if (status.startsWith('processing_dispatching_')) {
-    return {
-      phase: 'fixed' as const,
-      current: 0,
-      total: 0,
-      label: 'Inicializando processamento',
+  const steps: PipelineStep[] = [
+    { id: 'init', label: 'Inicializando', state: 'pending' },
+    { id: 'extract', label: 'Extraindo documentos', state: 'pending' },
+    { id: 'report', label: 'Gerando relatório (IA)', state: 'pending' },
+    { id: 'pdf', label: 'Montando PDF', state: 'pending' },
+    { id: 'upload', label: 'Salvando', state: 'pending' },
+    { id: 'notify', label: 'Notificando', state: 'pending' },
+  ]
+
+  function markUpTo(targetId: string, detail?: string) {
+    let found = false
+    for (const s of steps) {
+      if (s.id === targetId) {
+        s.state = 'active'
+        if (detail) s.detail = detail
+        found = true
+      } else if (!found) {
+        s.state = 'done'
+      }
     }
   }
 
-  if (status.startsWith('processing_claimed_')) {
-    return {
-      phase: 'fixed' as const,
-      current: 0,
-      total: 0,
-      label: 'Alocando worker de processamento',
-    }
+  if (
+    status.startsWith('processing_dispatching_') ||
+    status.startsWith('processing_claimed_') ||
+    status === 'processing'
+  ) {
+    markUpTo('init')
+    return steps
   }
 
   if (status.startsWith('processing_report_')) {
-    return {
-      phase: 'fixed' as const,
-      current: 0,
-      total: 0,
-      label: 'Iniciando geração do relatório',
-    }
+    markUpTo('extract', 'Conectando com IA...')
+    return steps
   }
 
   const extractMatch = status.match(/^processing_extract_(\d+)_of_(\d+)$/)
   if (extractMatch) {
-    return {
-      phase: 'extract' as const,
-      current: parseInt(extractMatch[1]),
-      total: parseInt(extractMatch[2]),
-      label: `Extraindo documento ${extractMatch[1]} de ${extractMatch[2]}`,
-    }
+    markUpTo('extract', `Documento ${extractMatch[1]} de ${extractMatch[2]}`)
+    return steps
   }
 
   const stageMatch = status.match(/^processing_stage_(\d+)_of_(\d+)$/)
   if (stageMatch) {
     const stageNames: Record<string, string> = {
-      '1': 'Análise clínica e diagnósticos',
-      '2': 'Terapêutica e neuromodulação',
-      '3': 'Monitoramento e conformidade',
+      '1': 'Seção 1/3 — Análise clínica',
+      '2': 'Seção 2/3 — Terapêutica',
+      '3': 'Seção 3/3 — Monitoramento',
     }
-    return {
-      phase: 'stage' as const,
-      current: parseInt(stageMatch[1]),
-      total: parseInt(stageMatch[2]),
-      label:
-        stageNames[stageMatch[1]] ??
-        `Gerando seção ${stageMatch[1]} de ${stageMatch[2]}`,
-    }
+    markUpTo(
+      'report',
+      stageNames[stageMatch[1]] ??
+        `Seção ${stageMatch[1]} de ${stageMatch[2]}`
+    )
+    return steps
   }
 
-  const fixedSteps: Record<string, string> = {
-    processing: 'Iniciando processamento',
-    processing_report: 'Iniciando geração do relatório',
-    processing_pdf: 'Gerando PDF do relatório',
-    processing_upload: 'Salvando PDF no storage',
-    processing_notify: 'Notificando equipe',
+  if (status === 'processing_report') {
+    markUpTo('report')
+    return steps
   }
 
-  return {
-    phase: 'fixed' as const,
-    current: 0,
-    total: 0,
-    label: fixedSteps[status] ?? 'Processando...',
+  if (status === 'processing_pdf') {
+    markUpTo('pdf')
+    return steps
   }
+  if (status === 'processing_upload') {
+    markUpTo('upload')
+    return steps
+  }
+  if (status === 'processing_notify') {
+    markUpTo('notify')
+    return steps
+  }
+
+  markUpTo('init')
+  return steps
+}
+
+function useElapsedTimer(isRunning: boolean) {
+  const [elapsed, setElapsed] = useState(0)
+  useEffect(() => {
+    if (!isRunning) {
+      setElapsed(0)
+      return
+    }
+    setElapsed(0)
+    const t0 = Date.now()
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 1000)
+    return () => clearInterval(id)
+  }, [isRunning])
+  const m = Math.floor(elapsed / 60)
+  const s = elapsed % 60
+  return m > 0
+    ? `${m}m ${s.toString().padStart(2, '0')}s`
+    : `${s}s`
 }
 
 interface MarkdownSection {
@@ -177,48 +214,58 @@ export function ReportPreviewComponent({
   const displayMarkdown = viewingHistory?.report_markdown ?? markdown
   const displayPdfUrl = viewingHistory?.report_pdf_url ?? pdfUrl
   const isCurrentVersion = viewingVersion === null
-  const parsed = parseProcessingStatus(processingStatus)
+  const pipeline = buildPipelineSteps(processingStatus)
+  const elapsedStr = useElapsedTimer(isRegenerating)
 
   return (
     <div>
-      {/* Regenerating banner */}
-      {isRegenerating && (
-        <div className="mb-4 rounded-lg border border-[rgba(240,160,48,0.3)] bg-[rgba(240,160,48,0.08)] px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1a3a5c] border-t-[#f0a030]" />
-            <div>
-              <p className="text-sm font-medium text-[#f0a030]">
-                {parsed?.label ?? 'Relatório sendo processado...'}
-              </p>
-              <p className="text-xs text-[#5a7fa0]">
-                Este processo roda em segundo plano e pode demorar alguns
-                minutos.
-              </p>
+      {/* Processing pipeline */}
+      {isRegenerating && pipeline && (
+        <div className="mb-4 rounded-lg border border-[rgba(240,160,48,0.3)] bg-[rgba(240,160,48,0.08)] px-5 py-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1a3a5c] border-t-[#f0a030]" />
+              <span className="text-sm font-semibold text-[#f0a030]">
+                Gerando relatório
+              </span>
             </div>
+            <span className="font-mono text-xs text-[#5a7fa0]">
+              {elapsedStr}
+            </span>
           </div>
 
-          {parsed && parsed.total > 0 && (
-            <div className="mt-3">
-              <div className="mb-1.5 flex items-center justify-between text-xs">
-                <span className="text-[#5a7fa0]">
-                  {parsed.phase === 'extract'
-                    ? `Documento ${parsed.current} de ${parsed.total}`
-                    : `Etapa ${parsed.current} de ${parsed.total}`}
+          <div className="space-y-1.5">
+            {pipeline.map((step) => (
+              <div key={step.id} className="flex items-center gap-2.5">
+                {step.state === 'done' && (
+                  <svg className="h-4 w-4 flex-shrink-0 text-[#00c9b1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {step.state === 'active' && (
+                  <div className="h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-[#1a3a5c] border-t-[#f0a030]" />
+                )}
+                {step.state === 'pending' && (
+                  <div className="h-4 w-4 flex-shrink-0 rounded-full border border-[#1a3a5c]" />
+                )}
+                <span
+                  className={cn(
+                    'text-sm',
+                    step.state === 'done' && 'text-[#5a7fa0] line-through',
+                    step.state === 'active' && 'font-medium text-[#f0a030]',
+                    step.state === 'pending' && 'text-[#3a5a75]'
+                  )}
+                >
+                  {step.label}
                 </span>
-                <span className="font-mono text-[#f0a030]">
-                  {Math.round((parsed.current / parsed.total) * 100)}%
-                </span>
+                {step.detail && step.state === 'active' && (
+                  <span className="text-xs text-[#5a7fa0]">
+                    — {step.detail}
+                  </span>
+                )}
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-[#1a3a5c]">
-                <div
-                  className="h-full rounded-full bg-[#f0a030] transition-all duration-500"
-                  style={{
-                    width: `${Math.round((parsed.current / parsed.total) * 100)}%`,
-                  }}
-                />
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       )}
 
