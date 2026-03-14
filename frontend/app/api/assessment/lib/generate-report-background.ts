@@ -447,7 +447,10 @@ export async function generateReportBackground(
     totalOutputTokens = 0,
     totalCost = 0
 
-  log(rid, '=== REPORT STAGES ===')
+  log(
+    rid,
+    `=== REPORT STAGES === patientData=${patientData.length}ch extractedDocs=${extractedDocs.length}ch`
+  )
   for (const cfg of STAGE_PROMPTS) {
     const st = Date.now()
     await onProgress?.(
@@ -455,10 +458,14 @@ export async function generateReportBackground(
     )
     log(rid, `→ Stage ${cfg.stage}/${STAGE_PROMPTS.length}: ${cfg.name}`)
 
+    // Stage 1 gets everything (form data + extracted docs).
+    // Stages 2-3 only get form data + previous output — the extracted doc
+    // data is already synthesized in the stage 1 analysis, so re-sending
+    // the full extraction text would just waste tokens and slow things down.
     const txt =
       cfg.stage === 1
         ? `${cfg.userPrefix}${fullPatientData}`
-        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${fullPatientData}`
+        : `${cfg.userPrefix}RELATÓRIO ANTERIOR:\n${prev}\n\nDADOS DO PACIENTE:\n${patientData}`
 
     const res = await callLLM(
       client,
