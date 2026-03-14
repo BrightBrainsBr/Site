@@ -17,7 +17,7 @@ import {
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
 
 export const runtime = 'nodejs'
-export const maxDuration = 900
+export const maxDuration = 300
 
 const DISPATCHING_STATUS_PREFIX = 'processing_dispatching_'
 const CLAIMED_STATUS_PREFIX = 'processing_claimed_'
