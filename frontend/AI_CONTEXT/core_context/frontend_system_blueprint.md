@@ -117,7 +117,7 @@ frontend/
 ├── app/                              # Routes + API only
 │   ├── [locale]/
 │   │   ├── layout.tsx                # Root layout (fonts, GTM, ReactQueryProvider)
-│   │   ├── (pages)/                  # CMS-driven pages — DO NOT MODIFY
+│   │   ├── (routes)/                 # CMS-driven pages — DO NOT MODIFY
 │   │   │   ├── layout.tsx            # Header + Footer + CMS contexts
 │   │   │   └── [[...slug]]/page.tsx
 │   │   └── avaliacao/                # Assessment (standalone, dark theme)
