@@ -97,6 +97,7 @@ export async function PATCH(
     updates.gro_valid_until = body.gro_valid_until
   if (body.allowed_domains != null)
     updates.allowed_domains = body.allowed_domains
+  if (body.departments != null) updates.departments = body.departments
 
   const { data, error } = await sb
     .from('companies')

@@ -46,9 +46,21 @@ export function PersonalDataStep({
   setData,
   onPrev,
   onNext,
+  companyContext,
+  setCompanyContext,
 }: StepComponentProps) {
   const update = (field: string, value: string) => {
     setData({ ...data, [field]: value })
+  }
+
+  const departments = companyContext?.departments ?? []
+  const hasDepartments = companyContext?.company_id && departments.length > 0
+  const selectedDepartment = companyContext?.department ?? ''
+
+  const handleDepartmentChange = (value: string) => {
+    if (setCompanyContext && companyContext) {
+      setCompanyContext({ ...companyContext, department: value })
+    }
   }
 
   return (
@@ -99,6 +111,16 @@ export function PersonalDataStep({
           onChange={(v) => update('email', v)}
           type="email"
         />
+
+        {hasDepartments && (
+          <Select
+            label="Departamento"
+            value={selectedDepartment}
+            onChange={handleDepartmentChange}
+            options={departments.map((d) => ({ label: d, value: d }))}
+            placeholder="Selecione seu departamento"
+          />
+        )}
 
         <RadioGroup
           label="Sexo"

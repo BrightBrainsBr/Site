@@ -2,33 +2,61 @@
 
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 import { authService } from '@/auth/services_and_hooks/authService'
+import { BBAuthLayoutComponent } from '~/shared/components/ui/BBAuthLayoutComponent'
+import { BBButtonComponent } from '~/shared/components/ui/BBButtonComponent'
+import { BBInputComponent } from '~/shared/components/ui/BBInputComponent'
+
+import { useB2BLocaleHook } from '../hooks/useB2BLocaleHook'
+
+interface LoginFormData {
+  email: string
+  password: string
+}
 
 export function B2BLoginComponent() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const queryClient = useQueryClient()
+  const { localePath } = useB2BLocaleHook()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const { control, handleSubmit } = useForm<LoginFormData>({
+    defaultValues: { email: '', password: '' },
+    mode: 'onBlur',
+  })
+
+  const onSubmit = async (data: LoginFormData) => {
     setError(null)
     setLoading(true)
 
     try {
-      const result = await authService.signIn({ email, password })
+      const result = await authService.signIn({
+        email: data.email,
+        password: data.password,
+      })
 
       if (result.error) {
         setError(result.error.message)
         return
       }
 
-      router.push('/pt-BR/empresa/dashboard')
+      await queryClient.resetQueries({ queryKey: ['b2b'] })
+
+      const meRes = await fetch('/api/b2b/me')
+      const meData = await meRes.json()
+
+      if (meData.isCompanyUser) {
+        router.push(localePath('/empresa/dashboard'))
+      } else {
+        router.push(localePath('/avaliacao'))
+      }
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao entrar')
@@ -38,102 +66,73 @@ export function B2BLoginComponent() {
   }
 
   return (
-    <div className="w-full max-w-sm">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 rounded-xl border border-[#1a3a5c] bg-[#0c1a2e]/80 p-8 shadow-xl"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#00c9b1] to-[#0090ff]">
-            <svg
-              className="h-5 w-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-[#cce6f7]">
-              Bright Precision
-            </h2>
-            <p className="text-xs text-[#5a7fa0]">Login Empresas</p>
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-1 block text-sm font-medium text-[#cce6f7]"
-          >
-            E-mail
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-            className="w-full rounded-lg border border-[#1a3a5c] bg-[#060e1a] px-4 py-3 text-[#cce6f7] placeholder-[#5a7fa0] focus:border-[#00c9b1] focus:outline-none focus:ring-1 focus:ring-[#00c9b1]/30"
-            placeholder="seu@empresa.com"
-          />
-        </div>
-
-        <div>
-          <div className="mb-1 flex items-center justify-between">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-[#cce6f7]"
-            >
-              Senha
-            </label>
-            <Link
-              href="/pt-BR/empresa/reset-password"
-              className="text-xs text-[#00c9b1] hover:underline"
-            >
-              Esqueceu a senha?
-            </Link>
-          </div>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-            className="w-full rounded-lg border border-[#1a3a5c] bg-[#060e1a] px-4 py-3 text-[#cce6f7] placeholder-[#5a7fa0] focus:border-[#00c9b1] focus:outline-none focus:ring-1 focus:ring-[#00c9b1]/30"
-            placeholder="••••••••"
-          />
-        </div>
-
-        {error && (
-          <p className="rounded-lg bg-red-900/30 px-3 py-2 text-sm text-red-300">
-            {error}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-gradient-to-r from-[#00c9b1] to-[#0090ff] py-3 font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {loading ? 'Entrando...' : 'Entrar'}
-        </button>
-
-        <p className="text-center text-sm text-[#5a7fa0]">
+    <BBAuthLayoutComponent
+      heading="Bright Brains"
+      subheading="Bem-vindo de volta"
+      cardTitle="Login"
+      footer={
+        <p className="text-sm text-[#5a7fa0]">
           Não tem conta?{' '}
-          <Link href="/pt-BR/empresa/signup" className="text-[#00c9b1] hover:underline">
+          <Link
+            href={localePath('/empresa/signup')}
+            className="font-medium text-[#00c9b1] hover:text-[#00c9b1]/80 transition-colors"
+          >
             Criar conta
           </Link>
         </p>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <BBInputComponent
+          control={control}
+          name="email"
+          label="E-mail"
+          type="email"
+          placeholder="seu@empresa.com"
+          autoComplete="email"
+          rules={{
+            required: 'E-mail é obrigatório',
+            pattern: {
+              value: /.+@.+\..+/,
+              message: 'Insira um e-mail válido',
+            },
+          }}
+        />
+
+        <BBInputComponent
+          control={control}
+          name="password"
+          label="Senha"
+          type="password"
+          placeholder="Sua senha"
+          autoComplete="current-password"
+          rules={{ required: 'Senha é obrigatória' }}
+        />
+
+        {error && (
+          <div className="rounded-lg bg-red-900/20 border border-red-700/40 px-4 py-3 text-sm text-red-300">
+            {error}
+          </div>
+        )}
+
+        <BBButtonComponent
+          type="submit"
+          loading={loading}
+          loadingText="Entrando..."
+          className="!py-3.5 text-base"
+        >
+          Entrar
+        </BBButtonComponent>
+
+        <div className="text-center">
+          <Link
+            href={localePath('/empresa/reset-password')}
+            className="text-sm text-[#5a7fa0] hover:text-[#00c9b1] transition-colors"
+          >
+            Esqueceu a senha?
+          </Link>
+        </div>
       </form>
-    </div>
+    </BBAuthLayoutComponent>
   )
 }

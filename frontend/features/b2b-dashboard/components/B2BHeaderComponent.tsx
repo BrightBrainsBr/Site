@@ -4,6 +4,7 @@ import { ChevronDown, LogOut, Settings, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
+import { useB2BLocaleHook } from '../hooks/useB2BLocaleHook'
 import { useB2BSession } from '../hooks/useB2BSession'
 
 interface CycleInfo {
@@ -41,6 +42,7 @@ export function B2BHeaderComponent({
   onSettingsClick,
 }: B2BHeaderComponentProps) {
   const router = useRouter()
+  const { localePath } = useB2BLocaleHook()
   const session = useB2BSession()
 
   const companyName = companyNameOverride ?? session.companyName
@@ -71,7 +73,7 @@ export function B2BHeaderComponent({
 
   const handleSignOut = async () => {
     await fetch('/api/auth/signout', { method: 'POST' })
-    router.push('/pt-BR/empresa/login')
+    router.push(localePath('/empresa/login'))
     router.refresh()
   }
 
@@ -168,7 +170,7 @@ export function B2BHeaderComponent({
                   <button
                     onClick={() => {
                       setIsMenuOpen(false)
-                      router.push('/pt-BR/empresa/perfil')
+                      router.push(localePath('/empresa/perfil'))
                     }}
                     className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#E2E8F0]"
                   >

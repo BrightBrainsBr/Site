@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { apiGet } from '~/shared/utils/api-helpers'
 import { CompanyManagerComponent } from './CompanyManagerComponent'
 import { PortalCodeGateComponent } from './PortalCodeGateComponent'
+import { PortalTopNav } from './PortalTopNav'
 
 export function PortalEmpresasPageComponent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -43,17 +44,20 @@ export function PortalEmpresasPageComponent() {
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#cce6f7]">Empresas</h1>
-        <button
-          onClick={() => setShowCreate(!showCreate)}
-          className="rounded-lg bg-[#00c9b1] px-4 py-2 text-sm font-bold text-black hover:opacity-90"
-        >
-          {showCreate ? 'Cancelar' : 'Nova empresa'}
-        </button>
+    <>
+      <PortalTopNav />
+      <div className="p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-[#cce6f7]">Empresas</h1>
+          <button
+            onClick={() => setShowCreate(!showCreate)}
+            className="rounded-lg bg-[#00c9b1] px-4 py-2 text-sm font-bold text-black hover:opacity-90"
+          >
+            {showCreate ? 'Cancelar' : 'Nova empresa'}
+          </button>
+        </div>
+        <CompanyManagerComponent showCreate={showCreate} onCreateDone={() => setShowCreate(false)} />
       </div>
-      <CompanyManagerComponent showCreate={showCreate} onCreateDone={() => setShowCreate(false)} />
-    </div>
+    </>
   )
 }

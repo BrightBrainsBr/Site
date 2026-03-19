@@ -13,6 +13,7 @@ import {
 } from '../services/localStorage'
 import type {
   AssessmentFormData,
+  CompanyContext,
   ScaleOption,
   ScaleQuestion,
   StepComponentProps,
@@ -41,7 +42,7 @@ import {
 
 const IS_DEV = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
 
-function AccessGate({ onUnlock }: { onUnlock: () => void }) {
+function AccessGate({ onUnlock }: { onUnlock: (ctx?: CompanyContext) => void }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -57,11 +58,21 @@ function AccessGate({ onUnlock }: { onUnlock: () => void }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
       })
-      const { valid } = (await res.json()) as { valid: boolean }
+      const data = await res.json()
 
-      if (valid) {
+      if (data.valid) {
         sessionStorage.setItem('bb_access', '1')
-        onUnlock()
+        const ctx: CompanyContext | undefined =
+          data.type === 'company'
+            ? {
+                company_id: data.company_id,
+                department: data.department,
+                departments: data.departments,
+                cycle_id: data.cycle_id,
+                code_id: data.code_id,
+              }
+            : undefined
+        onUnlock(ctx)
       } else {
         setError(true)
       }
@@ -121,18 +132,46 @@ export function AssessmentPage() {
   const [data, setData] = useState<AssessmentFormData>(INITIAL_FORM_DATA)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [companyContext, setCompanyContext] = useState<CompanyContext>({})
+  const [sessionChecked, setSessionChecked] = useState(false)
 
   useEffect(() => {
-    try {
-      if (
-        sessionStorage.getItem('bb_access') === '1' ||
-        process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
-      ) {
-        setAuthorized(true)
+    let cancelled = false
+
+    async function checkAccess() {
+      try {
+        if (
+          sessionStorage.getItem('bb_access') === '1' ||
+          process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
+        ) {
+          setAuthorized(true)
+          setSessionChecked(true)
+          return
+        }
+      } catch {
+        // ignore sessionStorage access issues
       }
-    } catch {
-      // ignore sessionStorage access issues
+
+      try {
+        const res = await fetch('/api/assessment/check-session')
+        const result = await res.json()
+
+        if (cancelled) return
+
+        if (result.authenticated && result.hasInvite) {
+          sessionStorage.setItem('bb_access', '1')
+          setCompanyContext(result.companyContext)
+          setAuthorized(true)
+        }
+      } catch {
+        // Session check failed; fall back to code gate
+      }
+
+      if (!cancelled) setSessionChecked(true)
     }
+
+    void checkAccess()
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
@@ -211,7 +250,21 @@ export function AssessmentPage() {
   }, [])
 
   if (!authorized) {
-    return <AccessGate onUnlock={() => setAuthorized(true)} />
+    if (!sessionChecked) {
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+        </div>
+      )
+    }
+    return (
+      <AccessGate
+        onUnlock={(ctx) => {
+          if (ctx) setCompanyContext(ctx)
+          setAuthorized(true)
+        }}
+      />
+    )
   }
 
   if (!isLoaded) {
@@ -246,6 +299,8 @@ export function AssessmentPage() {
     setData,
     onPrev: currentStepIndex > 0 ? goPrev : null,
     onNext: currentStepIndex < visibleSteps.length - 1 ? goNext : null,
+    companyContext,
+    setCompanyContext,
   }
 
   const renderStep = () => {

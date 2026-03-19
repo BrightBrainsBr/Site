@@ -1,8 +1,10 @@
+// frontend/app/api/portal/companies/[id]/settings/route.ts
+
 import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { getB2BUser } from '../../lib/getB2BUser'
+import { validatePortalSession } from '../../../lib/validatePortalSession'
 
 export const runtime = 'nodejs'
 
@@ -14,13 +16,13 @@ function getSiteUrl(): string {
 }
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ companyId: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { companyId } = await params
-  const auth = await getB2BUser(request, companyId)
-  if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status })
+  const valid = await validatePortalSession()
+  if (!valid) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 
+  const { id: companyId } = await params
   const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
   const { data: users } = await sb
@@ -76,12 +78,12 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { companyId } = await params
-  const auth = await getB2BUser(request, companyId)
-  if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status })
+  const valid = await validatePortalSession()
+  if (!valid) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 
+  const { id: companyId } = await params
   const body = await request.json()
   const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
@@ -157,9 +159,6 @@ export async function POST(
   if (body.action === 'remove_user') {
     const userId = body.userId
     if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
-    if (userId === auth.userId) {
-      return NextResponse.json({ error: 'Não é possível remover a si mesmo' }, { status: 400 })
-    }
 
     await sb.from('company_users').delete().eq('company_id', companyId).eq('user_id', userId)
     return NextResponse.json({ success: true })

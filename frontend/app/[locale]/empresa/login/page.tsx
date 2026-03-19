@@ -12,37 +12,46 @@ function LoginContent() {
   const error = searchParams.get('error')
   const message = searchParams.get('message')
 
+  const alertMessage =
+    error === 'not_company_user'
+      ? 'Esta conta não tem acesso ao dashboard empresarial.'
+      : message === 'invite_only'
+        ? 'Acesso por convite. Entre em contato com sua empresa.'
+        : message === 'account_created'
+          ? 'Conta criada com sucesso. Faça login.'
+          : message === 'password_updated' ||
+              message === 'Password updated successfully'
+            ? 'Senha atualizada com sucesso. Faça login.'
+            : message === 'logout_success'
+              ? 'Sessão encerrada com sucesso.'
+              : null
+
+  const alertType =
+    error === 'not_company_user' || message === 'invite_only'
+      ? 'warning'
+      : message === 'logout_success'
+        ? 'info'
+        : 'success'
+
+  const alertStyles = {
+    warning: 'bg-amber-900/20 border-amber-700/40 text-amber-300',
+    success: 'bg-green-900/20 border-green-700/40 text-green-300',
+    info: 'bg-blue-900/20 border-blue-700/40 text-blue-300',
+  }
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <div className="mb-6 flex flex-col items-center gap-2">
-        {message === 'invite_only' && (
-          <p className="rounded-lg bg-amber-900/30 px-4 py-2 text-sm text-amber-300">
-            Acesso por convite. Entre em contato com sua empresa.
-          </p>
-        )}
-        {error === 'not_company_user' && (
-          <p className="rounded-lg bg-amber-900/30 px-4 py-2 text-sm text-amber-300">
-            Esta conta não tem acesso ao dashboard empresarial.
-          </p>
-        )}
-        {message === 'account_created' && (
-          <p className="rounded-lg bg-green-900/30 px-4 py-2 text-sm text-green-300">
-            Conta criada com sucesso. Faça login.
-          </p>
-        )}
-        {(message === 'password_updated' || message === 'Password updated successfully') && (
-          <p className="rounded-lg bg-green-900/30 px-4 py-2 text-sm text-green-300">
-            Senha atualizada com sucesso. Faça login.
-          </p>
-        )}
-        {message === 'logout_success' && (
-          <p className="rounded-lg bg-blue-900/30 px-4 py-2 text-sm text-blue-300">
-            Sessão encerrada com sucesso.
-          </p>
-        )}
-      </div>
+    <>
+      {alertMessage && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4">
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm ${alertStyles[alertType]}`}
+          >
+            {alertMessage}
+          </div>
+        </div>
+      )}
       <B2BLoginComponent />
-    </div>
+    </>
   )
 }
 
@@ -50,7 +59,7 @@ export default function EmpresaLoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-screen items-center justify-center bg-[#060e1a]">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#00c9b1] border-t-transparent" />
         </div>
       }

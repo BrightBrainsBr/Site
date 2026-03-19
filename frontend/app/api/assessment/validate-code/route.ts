@@ -31,11 +31,18 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (!companyErr && companyCode) {
+      const { data: companyData } = await sb
+        .from('companies')
+        .select('departments')
+        .eq('id', companyCode.company_id)
+        .single()
+
       return NextResponse.json({
         valid: true,
         type: 'company',
         company_id: companyCode.company_id,
         department: companyCode.department ?? undefined,
+        departments: companyData?.departments ?? [],
         cycle_id: companyCode.cycle_id,
         code_id: companyCode.id,
       })

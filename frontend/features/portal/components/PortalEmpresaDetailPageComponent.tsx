@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
 import { B2BDashboardComponent } from '~/features/b2b-dashboard/components/B2BDashboardComponent'
 import { apiGet } from '~/shared/utils/api-helpers'
 import { PortalAdminTab } from './PortalAdminTab'
 import { PortalCodeGateComponent } from './PortalCodeGateComponent'
+import { PortalTopNav } from './PortalTopNav'
 
 interface CompanyDetail {
   id: string
@@ -28,7 +29,6 @@ export function PortalEmpresaDetailPageComponent({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const router = useRouter()
   const urlParams = useParams()
   const locale = (urlParams?.locale as string) ?? 'pt-BR'
   const [companyId, setCompanyId] = useState<string | null>(null)
@@ -108,44 +108,41 @@ export function PortalEmpresaDetailPageComponent({
 
   if (!company) {
     return (
-      <div className="p-8">
-        <p className="text-red-400">Empresa não encontrada.</p>
-        <Link
-          href={`/${locale}/portal/empresas`}
-          className="mt-4 inline-block text-[#00c9b1] hover:underline"
-        >
-          Voltar
-        </Link>
-      </div>
+      <>
+        <PortalTopNav />
+        <div className="p-8">
+          <p className="text-red-400">Empresa não encontrada.</p>
+          <Link
+            href={`/${locale}/portal/empresas`}
+            className="mt-4 inline-block text-[#00c9b1] hover:underline"
+          >
+            Voltar
+          </Link>
+        </div>
+      </>
     )
   }
 
   return (
     <div className="min-h-screen bg-[#07111F]">
-      <div className="flex items-center gap-4 border-b border-[rgba(255,255,255,0.08)] px-8 py-3">
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-[#5a7fa0] hover:text-[#cce6f7]"
-        >
-          ← Voltar
-        </button>
-        <span className="text-[#5a7fa0]">|</span>
+      <PortalTopNav companyName={company.name} />
+      <div className="flex items-center gap-1 border-b border-[rgba(255,255,255,0.08)] bg-[#0a1628] px-8 py-1.5">
         <button
           onClick={() => setActiveView('dashboard')}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+          className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
             activeView === 'dashboard'
               ? 'bg-[#0E1E33] text-[#cce6f7]'
-              : 'text-[#5a7fa0] hover:text-[#cce6f7]'
+              : 'text-[#5a7fa0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#cce6f7]'
           }`}
         >
           Dashboard
         </button>
         <button
           onClick={() => setActiveView('admin')}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+          className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
             activeView === 'admin'
               ? 'bg-[#0E1E33] text-[#cce6f7]'
-              : 'text-[#5a7fa0] hover:text-[#cce6f7]'
+              : 'text-[#5a7fa0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#cce6f7]'
           }`}
         >
           Configurações

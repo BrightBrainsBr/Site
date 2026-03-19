@@ -1,3 +1,4 @@
+import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 
@@ -21,14 +22,42 @@ const handleI18nRouting = createIntlMiddleware({
   alternateLinks: true,
 })
 
-export default function middleware(request: NextRequest) {
+function refreshSupabaseSession(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) return { supabase: null, cookiesToSet: [] as Array<{ name: string; value: string; options: Record<string, unknown> }> }
+
+  const cookiesToSet: Array<{ name: string; value: string; options: Record<string, unknown> }> = []
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
+      },
+      setAll(cookies) {
+        cookies.forEach(({ name, value }) => request.cookies.set(name, value))
+        cookiesToSet.push(...cookies)
+      },
+    },
+  })
+
+  return { supabase, cookiesToSet }
+}
+
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname === '/BitKeeper') {
     return NextResponse.error()
   }
 
-  // Recover from old/broken locale prefixes by canonicalizing all PT variants.
+  const { supabase, cookiesToSet } = refreshSupabaseSession(request)
+  if (supabase) {
+    await supabase.auth.getUser()
+  }
+
   const nestedPtPrefix = pathname.match(/^\/pt-BR\/pt(?:-br)?(\/.*)?$/i)
   if (nestedPtPrefix) {
     return redirectToCanonicalPtBr(request, nestedPtPrefix[1] ?? '')
@@ -44,5 +73,11 @@ export default function middleware(request: NextRequest) {
     return redirectToCanonicalPtBr(request, leadingPtAlias[1] ?? '')
   }
 
-  return handleI18nRouting(request)
+  const response = handleI18nRouting(request)
+
+  cookiesToSet.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options)
+  })
+
+  return response
 }
