@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { 
   type LoginCredentials,
-} from '@/app/auth/auth.interface';
+} from '@/auth/auth.interface';
 import { useToast } from '@/components/ui/use-toast';
 
 import { authService } from './authService';

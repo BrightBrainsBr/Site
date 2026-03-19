@@ -4,8 +4,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
-import { authService } from '@/app/auth/services_and_hooks/authService';
-import { useAuthStore } from '@/app/auth/services_and_hooks/authStore';
+import { authService } from '@/auth/services_and_hooks/authService';
+import { useAuthStore } from '@/auth/services_and_hooks/authStore';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();

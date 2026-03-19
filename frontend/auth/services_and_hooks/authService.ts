@@ -10,9 +10,9 @@ import {
   type ResetPasswordCredentials, 
   SignupCredentials,
   type UpdatePasswordCredentials,
-  type UserProfile} from '@/app/auth/auth.interface';
+  type UserProfile} from '@/auth/auth.interface';
 import { type Database } from '@/types/supabase';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '~/utils/supabase/client';
 
 import { useAuthStore } from './authStore';
 
@@ -293,8 +293,8 @@ export const authService = {
       console.log('Server-side signout successful.');
       
       if (typeof window !== 'undefined') {
-        console.log('Redirecting to /login?logout=success');
-        window.location.href = '/login?logout=success';
+        console.log('Redirecting to /empresa/login?logout=success');
+        window.location.href = '/pt-BR/empresa/login?logout=success';
       }
 
       return { data: true };
@@ -305,7 +305,7 @@ export const authService = {
       
       if (typeof window !== 'undefined') {
         console.log('Redirecting to /login?error=signout_failed due to error');
-        window.location.href = '/login?error=signout_failed';
+        window.location.href = '/pt-BR/empresa/login?error=signout_failed';
       }
       
       return {
@@ -585,8 +585,8 @@ export const authService = {
       }
       
       if (typeof window !== 'undefined') {
-        console.log("[EMERGENCY] Redirecting to /login?force_reset=true");
-        window.location.href = '/login?force_reset=true';
+        console.log("[EMERGENCY] Redirecting to /empresa/login?force_reset=true");
+        window.location.href = '/pt-BR/empresa/login?force_reset=true';
       }
       
       return { data: true };
@@ -594,8 +594,8 @@ export const authService = {
       const err = error as Error;
       console.error('[EMERGENCY] Error during force sign out:', err);
       if (typeof window !== 'undefined') {
-        console.log("[EMERGENCY] Redirecting to /login?force_reset=true after error");
-        window.location.href = '/login?force_reset=true';
+        console.log("[EMERGENCY] Redirecting to /empresa/login?force_reset=true after error");
+        window.location.href = '/pt-BR/empresa/login?force_reset=true';
       }
       return {
         error: {

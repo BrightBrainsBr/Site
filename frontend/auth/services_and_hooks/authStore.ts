@@ -10,7 +10,7 @@ import {
   type EnrichedOrganization,
   type SubscriptionStatus,
   type UserProfile,
-} from '@/app/auth/auth.interface';
+} from '@/auth/auth.interface';
 
 interface AuthState {
   // Core auth state

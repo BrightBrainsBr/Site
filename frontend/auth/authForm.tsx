@@ -11,13 +11,10 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { authService } from '@/app/auth/services_and_hooks/authService';
-import { useAuthHook } from '@/app/auth/services_and_hooks/useAuthHook';
-import { HTFButton } from '@/app/shared/components/button/HTFButtonComponent';
-import { HFInputComponent } from '@/app/shared/components/forms/HFInputComponent';
-import GoogleAuthFallbackComponent from '@/components/auth/GoogleAuthFallbackComponent';
-// Use shadcn Alert
-import { createClient } from '@/utils/supabase/client';
+import { authService } from '@/auth/services_and_hooks/authService';
+import { useAuthHook } from '@/auth/services_and_hooks/useAuthHook';
+import { createClient } from '~/utils/supabase/client';
+import { Controller } from 'react-hook-form';
 
 interface AuthFormProps {
   view: 'sign_in' | 'sign_up' | 'forgotten_password';
@@ -284,28 +281,21 @@ export function AuthForm({ view, redirectedFrom, onSuccess, onError, hideProvide
               {!hideProviders && (
                 <>
                   {showGoogleFallback ? (
-                    <GoogleAuthFallbackComponent
-                      onRetry={async () => {
-                        setGoogleAuthRetries(prev => prev + 1);
-                        const result = await authService.signInWithProvider('google', redirectedFrom);
-                        if (result.error) {
-                          console.error('Google OAuth retry failed:', result.error);
-                          if (googleAuthRetries >= 2) {
-                            // After 3 attempts, keep showing fallback
-                            setAuthError('Google sign-in is having issues. Please use email sign-in instead.');
-                          } else {
-                            setAuthError(result.error.message);
-                          }
-                        } else {
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center">
+                      <p className="text-sm text-amber-800">
+                        Google sign-in is having issues. Please use email sign-in instead.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
                           setShowGoogleFallback(false);
                           setAuthError(null);
-                        }
-                      }}
-                      onSwitchToEmail={() => {
-                        setShowGoogleFallback(false);
-                        setAuthError(null);
-                      }}
-                    />
+                        }}
+                        className="mt-2 text-sm font-medium text-amber-700 hover:underline"
+                      >
+                        Use email instead
+                      </button>
+                    </div>
                   ) : (
                     <button
                       type="button"
@@ -355,66 +345,86 @@ export function AuthForm({ view, redirectedFrom, onSuccess, onError, hideProvide
               )}
 
                              {/* Email Input */}
-               <HFInputComponent
-                 control={control}
-                 name="email"
-                 label="Email address"
-                 type="email"
-                 placeholder="Your email address"
-                 autoComplete="email"
-                 inputClassName="focus:ring-gray-500 focus:border-gray-500"
-                 rules={{
-                   required: 'Email is required',
-                   pattern: {
-                     value: /.+@.+\..+/,
-                     message: 'Please enter a valid email address'
-                   }
-                 }}
-               />
+              <Controller
+                control={control}
+                name="email"
+                rules={{
+                  required: 'Email is required',
+                  pattern: {
+                    value: /.+@.+\..+/,
+                    message: 'Please enter a valid email address',
+                  },
+                }}
+                render={({ field, fieldState }) => (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Email address</label>
+                    <input
+                      {...field}
+                      type="email"
+                      placeholder="Your email address"
+                      autoComplete="email"
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-gray-500 focus:ring-gray-500"
+                    />
+                    {fieldState.error && (
+                      <p className="mt-1 text-sm text-red-600">{fieldState.error.message}</p>
+                    )}
+                  </div>
+                )}
+              />
 
                {/* Password Input - Hidden for reset password */}
                {!hidePassword && (
-                 <HFInputComponent
+                 <Controller
                    control={control}
                    name="password"
-                   label={view === 'sign_up' ? 'Create a Password' : 'Password'}
-                   type="password"
-                   placeholder={view === 'sign_up' ? 'Create your password' : 'Your password'}
-                   autoComplete={view === 'sign_up' ? 'new-password' : 'current-password'}
-                   inputClassName="focus:ring-gray-500 focus:border-gray-500"
                    rules={{
                      required: 'Password is required',
                      minLength: {
                        value: 6,
-                       message: 'Password must be at least 6 characters long'
-                     }
+                       message: 'Password must be at least 6 characters long',
+                     },
                    }}
+                   render={({ field, fieldState }) => (
+                     <div>
+                       <label className="mb-1 block text-sm font-medium text-gray-700">
+                         {view === 'sign_up' ? 'Create a Password' : 'Password'}
+                       </label>
+                       <input
+                         {...field}
+                         type="password"
+                         placeholder={view === 'sign_up' ? 'Create your password' : 'Your password'}
+                         autoComplete={view === 'sign_up' ? 'new-password' : 'current-password'}
+                         className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-gray-500 focus:ring-gray-500"
+                       />
+                       {fieldState.error && (
+                         <p className="mt-1 text-sm text-red-600">{fieldState.error.message}</p>
+                       )}
+                     </div>
+                   )}
                  />
                )}
 
               
 
               {/* Submit Button */}
-              <HTFButton
+              <button
                 type="submit"
-                variant={view === 'sign_up' ? 'primary' : 'secondary'}
-                size="lg"
                 disabled={isSubmitting || cooldownSeconds > 0}
-                className="w-full"
+                className="w-full rounded-lg bg-gray-900 px-4 py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-                    {view === 'sign_up' ? 'Creating account...' : 
+                    {view === 'sign_up' ? 'Creating account...' :
                      view === 'forgotten_password' ? 'Sending reset email...' : 'Signing in...'}
                   </div>
                 ) : cooldownSeconds > 0 ? (
                   `Please wait ${cooldownSeconds}s`
                 ) : (
-                  view === 'sign_up' ? 'Create account' : 
+                  view === 'sign_up' ? 'Create account' :
                   view === 'forgotten_password' ? 'Send reset email' : 'Sign in'
                 )}
-              </HTFButton>
+              </button>
 
               {/* Additional Links */}
               {view === 'sign_in' && (

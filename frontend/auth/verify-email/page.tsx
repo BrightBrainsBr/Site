@@ -5,17 +5,12 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
-import { authService } from '@/app/auth/services_and_hooks/authService';
-import { HTFButton } from '@/app/shared/components/button/HTFButtonComponent';
-import { SiteFooter } from '@/components/site-footer';
-import { SiteHeader } from '@/components/site-header';
+import { authService } from '@/auth/services_and_hooks/authService';
 
 // Loading component for suspense fallback
 function VerifyEmailLoading() {
   return (
-    <>
-      <SiteHeader hideGetStarted />
-      <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="animate-spin rounded-full h-12 w-12 border-y-2 border-blue-500 mx-auto mb-4" />
@@ -23,8 +18,6 @@ function VerifyEmailLoading() {
           </div>
         </div>
       </div>
-      <SiteFooter />
-    </>
   );
 }
 
@@ -158,34 +151,29 @@ function VerifyEmailContent() {
 
   if (!email) {
     return (
-      <>
-        <SiteHeader hideGetStarted />
-        <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
-          <div className="max-w-md mx-auto text-center">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                Missing Email
-              </h1>
-              <p className="text-gray-600 mb-6">
-                We couldn't find your email address. Please try signing up again.
-              </p>
-              <Link href="/signup">
-                <HTFButton variant="primary" size="default" className="w-full">
-                  Back to Sign Up
-                </HTFButton>
-              </Link>
-            </div>
+      <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Missing Email
+            </h1>
+            <p className="text-gray-600 mb-6">
+              We couldn&apos;t find your email address. Please try signing up again.
+            </p>
+            <Link
+              href="/pt-BR/empresa/login"
+              className="block w-full rounded-lg bg-gray-900 px-4 py-3 text-center font-medium text-white hover:bg-gray-800"
+            >
+              Back to Login
+            </Link>
           </div>
         </div>
-        <SiteFooter />
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <SiteHeader hideGetStarted />
-      <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -234,12 +222,11 @@ function VerifyEmailContent() {
             )}
 
             {/* Verify Button */}
-            <HTFButton
-              variant="primary"
-              size="default"
-              className="w-full mb-4"
+            <button
+              type="button"
               onClick={handleVerify}
               disabled={isVerifying || code.join('').length !== 6}
+              className="w-full mb-4 rounded-lg bg-gray-900 px-4 py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
             >
               {isVerifying ? (
                 <div className="flex items-center justify-center gap-2">
@@ -249,7 +236,7 @@ function VerifyEmailContent() {
               ) : (
                 'Verify Email'
               )}
-            </HTFButton>
+            </button>
 
             {/* Resend Code */}
             <div className="text-center">
@@ -265,20 +252,18 @@ function VerifyEmailContent() {
               </button>
             </div>
 
-            {/* Back to signup */}
+            {/* Back to login */}
             <div className="mt-6 pt-4 border-t border-gray-200 text-center">
-              <Link 
-                href="/signup" 
+              <Link
+                href="/pt-BR/empresa/login"
                 className="text-sm text-gray-600 hover:text-gray-700"
               >
-                Wrong email? Go back to sign up
+                Wrong email? Go back to login
               </Link>
             </div>
           </div>
         </div>
       </div>
-      <SiteFooter />
-    </>
   );
 }
 

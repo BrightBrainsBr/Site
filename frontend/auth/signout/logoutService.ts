@@ -19,11 +19,11 @@ export async function logoutServerAction() {
     await supabase.auth.signOut()
 
     // Force a redirect to the login page with a logout success message
-    redirect('/login?logout=success')
+    redirect('/pt-BR/empresa/login?logout=success')
   } catch (error) {
     console.error('Error during logout:', error)
     
     // Redirect to login with an error message
-    redirect('/login?error=logout_failed')
+    redirect('/pt-BR/empresa/login?error=logout_failed')
   }
 } 

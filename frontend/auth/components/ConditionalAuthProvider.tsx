@@ -4,7 +4,7 @@
 
 import { usePathname } from 'next/navigation';
 
-import { AuthProvider } from '@/app/auth/components/authProvider';
+import { AuthProvider } from '@/auth/components/authProvider';
 
 // Routes that need auth functionality
 const authRoutes = [

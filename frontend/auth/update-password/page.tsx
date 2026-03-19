@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { authService } from '@/app/auth/services_and_hooks/authService';
-import { HFInputComponent } from '@/app/shared/components/forms/HFInputComponent';
+import { authService } from '@/auth/services_and_hooks/authService';
+import { Controller } from 'react-hook-form';
 
 type UpdatePasswordFormData = {
   password: string;
@@ -19,7 +19,7 @@ export default function UpdatePasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const { control, handleSubmit, watch, formState: { errors } } = useForm<UpdatePasswordFormData>({
+  const { control, handleSubmit, watch } = useForm<UpdatePasswordFormData>({
     defaultValues: {
       password: '',
       confirmPassword: '',
@@ -41,7 +41,7 @@ export default function UpdatePasswordPage() {
         setSuccess(true);
         // Redirect to login after 2 seconds
         setTimeout(() => {
-          router.push('/login?message=Password updated successfully');
+          router.push('/pt-BR/empresa/login?message=Password updated successfully');
         }, 2000);
       }
     } catch (error: any) {
@@ -102,33 +102,55 @@ export default function UpdatePasswordPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
-            <HFInputComponent
+            <Controller
               control={control}
               name="password"
-              label="New Password"
-              type="password"
-              placeholder="Enter your new password"
-              autoComplete="new-password"
               rules={{
                 required: 'Password is required',
                 minLength: {
                   value: 6,
-                  message: 'Password must be at least 6 characters long'
-                }
+                  message: 'Password must be at least 6 characters long',
+                },
               }}
+              render={({ field, fieldState }) => (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">New Password</label>
+                  <input
+                    {...field}
+                    type="password"
+                    placeholder="Enter your new password"
+                    autoComplete="new-password"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-gray-500 focus:ring-gray-500"
+                  />
+                  {fieldState.error && (
+                    <p className="mt-1 text-sm text-red-600">{fieldState.error.message}</p>
+                  )}
+                </div>
+              )}
             />
 
-            <HFInputComponent
+            <Controller
               control={control}
               name="confirmPassword"
-              label="Confirm New Password"
-              type="password"
-              placeholder="Confirm your new password"
-              autoComplete="new-password"
               rules={{
                 required: 'Please confirm your password',
-                validate: (value) => value === password || 'Passwords do not match'
+                validate: (value) => value === password || 'Passwords do not match',
               }}
+              render={({ field, fieldState }) => (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Confirm New Password</label>
+                  <input
+                    {...field}
+                    type="password"
+                    placeholder="Confirm your new password"
+                    autoComplete="new-password"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-gray-500 focus:ring-gray-500"
+                  />
+                  {fieldState.error && (
+                    <p className="mt-1 text-sm text-red-600">{fieldState.error.message}</p>
+                  )}
+                </div>
+              )}
             />
           </div>
 

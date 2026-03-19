@@ -1,21 +1,19 @@
-// app/auth/signin/page.tsx
+// frontend/auth/signin/page.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-// Redirects /auth/signin to /login to keep the URL clean
+// Redirects /auth/signin to /empresa/login (B2B HR login)
 export default function SignInRedirectPage() {
   const router = useRouter();
-  
+
   useEffect(() => {
-    // Get any query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const queryString = urlParams.toString();
-    
-    // Redirect to /login with any existing query parameters
-    const redirectPath = queryString ? `/login?${queryString}` : '/login';
-    console.log(`Redirecting from /auth/signin to ${redirectPath}`);
+    const redirectPath = queryString
+      ? `/pt-BR/empresa/login?${queryString}`
+      : '/pt-BR/empresa/login';
     router.replace(redirectPath);
   }, [router]);
   

@@ -7,7 +7,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { useAuthHook as useAuth } from '@/app/auth/services_and_hooks/useAuthHook';
+import { useAuthHook as useAuth } from '@/auth/services_and_hooks/useAuthHook';
 
 export default function SignOutPage() {
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function SignOutPage() {
       
       // Automatically redirect to login after 2 seconds
       setTimeout(() => {
-        router.push('/login');
+        router.push('/pt-BR/empresa/login');
       }, 2000);
       
     } catch (err) {
@@ -65,7 +65,7 @@ export default function SignOutPage() {
         console.log('[SignOut] User already signed out');
         setSuccess(true);
         setTimeout(() => {
-          router.push('/login');
+          router.push('/pt-BR/empresa/login');
         }, 1000);
       }
     }
@@ -117,7 +117,7 @@ export default function SignOutPage() {
             <p className="text-gray-300 mb-4">Successfully signed out!</p>
             <p className="text-gray-400 text-sm mb-4">Redirecting to login page...</p>
             <button
-              onClick={() => router.push('/login')}
+              onClick={() => router.push('/pt-BR/empresa/login')}
               className="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary-dark transition-colors"
             >
               Sign In Again
@@ -136,7 +136,7 @@ export default function SignOutPage() {
 // import { useRouter } from 'next/navigation';
 // import { useEffect,useState } from 'react';
 
-// import { useAuthHook as useAuth } from '@/app/auth/services_and_hooks/useAuthHook';
+// import { useAuthHook as useAuth } from '@/auth/services_and_hooks/useAuthHook';
 
 // export default function SignOutPage() {
 //   const router = useRouter();

@@ -2,8 +2,8 @@
 // app/utils/authDiagnostics.ts
 'use client';
 
-import { authService } from '@/app/auth/services_and_hooks/authService';
-import { useAuthStore } from '@/app/auth/services_and_hooks/authStore';
+import { authService } from '@/auth/services_and_hooks/authService';
+import { useAuthStore } from '@/auth/services_and_hooks/authStore';
 import { createClient } from '@/utils/supabase/client';
 
 /**

@@ -3,8 +3,8 @@ import { Session, User } from '@supabase/supabase-js';
 
 import { Database } from '@/types/supabase';
 
-// User types in the system
-export type UserType = 'admin' | 'university_user' | 'learner';
+// User types in the system (Bright Precision B2B)
+export type UserType = 'company_hr';
 
 // Use database types directly from Supabase (will auto-update after migration)
 type Tables = Database['public']['Tables'];
