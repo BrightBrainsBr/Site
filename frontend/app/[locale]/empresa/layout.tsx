@@ -3,6 +3,8 @@
 import type { Metadata } from 'next'
 import { DM_Sans, JetBrains_Mono, Syne } from 'next/font/google'
 
+import { ReactQueryProvider } from '~/shared/providers/ReactQueryProvider'
+
 const syne = Syne({
   subsets: ['latin'],
   weight: ['700', '800'],
@@ -36,11 +38,13 @@ export default function EmpresaLayout({
   children: React.ReactNode
 }) {
   return (
-    <div
-      className={`${syne.variable} ${dmSans.variable} ${jetBrainsMono.variable} min-h-screen bg-[#060e1a] text-[#cce6f7] antialiased`}
-      style={{ fontFamily: 'var(--font-sans-portal), sans-serif' }}
-    >
-      <main>{children}</main>
-    </div>
+    <ReactQueryProvider>
+      <div
+        className={`${syne.variable} ${dmSans.variable} ${jetBrainsMono.variable} min-h-screen bg-[#060e1a] text-[#cce6f7] antialiased`}
+        style={{ fontFamily: 'var(--font-sans-portal), sans-serif' }}
+      >
+        <main>{children}</main>
+      </div>
+    </ReactQueryProvider>
   )
 }

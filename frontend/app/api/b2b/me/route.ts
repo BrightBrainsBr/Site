@@ -50,6 +50,7 @@ export async function GET() {
 
     return NextResponse.json({
       isCompanyUser: true,
+      user_email: user.email ?? null,
       company_id: cu.company_id,
       company_name: company?.name ?? null,
       current_cycle: currentCycle

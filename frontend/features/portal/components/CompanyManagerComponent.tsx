@@ -3,7 +3,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface Company {
@@ -38,6 +38,7 @@ export function CompanyManagerComponent({
   const locale = (params?.locale as string) ?? 'pt-BR'
   const queryClient = useQueryClient()
 
+  const [searchQuery, setSearchQuery] = useState('')
   const [newName, setNewName] = useState('')
   const [newCnpj, setNewCnpj] = useState('')
   const [newEmail, setNewEmail] = useState('')
@@ -78,6 +79,18 @@ export function CompanyManagerComponent({
       setCreating(false)
     }
   }, [newName, newCnpj, newEmail, queryClient])
+
+  const filteredCompanies = useMemo(() => {
+    const list = companies ?? []
+    if (!searchQuery.trim()) return list
+    const q = searchQuery.toLowerCase()
+    return list.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.cnpj && c.cnpj.toLowerCase().includes(q)) ||
+        (c.contact_email && c.contact_email.toLowerCase().includes(q)),
+    )
+  }, [companies, searchQuery])
 
   if (isLoading) {
     return (
@@ -137,6 +150,29 @@ export function CompanyManagerComponent({
         </div>
       )}
 
+      <div className="relative">
+        <svg
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5a7fa0]"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+          />
+        </svg>
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar por nome, CNPJ ou e-mail..."
+          className="w-full rounded-lg border border-[#1a3a5c] bg-[#060e1a] py-2 pl-10 pr-4 text-sm text-[#cce6f7] placeholder-[#5a7fa0] focus:border-[#00c9b1] focus:outline-none"
+        />
+      </div>
+
       <div className="overflow-x-auto rounded-xl border border-[#1a3a5c]">
         <table className="w-full">
           <thead>
@@ -159,7 +195,7 @@ export function CompanyManagerComponent({
             </tr>
           </thead>
           <tbody>
-            {(companies ?? []).map((c) => (
+            {filteredCompanies.map((c) => (
               <tr
                 key={c.id}
                 className="cursor-pointer border-b border-[#1a3a5c]/50 hover:bg-[#0c1a2e]/50"
@@ -196,9 +232,11 @@ export function CompanyManagerComponent({
             ))}
           </tbody>
         </table>
-        {(companies ?? []).length === 0 && (
+        {filteredCompanies.length === 0 && (
           <p className="py-8 text-center text-[#5a7fa0]">
-            Nenhuma empresa cadastrada.
+            {searchQuery.trim()
+              ? 'Nenhuma empresa encontrada.'
+              : 'Nenhuma empresa cadastrada.'}
           </p>
         )}
       </div>

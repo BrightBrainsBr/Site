@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+import { createClient } from '~/utils/supabase/client'
+
 export function B2BSignupComponent() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -43,9 +45,20 @@ export function B2BSignupComponent() {
       }
 
       setSuccess(true)
-      setTimeout(() => {
+
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (signInError) {
         router.push('/pt-BR/empresa/login?message=account_created')
-      }, 1500)
+        return
+      }
+
+      router.push('/pt-BR/empresa/dashboard')
+      router.refresh()
     } catch {
       setError('Erro de conexão. Tente novamente.')
     } finally {
@@ -95,6 +108,9 @@ export function B2BSignupComponent() {
             className="w-full rounded-lg border border-[#1a3a5c] bg-[#060e1a] px-4 py-3 text-[#cce6f7] placeholder-[#5a7fa0] focus:border-[#00c9b1] focus:outline-none focus:ring-1 focus:ring-[#00c9b1]/30"
             placeholder="seu@empresa.com"
           />
+          <p className="mt-1 text-[11px] text-[#5a7fa0]">
+            Use o e-mail do domínio da sua empresa para acesso automático.
+          </p>
         </div>
 
         <div>
@@ -136,7 +152,7 @@ export function B2BSignupComponent() {
 
         {success && (
           <p className="rounded-lg bg-green-900/30 px-3 py-2 text-sm text-green-300">
-            Conta criada! Redirecionando para login...
+            Conta criada com sucesso! Entrando no dashboard...
           </p>
         )}
 

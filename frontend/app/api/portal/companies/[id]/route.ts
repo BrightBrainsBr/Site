@@ -79,6 +79,7 @@ export async function PATCH(
     gro_issued_at?: string | null
     gro_valid_until?: string | null
     allowed_domains?: string[]
+    departments?: string[]
   }
 
   const sb = createClient(

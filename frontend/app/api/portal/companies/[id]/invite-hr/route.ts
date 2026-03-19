@@ -9,11 +9,10 @@ import { validatePortalSession } from '../../../lib/validatePortalSession'
 export const runtime = 'nodejs'
 
 function getSiteUrl(): string {
-  return (process.env.SITE_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL)
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000'
+  if (process.env.SITE_URL) return process.env.SITE_URL
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return 'http://localhost:3000'
 }
 
 export async function POST(

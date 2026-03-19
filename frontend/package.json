@@ -20,6 +20,7 @@
     "@tanstack/react-query": "^5.90.21",
     "clsx": "^2.1.1",
     "jspdf": "^4.2.0",
+    "lucide-react": "^0.577.0",
     "marked": "^17.0.4",
     "next": "15.3.8",
     "next-compose-plugins": "^2.2.1",

@@ -87,12 +87,20 @@ export function B2BLoginComponent() {
         </div>
 
         <div>
-          <label
-            htmlFor="password"
-            className="mb-1 block text-sm font-medium text-[#cce6f7]"
-          >
-            Senha
-          </label>
+          <div className="mb-1 flex items-center justify-between">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-[#cce6f7]"
+            >
+              Senha
+            </label>
+            <Link
+              href="/pt-BR/empresa/reset-password"
+              className="text-xs text-[#00c9b1] hover:underline"
+            >
+              Esqueceu a senha?
+            </Link>
+          </div>
           <input
             id="password"
             type="password"

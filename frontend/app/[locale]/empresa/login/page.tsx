@@ -30,9 +30,14 @@ function LoginContent() {
             Conta criada com sucesso. Faça login.
           </p>
         )}
-        {message === 'Password updated successfully' && (
+        {(message === 'password_updated' || message === 'Password updated successfully') && (
           <p className="rounded-lg bg-green-900/30 px-4 py-2 text-sm text-green-300">
-            Senha atualizada. Faça login.
+            Senha atualizada com sucesso. Faça login.
+          </p>
+        )}
+        {message === 'logout_success' && (
+          <p className="rounded-lg bg-blue-900/30 px-4 py-2 text-sm text-blue-300">
+            Sessão encerrada com sucesso.
           </p>
         )}
       </div>

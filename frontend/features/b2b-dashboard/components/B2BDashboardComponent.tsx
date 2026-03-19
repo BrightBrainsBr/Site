@@ -10,11 +10,12 @@ import { B2BDomainsTab } from './tabs/B2BDomainsTab'
 import { B2BOverviewTab } from './tabs/B2BOverviewTab'
 import { B2BReportsTab } from './tabs/B2BReportsTab'
 import { B2BRiskMapTab } from './tabs/B2BRiskMapTab'
+import { B2BSettingsTab } from './tabs/B2BSettingsTab'
 import { useB2BCompliance } from '../hooks/useB2BCompliance'
 import { useB2BOverview } from '../hooks/useB2BOverview'
 import { useB2BSession } from '../hooks/useB2BSession'
 
-type TabId = 'overview' | 'risk' | 'domains' | 'compliance' | 'alerts' | 'reports'
+type TabId = 'overview' | 'risk' | 'domains' | 'compliance' | 'alerts' | 'reports' | 'settings'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'overview', label: 'Visão Geral' },
@@ -23,6 +24,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'compliance', label: 'Conformidade NR-1' },
   { id: 'alerts', label: 'Alertas & Prioridades' },
   { id: 'reports', label: 'Relatórios' },
+  { id: 'settings', label: 'Configurações' },
 ]
 
 interface B2BDashboardProps {
@@ -64,6 +66,10 @@ export function B2BDashboardComponent({
     !!compliance?.groValidUntil &&
     new Date(compliance.groValidUntil) > new Date()
 
+  const visibleTabs = isPortalMode
+    ? TABS.filter((t) => t.id !== 'settings')
+    : TABS
+
   return (
     <div className="flex min-h-screen flex-col bg-[#07111F]">
       <B2BHeaderComponent
@@ -76,20 +82,23 @@ export function B2BDashboardComponent({
         cyclesOverride={cycles}
         currentCycleOverride={currentCycle}
         hideSignOut={isPortalMode}
+        onSettingsClick={isPortalMode ? undefined : () => setActiveTab('settings')}
       />
 
-      {/* KPI row */}
-      <div className="px-6 py-4">
-        <B2BKpiRowComponent
-          data={overview}
-          complianceData={compliance}
-          isLoading={overviewLoading}
-        />
-      </div>
+      {/* KPI row — hide when on settings */}
+      {activeTab !== 'settings' && (
+        <div className="px-6 py-4">
+          <B2BKpiRowComponent
+            data={overview}
+            complianceData={compliance}
+            isLoading={overviewLoading}
+          />
+        </div>
+      )}
 
       {/* Tab bar */}
       <div className="flex gap-1 border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-6">
-        {TABS.map((t) => (
+        {visibleTabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
@@ -128,6 +137,9 @@ export function B2BDashboardComponent({
         )}
         {activeTab === 'reports' && (
           <B2BReportsTab companyId={companyId} cycleId={cycleId} />
+        )}
+        {activeTab === 'settings' && (
+          <B2BSettingsTab companyId={companyId} />
         )}
       </div>
     </div>

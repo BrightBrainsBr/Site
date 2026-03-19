@@ -11,6 +11,12 @@ export async function getB2BUser(
   | { ok: true; companyId: string; userId: string; isPortalAdmin?: boolean }
   | { ok: false; status: number; body: object }
 > {
+  const cookieStore = await cookies()
+  const portalSession = cookieStore.get('portal_session')
+  if (portalSession?.value) {
+    return { ok: true, companyId, userId: 'portal-admin', isPortalAdmin: true }
+  }
+
   try {
     const supabase = await createServerClient()
     const {
@@ -35,17 +41,11 @@ export async function getB2BUser(
         return { ok: true, companyId, userId: user.id }
       }
     }
-
-    const cookieStore = await cookies()
-    const portalSession = cookieStore.get('portal_session')
-    if (portalSession?.value) {
-      return { ok: true, companyId, userId: 'portal-admin', isPortalAdmin: true }
-    }
-
-    return { ok: false, status: 401, body: { error: 'Unauthorized' } }
   } catch {
-    return { ok: false, status: 500, body: { error: 'Internal error' } }
+    // Supabase cookie parsing can fail (e.g. Base64-URL errors) — not fatal
   }
+
+  return { ok: false, status: 401, body: { error: 'Unauthorized' } }
 }
 
 export async function resolveCycle(

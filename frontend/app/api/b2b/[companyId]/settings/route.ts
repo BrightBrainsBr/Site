@@ -1,0 +1,150 @@
+import { createClient } from '@supabase/supabase-js'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
+import { getB2BUser } from '../../lib/getB2BUser'
+
+export const runtime = 'nodejs'
+
+function getSiteUrl(): string {
+  if (process.env.SITE_URL) return process.env.SITE_URL
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return 'http://localhost:3000'
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ companyId: string }> }
+) {
+  const { companyId } = await params
+  const auth = await getB2BUser(request, companyId)
+  if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status })
+
+  const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+  const { data: users } = await sb
+    .from('company_users')
+    .select('id, user_id, role, created_at')
+    .eq('company_id', companyId)
+
+  const enriched = await Promise.all(
+    (users ?? []).map(async (u) => {
+      const { data } = await sb.auth.admin.getUserById(u.user_id)
+      return { ...u, email: data?.user?.email ?? null }
+    })
+  )
+
+  const { data: company } = await sb
+    .from('companies')
+    .select('id, name, allowed_domains, departments')
+    .eq('id', companyId)
+    .single()
+
+  const { data: evaluations } = await sb
+    .from('mental_health_evaluations')
+    .select('id, patient_name, patient_email, employee_department, status, reviewer_status, created_at, cycle_id')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: false })
+
+  return NextResponse.json({
+    users: enriched,
+    allowed_domains: company?.allowed_domains ?? [],
+    departments: company?.departments ?? [],
+    company_name: company?.name ?? null,
+    collaborators: {
+      evaluations: evaluations ?? [],
+    },
+  })
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ companyId: string }> }
+) {
+  const { companyId } = await params
+  const auth = await getB2BUser(request, companyId)
+  if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status })
+
+  const body = await request.json()
+  const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+
+  if (body.action === 'invite_bulk') {
+    const emails: string[] = body.emails ?? []
+    const role: string = body.role ?? 'collaborator'
+    const department: string | undefined = body.department
+
+    if (!emails.length) return NextResponse.json({ error: 'emails required' }, { status: 400 })
+
+    const redirectTo = `${getSiteUrl()}/pt-BR/empresa/auth-callback`
+    const results: Array<{ email: string; ok: boolean; error?: string }> = []
+
+    for (const rawEmail of emails) {
+      const email = rawEmail.trim().toLowerCase()
+      if (!email || !email.includes('@')) {
+        results.push({ email, ok: false, error: 'invalid email' })
+        continue
+      }
+
+      try {
+        if (role === 'admin') {
+          const { data: inviteData, error: inviteErr } = await sb.auth.admin.inviteUserByEmail(email, { redirectTo })
+          if (inviteErr) {
+            results.push({ email, ok: false, error: inviteErr.message })
+            continue
+          }
+          const userId = inviteData.user?.id
+          if (userId) {
+            await sb.from('company_users').upsert(
+              { user_id: userId, company_id: companyId, role: 'viewer' },
+              { onConflict: 'user_id,company_id' }
+            )
+          }
+          results.push({ email, ok: true })
+        } else {
+          await sb.from('company_access_codes').insert({
+            company_id: companyId,
+            code: `INV-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`.toUpperCase(),
+            employee_email: email,
+            department: department ?? null,
+            active: true,
+          })
+          results.push({ email, ok: true })
+        }
+      } catch (err) {
+        results.push({ email, ok: false, error: err instanceof Error ? err.message : 'Unknown error' })
+      }
+    }
+
+    return NextResponse.json({ results })
+  }
+
+  if (body.action === 'remove_user') {
+    const userId = body.userId
+    if (!userId) return NextResponse.json({ error: 'userId required' }, { status: 400 })
+    if (userId === auth.userId) {
+      return NextResponse.json({ error: 'Não é possível remover a si mesmo' }, { status: 400 })
+    }
+
+    await sb.from('company_users').delete().eq('company_id', companyId).eq('user_id', userId)
+    return NextResponse.json({ success: true })
+  }
+
+  if (body.action === 'update_domains') {
+    const domains = body.domains
+    if (!Array.isArray(domains)) return NextResponse.json({ error: 'domains must be array' }, { status: 400 })
+
+    await sb.from('companies').update({ allowed_domains: domains }).eq('id', companyId)
+    return NextResponse.json({ success: true })
+  }
+
+  if (body.action === 'update_departments') {
+    const departments = body.departments
+    if (!Array.isArray(departments)) return NextResponse.json({ error: 'departments must be array' }, { status: 400 })
+
+    await sb.from('companies').update({ departments }).eq('id', companyId)
+    return NextResponse.json({ success: true })
+  }
+
+  return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+}
