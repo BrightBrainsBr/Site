@@ -18,7 +18,12 @@ export const FORM_SECTIONS = [
   },
   {
     id: 'clinical',
-    fields: ['publico', 'queixaPrincipal', 'tempoSintomas', 'eventoDesencadeador'],
+    fields: [
+      'publico',
+      'queixaPrincipal',
+      'tempoSintomas',
+      'eventoDesencadeador',
+    ],
   },
   {
     id: 'history',

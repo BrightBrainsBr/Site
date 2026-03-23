@@ -6,6 +6,7 @@ interface SectionTitleProps {
   title: string
   subtitle?: string
   badge?: string
+  required?: boolean
 }
 
 export function SectionTitle({
@@ -13,12 +14,16 @@ export function SectionTitle({
   title,
   subtitle,
   badge,
+  required,
 }: SectionTitleProps) {
   return (
     <div className="mb-6">
       <div className="flex items-center gap-3 mb-2">
         <span className="text-2xl">{icon}</span>
-        <h2 className="text-xl font-semibold text-white">{title}</h2>
+        <h2 className="text-xl font-semibold text-white">
+          {title}
+          {required && <span className="ml-1 text-lime-400">*</span>}
+        </h2>
         {badge && (
           <span className="rounded-full bg-lime-400/20 px-3 py-0.5 text-xs font-medium text-lime-400">
             {badge}

@@ -10,7 +10,11 @@ import { StepNavigation } from '../StepNavigation'
 
 type Phase = 'review' | 'submitting' | 'submitted'
 
-export function SummaryStep({ data, onPrev }: StepComponentProps) {
+export function SummaryStep({
+  data,
+  onPrev,
+  companyContext,
+}: StepComponentProps) {
   const [phase, setPhase] = useState<Phase>('review')
   const [error, setError] = useState<string | null>(null)
   const [evaluationId, setEvaluationId] = useState<string | null>(null)
@@ -33,8 +37,7 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
           if (!f.data) continue
 
           const [header, b64] = f.data.split(',')
-          const mime =
-            header?.match(/:(.*?);/)?.[1] || 'application/pdf'
+          const mime = header?.match(/:(.*?);/)?.[1] || 'application/pdf'
           const bytes = atob(b64)
           const buf = new Uint8Array(bytes.length)
           for (let i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i)
@@ -89,6 +92,18 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
           formData: formDataWithoutUploads,
           scores,
           uploads: uploadedFiles.length > 0 ? uploadedFiles : undefined,
+          ...(companyContext?.company_id
+            ? { company_id: companyContext.company_id }
+            : {}),
+          ...(companyContext?.department
+            ? { employee_department: companyContext.department }
+            : {}),
+          ...(companyContext?.cycle_id
+            ? { cycle_id: companyContext.cycle_id }
+            : {}),
+          ...(companyContext?.code_id
+            ? { code_id: companyContext.code_id }
+            : {}),
         }),
       })
 
@@ -110,7 +125,7 @@ export function SummaryStep({ data, onPrev }: StepComponentProps) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
       setPhase('review')
     }
-  }, [data, scores])
+  }, [data, scores, companyContext])
 
   return (
     <div>

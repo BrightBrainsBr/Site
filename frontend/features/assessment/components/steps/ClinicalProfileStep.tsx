@@ -54,6 +54,9 @@ export function ClinicalProfileStep({
   onPrev,
   onNext,
 }: StepComponentProps) {
+  const isComplete =
+    data.publico !== '' && data.queixaPrincipal.trim() !== ''
+
   const update = (field: string, value: string) => {
     setData({ ...data, [field]: value })
   }
@@ -64,6 +67,7 @@ export function ClinicalProfileStep({
         icon="🎯"
         title="Perfil Clínico"
         subtitle="Selecione o perfil e descreva o motivo principal da avaliação"
+        required
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -120,7 +124,16 @@ export function ClinicalProfileStep({
         </div>
       </div>
 
-      <StepNavigation onPrev={onPrev} onNext={onNext} />
+      <StepNavigation
+        onPrev={onPrev}
+        onNext={onNext}
+        nextDisabled={!isComplete}
+        nextDisabledMessage={
+          !isComplete
+            ? 'Selecione um perfil e preencha a queixa principal para continuar.'
+            : undefined
+        }
+      />
     </div>
   )
 }

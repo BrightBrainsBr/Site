@@ -22,6 +22,7 @@
     "baseUrl": "./",
     "paths": {
       "~/*": ["./*"],
+      "@/*": ["./*"],
       "@futurebrand/*": ["./node_modules/@futurebrand/helpers-nextjs/dist/*"]
     }
   },

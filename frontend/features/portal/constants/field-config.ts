@@ -1,18 +1,21 @@
-import { CHRONIC_CONDITIONS, FAMILY_CONDITIONS } from '~/features/assessment/components/constants/medical-options'
 import {
   CAFFEINE_OPTIONS,
   CANNABIS_OPTIONS,
   CIVIL_STATUS_OPTIONS,
   EXERCISE_FREQ_OPTIONS,
   NEUROMOD_OPTIONS,
+  PROFESSIONAL_SITUATION_OPTIONS,
   RELATIONSHIP_SATISFACTION_OPTIONS,
   SLEEP_QUALITY_OPTIONS,
   STRESS_LEVEL_OPTIONS,
   STRESS_SOURCES,
   SUPPORT_NETWORK_OPTIONS,
   TOBACCO_OPTIONS,
-  PROFESSIONAL_SITUATION_OPTIONS,
 } from '~/features/assessment/components/constants/lifestyle-options'
+import {
+  CHRONIC_CONDITIONS,
+  FAMILY_CONDITIONS,
+} from '~/features/assessment/components/constants/medical-options'
 import { SYMPTOM_CATEGORIES } from '~/features/assessment/components/constants/symptom-categories'
 
 export interface SelectOption {
@@ -96,21 +99,49 @@ export const FIELD_CONFIG: Record<string, FieldConfig> = {
   triagemFormato: { type: 'select', options: TRIAGE_FORMAT_OPTIONS },
   usaMedicamento: { type: 'select', options: YES_NO },
   medPassado: { type: 'select', options: YES_NO },
-  estadoCivil: { type: 'select', options: stringsToOptions(CIVIL_STATUS_OPTIONS) },
-  satisfacaoRelacionamento: { type: 'select', options: stringsToOptions(RELATIONSHIP_SATISFACTION_OPTIONS) },
+  estadoCivil: {
+    type: 'select',
+    options: stringsToOptions(CIVIL_STATUS_OPTIONS),
+  },
+  satisfacaoRelacionamento: {
+    type: 'select',
+    options: stringsToOptions(RELATIONSHIP_SATISFACTION_OPTIONS),
+  },
   situacaoProfissional: {
     type: 'select',
-    options: PROFESSIONAL_SITUATION_OPTIONS.map((o) => ({ label: o.label, value: o.value })),
+    options: PROFESSIONAL_SITUATION_OPTIONS.map((o) => ({
+      label: o.label,
+      value: o.value,
+    })),
   },
-  cargaHoraria: { type: 'select', options: stringsToOptions(['< 20h', '20-30h', '30-40h', '40-50h', '50-60h', '> 60h']) },
-  qualidadeSono: { type: 'select', options: stringsToOptions(SLEEP_QUALITY_OPTIONS) },
-  atividadeFisica: { type: 'select', options: stringsToOptions(EXERCISE_FREQ_OPTIONS) },
+  cargaHoraria: {
+    type: 'select',
+    options: stringsToOptions([
+      '< 20h',
+      '20-30h',
+      '30-40h',
+      '40-50h',
+      '50-60h',
+      '> 60h',
+    ]),
+  },
+  qualidadeSono: {
+    type: 'select',
+    options: stringsToOptions(SLEEP_QUALITY_OPTIONS),
+  },
+  atividadeFisica: {
+    type: 'select',
+    options: stringsToOptions(EXERCISE_FREQ_OPTIONS),
+  },
   cafeina: { type: 'select', options: stringsToOptions(CAFFEINE_OPTIONS) },
   tabaco: { type: 'select', options: stringsToOptions(TOBACCO_OPTIONS) },
   cannabis: { type: 'select', options: stringsToOptions(CANNABIS_OPTIONS) },
   neuromod: { type: 'select', options: stringsToOptions(NEUROMOD_OPTIONS) },
   estresse: { type: 'select', options: stringsToOptions(STRESS_LEVEL_OPTIONS) },
-  redeApoio: { type: 'select', options: stringsToOptions(SUPPORT_NETWORK_OPTIONS) },
+  redeApoio: {
+    type: 'select',
+    options: stringsToOptions(SUPPORT_NETWORK_OPTIONS),
+  },
   usaWearable: { type: 'select', options: YES_NO },
 
   sintomasAtuais: { type: 'pills', availableItems: ALL_SYMPTOMS },

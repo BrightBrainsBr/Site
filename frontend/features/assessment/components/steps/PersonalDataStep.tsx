@@ -46,9 +46,23 @@ export function PersonalDataStep({
   setData,
   onPrev,
   onNext,
+  companyContext,
+  setCompanyContext,
 }: StepComponentProps) {
+  const isComplete = data.nome.trim() !== '' && data.nascimento.trim() !== ''
+
   const update = (field: string, value: string) => {
     setData({ ...data, [field]: value })
+  }
+
+  const departments = companyContext?.departments ?? []
+  const hasDepartments = companyContext?.company_id && departments.length > 0
+  const selectedDepartment = companyContext?.department ?? ''
+
+  const handleDepartmentChange = (value: string) => {
+    if (setCompanyContext && companyContext) {
+      setCompanyContext({ ...companyContext, department: value })
+    }
   }
 
   return (
@@ -57,6 +71,7 @@ export function PersonalDataStep({
         icon="👤"
         title="Dados Pessoais"
         subtitle="Informações básicas do paciente"
+        required
       />
 
       <div className="space-y-4">
@@ -98,7 +113,23 @@ export function PersonalDataStep({
           value={data.email}
           onChange={(v) => update('email', v)}
           type="email"
+          readOnly={!!companyContext?.prefilled_email}
+          hint={
+            companyContext?.prefilled_email
+              ? 'E-mail vinculado ao convite da empresa'
+              : undefined
+          }
         />
+
+        {hasDepartments && (
+          <Select
+            label="Departamento"
+            value={selectedDepartment}
+            onChange={handleDepartmentChange}
+            options={departments.map((d) => ({ label: d, value: d }))}
+            placeholder="Selecione seu departamento"
+          />
+        )}
 
         <RadioGroup
           label="Sexo"
@@ -139,7 +170,16 @@ export function PersonalDataStep({
         </div>
       </div>
 
-      <StepNavigation onPrev={onPrev} onNext={onNext} />
+      <StepNavigation
+        onPrev={onPrev}
+        onNext={onNext}
+        nextDisabled={!isComplete}
+        nextDisabledMessage={
+          !isComplete
+            ? 'Preencha o nome e a data de nascimento para continuar.'
+            : undefined
+        }
+      />
     </div>
   )
 }

@@ -36,7 +36,7 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
         contentType="pages"
         blocks={pageData.blocks}
       />
-      
+
       {/* Injeta bloco de ebook no final da página sobre-nos */}
       {isSobreNosPage && (
         <BlockEbook

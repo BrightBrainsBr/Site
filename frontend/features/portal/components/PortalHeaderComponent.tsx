@@ -1,6 +1,9 @@
 // frontend/features/portal/components/PortalHeaderComponent.tsx
 'use client'
 
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+
 interface PortalHeaderComponentProps {
   totalCount: number
   pendingCount: number
@@ -12,9 +15,12 @@ export function PortalHeaderComponent({
   pendingCount,
   approvedCount,
 }: PortalHeaderComponentProps) {
+  const params = useParams()
+  const locale = (params?.locale as string) ?? 'pt-BR'
+
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#1a3a5c] bg-[#0c1a2e] px-8 py-4">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-6">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#00c9b1] to-[#0090ff]">
           <svg
             className="h-4 w-4 text-white"
@@ -41,6 +47,20 @@ export function PortalHeaderComponent({
             Portal Clínico
           </p>
         </div>
+        <nav className="flex gap-4">
+          <Link
+            href={`/${locale}/portal`}
+            className="text-sm text-[#5a7fa0] hover:text-[#cce6f7]"
+          >
+            Avaliações
+          </Link>
+          <Link
+            href={`/${locale}/portal/empresas`}
+            className="text-sm text-[#5a7fa0] hover:text-[#cce6f7]"
+          >
+            Empresas
+          </Link>
+        </nav>
       </div>
 
       <div className="flex items-center gap-4">

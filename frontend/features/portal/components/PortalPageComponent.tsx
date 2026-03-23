@@ -4,18 +4,14 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { apiGet } from '~/shared/utils/api-helpers'
+
 import { EvaluationListViewComponent } from './EvaluationListViewComponent'
 import { PortalCodeGateComponent } from './PortalCodeGateComponent'
-import { PortalHeaderComponent } from './PortalHeaderComponent'
-import { usePortalSummaryQueryHook } from '../hooks/usePortalSummaryQueryHook'
+import { PortalTopNav } from './PortalTopNav'
 
 export function PortalPageComponent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-
-  const { data: summaryData } = usePortalSummaryQueryHook({
-    enabled: isAuthenticated,
-  })
 
   const checkAuth = useCallback(async () => {
     try {
@@ -48,17 +44,9 @@ export function PortalPageComponent() {
     return <PortalCodeGateComponent onSuccess={handleCodeSuccess} />
   }
 
-  const totalCount = summaryData?.totalCount ?? 0
-  const pendingCount = summaryData?.pendingCount ?? 0
-  const approvedCount = summaryData?.approvedCount ?? 0
-
   return (
     <>
-      <PortalHeaderComponent
-        totalCount={totalCount}
-        pendingCount={pendingCount}
-        approvedCount={approvedCount}
-      />
+      <PortalTopNav />
       <EvaluationListViewComponent />
     </>
   )

@@ -13,6 +13,7 @@ import {
 } from '../services/localStorage'
 import type {
   AssessmentFormData,
+  CompanyContext,
   ScaleOption,
   ScaleQuestion,
   StepComponentProps,
@@ -41,7 +42,11 @@ import {
 
 const IS_DEV = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
 
-function AccessGate({ onUnlock }: { onUnlock: () => void }) {
+function AccessGate({
+  onUnlock,
+}: {
+  onUnlock: (ctx?: CompanyContext) => void
+}) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -57,11 +62,21 @@ function AccessGate({ onUnlock }: { onUnlock: () => void }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
       })
-      const { valid } = (await res.json()) as { valid: boolean }
+      const data = await res.json()
 
-      if (valid) {
+      if (data.valid) {
         sessionStorage.setItem('bb_access', '1')
-        onUnlock()
+        const ctx: CompanyContext | undefined =
+          data.type === 'company'
+            ? {
+                company_id: data.company_id,
+                department: data.department,
+                departments: data.departments,
+                cycle_id: data.cycle_id,
+                code_id: data.code_id,
+              }
+            : undefined
+        onUnlock(ctx)
       } else {
         setError(true)
       }
@@ -121,27 +136,82 @@ export function AssessmentPage() {
   const [data, setData] = useState<AssessmentFormData>(INITIAL_FORM_DATA)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [companyContext, setCompanyContext] = useState<CompanyContext>({})
+  const [sessionChecked, setSessionChecked] = useState(false)
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+    const isDevMode = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
+
+    let hasSessionFlag = false
     try {
-      if (
-        sessionStorage.getItem('bb_access') === '1' ||
-        process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
-      ) {
-        setAuthorized(true)
-      }
+      hasSessionFlag = sessionStorage.getItem('bb_access') === '1'
     } catch {
-      // ignore sessionStorage access issues
+      // ignore
+    }
+
+    if (isDevMode) {
+      setAuthorized(true)
+      setSessionChecked(true)
+    }
+
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/assessment/check-session')
+        const result = await res.json()
+        if (cancelled) return
+
+        if (result.authenticated && result.hasInvite) {
+          try {
+            sessionStorage.setItem('bb_access', '1')
+          } catch {
+            /* ignore */
+          }
+          setCompanyContext({
+            ...result.companyContext,
+            prefilled_email: !!result.userEmail,
+          })
+          if (result.userEmail) setSessionEmail(result.userEmail)
+          setAuthorized(true)
+          setSessionChecked(true)
+          return
+        }
+      } catch {
+        // Session check failed
+      }
+
+      if (!isDevMode) {
+        if (hasSessionFlag) {
+          setAuthorized(true)
+        }
+        if (!cancelled) setSessionChecked(true)
+      }
+    }
+
+    void checkSession()
+    return () => {
+      cancelled = true
     }
   }, [])
 
   useEffect(() => {
     if (!authorized) return
-    setData(loadFormData())
+    if (isLoaded) return
+    const loaded = loadFormData()
+    if (sessionEmail) loaded.email = sessionEmail
+    setData(loaded)
     const savedStep = loadCurrentStep()
     setCurrentStepIndex(savedStep >= 0 ? savedStep : 0)
     setIsLoaded(true)
-  }, [authorized])
+  }, [authorized, sessionEmail, isLoaded])
+
+  useEffect(() => {
+    if (!isLoaded || !sessionEmail) return
+    setData((prev) =>
+      prev.email !== sessionEmail ? { ...prev, email: sessionEmail } : prev
+    )
+  }, [sessionEmail, isLoaded])
 
   useEffect(() => {
     if (!isLoaded) return
@@ -211,7 +281,21 @@ export function AssessmentPage() {
   }, [])
 
   if (!authorized) {
-    return <AccessGate onUnlock={() => setAuthorized(true)} />
+    if (!sessionChecked) {
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+        </div>
+      )
+    }
+    return (
+      <AccessGate
+        onUnlock={(ctx) => {
+          if (ctx) setCompanyContext(ctx)
+          setAuthorized(true)
+        }}
+      />
+    )
   }
 
   if (!isLoaded) {
@@ -246,6 +330,8 @@ export function AssessmentPage() {
     setData,
     onPrev: currentStepIndex > 0 ? goPrev : null,
     onNext: currentStepIndex < visibleSteps.length - 1 ? goNext : null,
+    companyContext,
+    setCompanyContext,
   }
 
   const renderStep = () => {

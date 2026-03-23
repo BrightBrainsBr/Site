@@ -91,8 +91,8 @@ export function ApprovalActionsComponent({
                   Aprovar Avaliação
                 </h3>
                 <p className="mb-4 text-sm text-[#5a7fa0]">
-                  O sistema irá regenerar o relatório e PDF. Isso pode levar 30-60
-                  segundos.
+                  O sistema irá regenerar o relatório e PDF. Isso pode levar
+                  30-60 segundos.
                 </p>
                 <label className="mb-4 block">
                   <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#3a5a75]">
@@ -159,11 +159,12 @@ export function ApprovalActionsComponent({
                 rows={4}
                 className="w-full resize-none rounded-lg border border-[#1a3a5c] bg-[#0f2240] px-3 py-2 text-sm text-[#cce6f7] placeholder-[#3a5a75] focus:border-[#00c9b1] focus:outline-none"
               />
-              {rejectNotes.trim().length > 0 && rejectNotes.trim().length < 10 && (
-                <p className="mt-1 text-xs text-[#f5a623]">
-                  Mínimo 10 caracteres
-                </p>
-              )}
+              {rejectNotes.trim().length > 0 &&
+                rejectNotes.trim().length < 10 && (
+                  <p className="mt-1 text-xs text-[#f5a623]">
+                    Mínimo 10 caracteres
+                  </p>
+                )}
             </label>
             <div className="flex justify-end gap-3">
               <button
@@ -176,7 +177,9 @@ export function ApprovalActionsComponent({
               <button
                 type="button"
                 onClick={handleReject}
-                disabled={rejectNotes.trim().length < 10 || rejectMutation.isPending}
+                disabled={
+                  rejectNotes.trim().length < 10 || rejectMutation.isPending
+                }
                 className="rounded-lg border border-[#ff4d6d] bg-[#ff4d6d] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#ff6b85] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Confirmar Rejeição
@@ -185,7 +188,6 @@ export function ApprovalActionsComponent({
           </div>
         </div>
       )}
-
     </>
   )
 }

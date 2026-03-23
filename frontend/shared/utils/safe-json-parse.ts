@@ -17,9 +17,7 @@ export function safeJsonParseArray<T>(json: string): T[] {
   }
 }
 
-export async function safeJsonFetch<T>(
-  response: Response
-): Promise<T | null> {
+export async function safeJsonFetch<T>(response: Response): Promise<T | null> {
   try {
     const text = await response.text()
     if (!text || text.trim() === '') return null

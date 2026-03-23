@@ -11,7 +11,9 @@ function getHost(url) {
 
 const cmsHostName = getHost(process.env.CMS_BASE_URL)
 const siteHostName = getHost(process.env.SITE_URL)
-const supabaseHostName = getHost(process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL)
+const supabaseHostName = getHost(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+)
 
 const REQUIRED_DEFAULT_HOSTS = [siteHostName, cmsHostName].filter(Boolean)
 const OPTIONAL_CONNECT_HOSTS = [supabaseHostName].filter(Boolean)

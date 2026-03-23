@@ -17,6 +17,10 @@ export function MDQStep({ data, setData, onPrev, onNext }: StepComponentProps) {
   const scores = data.mdq
   const yesCount = scores.filter((v) => v === 1).length
   const answered = scores.filter((v) => v !== null).length
+  const allQuestionsAnswered = answered >= MDQ_QUESTIONS.length
+  const followUpsComplete =
+    allQuestionsAnswered && !!data.mdqSimultaneo && !!data.mdqImpacto
+  const isComplete = followUpsComplete
 
   const handleAnswer = (index: number, value: number) => {
     const updated = [...scores]
@@ -31,6 +35,7 @@ export function MDQStep({ data, setData, onPrev, onNext }: StepComponentProps) {
         title="MDQ — Questionário de Humor"
         subtitle="Rastreamento de transtorno bipolar"
         badge="Bipolaridade"
+        required
       />
 
       <div className="space-y-3">
@@ -71,6 +76,7 @@ export function MDQStep({ data, setData, onPrev, onNext }: StepComponentProps) {
               { label: 'Não', value: 'nao' },
             ]}
             inline
+            required
           />
 
           <RadioGroup
@@ -78,6 +84,7 @@ export function MDQStep({ data, setData, onPrev, onNext }: StepComponentProps) {
             value={data.mdqImpacto}
             onChange={(v) => setData({ ...data, mdqImpacto: v })}
             options={IMPACTO_OPTIONS}
+            required
           />
         </div>
       )}
@@ -86,7 +93,18 @@ export function MDQStep({ data, setData, onPrev, onNext }: StepComponentProps) {
         {answered}/{MDQ_QUESTIONS.length} respondidas
       </div>
 
-      <StepNavigation onPrev={onPrev} onNext={onNext} />
+      <StepNavigation
+        onPrev={onPrev}
+        onNext={onNext}
+        nextDisabled={!isComplete}
+        nextDisabledMessage={
+          !isComplete
+            ? answered < MDQ_QUESTIONS.length
+              ? `Responda todas as ${MDQ_QUESTIONS.length} perguntas para continuar.`
+              : 'Responda as perguntas de acompanhamento para continuar.'
+            : undefined
+        }
+      />
     </div>
   )
 }

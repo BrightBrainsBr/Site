@@ -113,6 +113,7 @@ const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
             headerSettings={headerSettings}
             isDropdownActive={isDropdownActive}
             setIsDropdownActive={setIsDropdownActive}
+            locale={locale}
           />
         </div>
       </header>

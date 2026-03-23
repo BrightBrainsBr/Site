@@ -27,7 +27,7 @@ export function getScaleMax(key: string): number {
 }
 
 export function getScaleColor(key: string, score: number): string {
-  const config = SCALE_RANGES[key as keyof typeof SCALE_RANGES]
+  const config = SCALE_RANGES[key]
   if (!config?.ranges?.length) return '#00c9b1'
   const range = config.ranges.find((r) => score >= r.min && score <= r.max)
   return range?.color ?? '#00c9b1'

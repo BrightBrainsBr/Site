@@ -9,7 +9,9 @@ interface PortalCodeGateComponentProps {
   onSuccess: () => void
 }
 
-export function PortalCodeGateComponent({ onSuccess }: PortalCodeGateComponentProps) {
+export function PortalCodeGateComponent({
+  onSuccess,
+}: PortalCodeGateComponentProps) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)

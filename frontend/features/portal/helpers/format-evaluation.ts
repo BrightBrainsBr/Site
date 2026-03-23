@@ -42,8 +42,7 @@ export function getProcessingStatusLabel(
     return '⏳ Inicializando processamento...'
   if (status.startsWith('processing_claimed_'))
     return '⚙️ Worker iniciado, preparando...'
-  if (status.startsWith('processing_report_'))
-    return '🧠 Conectando com IA...'
+  if (status.startsWith('processing_report_')) return '🧠 Conectando com IA...'
 
   if (status.startsWith('processing_extract_')) {
     const match = status.match(/processing_extract_(\d+)_of_(\d+)/)

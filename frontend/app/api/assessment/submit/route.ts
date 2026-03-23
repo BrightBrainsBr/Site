@@ -34,15 +34,28 @@ function getProductionUrl(): string {
   return 'http://localhost:3000'
 }
 
+// eslint-disable-next-line complexity -- assessment submit has many branches
 export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID().slice(0, 8)
 
   try {
     const body = await request.json()
-    const { formData, scores, uploads } = body as {
+    const {
+      formData,
+      scores,
+      uploads,
+      company_id,
+      employee_department,
+      cycle_id,
+      code_id,
+    } = body as {
       formData: AssessmentFormData
       scores: Record<string, number>
       uploads?: { name: string; url: string; type?: string }[]
+      company_id?: string
+      employee_department?: string
+      cycle_id?: string
+      code_id?: string
     }
 
     const nome = formData?.nome || ''
@@ -70,21 +83,27 @@ export async function POST(request: NextRequest) {
           }))
         : null
 
+    const insertPayload: Record<string, unknown> = {
+      patient_name: nome,
+      patient_email: formData.email || null,
+      patient_cpf: formData.cpf?.replace(/\D/g, '') || null,
+      patient_phone: formData.telefone || null,
+      patient_birth_date: formData.nascimento || null,
+      patient_sex: formData.sexo || null,
+      patient_profile: (formData.publico as string) || null,
+      form_data: cleanFormData,
+      scores,
+      status: `processing_dispatching_${Date.now()}`,
+      doctor_uploads: doctorUploads,
+    }
+    if (company_id) insertPayload.company_id = company_id
+    if (employee_department)
+      insertPayload.employee_department = employee_department
+    if (cycle_id) insertPayload.cycle_id = cycle_id
+
     const { data: row, error } = await sb
       .from('mental_health_evaluations')
-      .insert({
-        patient_name: nome,
-        patient_email: formData.email || null,
-        patient_cpf: formData.cpf?.replace(/\D/g, '') || null,
-        patient_phone: formData.telefone || null,
-        patient_birth_date: formData.nascimento || null,
-        patient_sex: formData.sexo || null,
-        patient_profile: (formData.publico as string) || null,
-        form_data: cleanFormData,
-        scores,
-        status: `processing_dispatching_${Date.now()}`,
-        doctor_uploads: doctorUploads,
-      })
+      .insert(insertPayload)
       .select('id')
       .single()
 
@@ -97,6 +116,17 @@ export async function POST(request: NextRequest) {
     console.warn(
       `[submit:${requestId}] Evaluation saved | patient="${nome}" | id=${evaluationId}`
     )
+
+    // Mark company access code as used if B2B
+    if (code_id) {
+      await sb
+        .from('company_access_codes')
+        .update({
+          used_at: new Date().toISOString(),
+          used_by_evaluation_id: evaluationId,
+        })
+        .eq('id', code_id)
+    }
 
     after(async () => {
       const p = (msg: string) => console.warn(`[submit:${requestId}] ${msg}`)

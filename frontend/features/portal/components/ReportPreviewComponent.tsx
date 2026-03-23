@@ -1,8 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+
 import { cn } from '~/shared/utils/cn'
-import type { ProcessingLogEntry, ReportHistoryEntry } from '../portal.interface'
+
+import type {
+  ProcessingLogEntry,
+  ReportHistoryEntry,
+} from '../portal.interface'
 
 type PipelineStep = {
   id: string
@@ -259,8 +264,18 @@ export function ReportPreviewComponent({
             {pipeline.map((step) => (
               <div key={step.id} className="flex items-center gap-2.5">
                 {step.state === 'done' && (
-                  <svg className="h-4 w-4 flex-shrink-0 text-[#00c9b1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="h-4 w-4 flex-shrink-0 text-[#00c9b1]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 )}
                 {step.state === 'active' && (
@@ -394,7 +409,8 @@ export function ReportPreviewComponent({
                   d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              Baixar PDF{!isCurrentVersion ? ` (v${(viewingVersion ?? 0) + 1})` : ''}
+              Baixar PDF
+              {!isCurrentVersion ? ` (v${(viewingVersion ?? 0) + 1})` : ''}
             </a>
           )}
           <div className="space-y-3">

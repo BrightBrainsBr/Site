@@ -72,11 +72,31 @@ function buildTimeline(evaluation: EvaluationDetail): TimelineEvent[] {
 }
 
 const COLOR_MAP = {
-  teal: { dot: 'bg-[#00c9b1]', line: 'border-[#00c9b1]/30', text: 'text-[#00c9b1]' },
-  amber: { dot: 'bg-[#f0a030]', line: 'border-[#f0a030]/30', text: 'text-[#f0a030]' },
-  green: { dot: 'bg-[#22c55e]', line: 'border-[#22c55e]/30', text: 'text-[#22c55e]' },
-  red: { dot: 'bg-[#ff4d6d]', line: 'border-[#ff4d6d]/30', text: 'text-[#ff4d6d]' },
-  blue: { dot: 'bg-[#3b82f6]', line: 'border-[#3b82f6]/30', text: 'text-[#3b82f6]' },
+  teal: {
+    dot: 'bg-[#00c9b1]',
+    line: 'border-[#00c9b1]/30',
+    text: 'text-[#00c9b1]',
+  },
+  amber: {
+    dot: 'bg-[#f0a030]',
+    line: 'border-[#f0a030]/30',
+    text: 'text-[#f0a030]',
+  },
+  green: {
+    dot: 'bg-[#22c55e]',
+    line: 'border-[#22c55e]/30',
+    text: 'text-[#22c55e]',
+  },
+  red: {
+    dot: 'bg-[#ff4d6d]',
+    line: 'border-[#ff4d6d]/30',
+    text: 'text-[#ff4d6d]',
+  },
+  blue: {
+    dot: 'bg-[#3b82f6]',
+    line: 'border-[#3b82f6]/30',
+    text: 'text-[#3b82f6]',
+  },
 }
 
 function formatDateTime(iso: string) {

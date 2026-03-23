@@ -14,6 +14,8 @@ export function SymptomsStep({
   onPrev,
   onNext,
 }: StepComponentProps) {
+  const hasSymptoms = data.sintomasAtuais.length > 0
+
   const toggleSymptom = (item: string) => {
     const current = data.sintomasAtuais
     const updated = current.includes(item)
@@ -29,6 +31,7 @@ export function SymptomsStep({
         title="Sintomas Atuais"
         subtitle="Selecione os sintomas presentes nas últimas semanas"
         badge={`${data.sintomasAtuais.length} selecionados`}
+        required
       />
 
       <div className="space-y-5">
@@ -69,7 +72,16 @@ export function SymptomsStep({
         />
       </div>
 
-      <StepNavigation onPrev={onPrev} onNext={onNext} />
+      <StepNavigation
+        onPrev={onPrev}
+        onNext={onNext}
+        nextDisabled={!hasSymptoms}
+        nextDisabledMessage={
+          !hasSymptoms
+            ? 'Selecione ao menos um sintoma para continuar.'
+            : undefined
+        }
+      />
     </div>
   )
 }

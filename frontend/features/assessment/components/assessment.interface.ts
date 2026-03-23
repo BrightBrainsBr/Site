@@ -190,11 +190,22 @@ export interface ScaleConfig {
   ranges: ScaleRange[]
 }
 
+export interface CompanyContext {
+  company_id?: string
+  department?: string
+  departments?: string[]
+  cycle_id?: string
+  code_id?: string
+  prefilled_email?: boolean
+}
+
 export interface StepComponentProps {
   data: AssessmentFormData
   setData: (data: AssessmentFormData) => void
   onPrev: (() => void) | null
   onNext: (() => void) | null
+  companyContext?: CompanyContext
+  setCompanyContext?: (ctx: CompanyContext) => void
 }
 
 export interface ScaleStepProps extends StepComponentProps {

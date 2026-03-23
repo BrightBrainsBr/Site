@@ -1,0 +1,39 @@
+// frontend/features/b2b-dashboard/constants/domain-mapping.ts
+
+export const DOMAIN_DISPLAY_NAMES: Record<string, string> = {
+  phq9: 'Depressão (PHQ-9)',
+  gad7: 'Ansiedade (GAD-7)',
+  isi: 'Insônia (ISI)',
+  mbi: 'Burnout (MBI)',
+  pss10: 'Estresse (PSS-10)',
+  asrs: 'Atenção/TDAH (ASRS)',
+  pcl5: 'Trauma/PTSD (PCL-5)',
+  auditc: 'Uso de Álcool (AUDIT-C)',
+  ocir: 'TOC (OCI-R)',
+  mdq: 'Bipolaridade (MDQ)',
+  spin: 'Fobia Social (SPIN)',
+  aq10: 'Espectro Autista (AQ-10)',
+  ad8: 'Cognição (AD8)',
+  nms: 'Neuro (NMS)',
+  alsfrs: 'ALS (ALSFRS)',
+  snapiv: 'TDAH Infantil (SNAP-IV)',
+}
+
+export const DOMAIN_MAX_SCORES: Record<string, number> = {
+  phq9: 27,
+  gad7: 21,
+  isi: 28,
+  asrs: 24,
+  aq10: 10,
+  ocir: 72,
+  mbi: 80,
+  pcl5: 32,
+  mdq: 52,
+  pss10: 40,
+  ad8: 8,
+  nms: 60,
+  alsfrs: 48,
+  snapiv: 54,
+  spin: 12,
+  auditc: 12,
+}

@@ -21,6 +21,7 @@ interface Properties {
   headerSettings: () => { accent: string; cta: 'lime' | 'midnight' | string }
   isDropdownActive: boolean
   setIsDropdownActive: (arg0: boolean) => void
+  locale: string
 }
 
 const NavMenu: React.FC<Properties> = ({
@@ -31,6 +32,7 @@ const NavMenu: React.FC<Properties> = ({
   headerSettings,
   isDropdownActive,
   setIsDropdownActive,
+  locale,
 }) => {
   const [activeSubmenu, setActiveSubmenu] = useState<number>(-1)
   const ctaVariants: any = {
@@ -167,6 +169,24 @@ const NavMenu: React.FC<Properties> = ({
               </Link>
             </li>
           )}
+          <li
+            className={twMerge(
+              'opacity-0 lg:opacity-100',
+              isMenuActive && 'animate-fadein'
+            )}
+          >
+            <a
+              href={`/${locale}/login`}
+              className={twMerge(
+                'block text-midnight-950 text-[1.875rem] lg:text-xs lg:uppercase font-kmr lg:px-4 lg:py-3 lg:rounded-sm lg:border lg:border-current transition-colors duration-200',
+                !isDropdownActive && `lg:text-${headerSettings().accent}`,
+                'hover:opacity-80'
+              )}
+              onClick={() => closeMenu()}
+            >
+              Login
+            </a>
+          </li>
         </ul>
       </nav>
       {headerMenu.length > 0 &&

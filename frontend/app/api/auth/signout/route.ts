@@ -1,0 +1,17 @@
+// frontend/app/api/auth/signout/route.ts
+
+import { NextResponse } from 'next/server'
+
+import { createClient } from '@/utils/supabase/server'
+
+export const runtime = 'nodejs'
+
+export async function POST() {
+  try {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ success: false }, { status: 500 })
+  }
+}
