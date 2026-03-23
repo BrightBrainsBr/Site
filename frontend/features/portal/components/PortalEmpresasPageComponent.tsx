@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { apiGet } from '~/shared/utils/api-helpers'
+
 import { CompanyManagerComponent } from './CompanyManagerComponent'
 import { PortalCodeGateComponent } from './PortalCodeGateComponent'
 import { PortalTopNav } from './PortalTopNav'
@@ -56,7 +57,10 @@ export function PortalEmpresasPageComponent() {
             {showCreate ? 'Cancelar' : 'Nova empresa'}
           </button>
         </div>
-        <CompanyManagerComponent showCreate={showCreate} onCreateDone={() => setShowCreate(false)} />
+        <CompanyManagerComponent
+          showCreate={showCreate}
+          onCreateDone={() => setShowCreate(false)}
+        />
       </div>
     </>
   )

@@ -91,7 +91,7 @@ export function B2BResetPasswordComponent() {
             <p className="text-sm text-[#5a7fa0]">
               Lembrou a senha?{' '}
               <Link
-                href={localePath('/empresa/login')}
+                href={localePath('/login')}
                 className="font-medium text-[#00c9b1] hover:text-[#00c9b1]/80 transition-colors"
               >
                 Entrar
@@ -113,7 +113,7 @@ export function B2BResetPasswordComponent() {
           <p className="text-sm text-[#5a7fa0]">
             Lembrou a senha?{' '}
             <Link
-              href={localePath('/empresa/login')}
+              href={localePath('/login')}
               className="font-medium text-[#00c9b1] hover:text-[#00c9b1]/80 transition-colors"
             >
               Entrar
@@ -122,7 +122,7 @@ export function B2BResetPasswordComponent() {
           <p className="text-sm text-[#5a7fa0]">
             Não tem conta?{' '}
             <Link
-              href={localePath('/empresa/signup')}
+              href={localePath('/signup')}
               className="font-medium text-[#00c9b1] hover:text-[#00c9b1]/80 transition-colors"
             >
               Criar conta

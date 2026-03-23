@@ -6,8 +6,8 @@ import { type NextRequest } from 'next/server'
 import { createClient, createServiceClient } from '@/utils/supabase/server'
 
 const REDIRECT_EMPRESA_DASHBOARD = '/pt-BR/empresa/dashboard'
-const REDIRECT_EMPRESA_LOGIN = '/pt-BR/empresa/login'
-const REDIRECT_ON_ERROR = '/pt-BR/empresa/login?error=confirmation_failed'
+const REDIRECT_LOGIN = '/pt-BR/login'
+const REDIRECT_ON_ERROR = '/pt-BR/login?error=confirmation_failed'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -47,9 +47,7 @@ export async function GET(request: NextRequest) {
         return redirect(REDIRECT_ON_ERROR)
       }
 
-      console.log(
-        `[Auth Confirm PKCE] User: ${user.id}, Email: ${user.email}`
-      )
+      console.log(`[Auth Confirm PKCE] User: ${user.id}, Email: ${user.email}`)
 
       const { data: companyUser } = await serviceClient
         .from('company_users')
@@ -84,9 +82,7 @@ export async function GET(request: NextRequest) {
       console.log(
         `[Auth Confirm PKCE] User not in company_users or invites. Redirecting to login.`
       )
-      return redirect(
-        `${REDIRECT_EMPRESA_LOGIN}?error=not_company_user`
-      )
+      return redirect(`${REDIRECT_LOGIN}?error=not_company_user`)
     } catch (e: unknown) {
       const err = e as Error
       console.error(
@@ -100,5 +96,5 @@ export async function GET(request: NextRequest) {
   console.warn(
     '[Auth Confirm PKCE] Code missing from request. Redirecting to login.'
   )
-  return redirect('/pt-BR/empresa/login?error=invalid_link_code_missing')
+  return redirect('/pt-BR/login?error=invalid_link_code_missing')
 }

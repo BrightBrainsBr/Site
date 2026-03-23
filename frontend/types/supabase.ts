@@ -46,8 +46,12 @@ export interface Database {
           is_current: boolean
           created_at: string
         }
-        Insert: Partial<Database['public']['Tables']['assessment_cycles']['Row']>
-        Update: Partial<Database['public']['Tables']['assessment_cycles']['Row']>
+        Insert: Partial<
+          Database['public']['Tables']['assessment_cycles']['Row']
+        >
+        Update: Partial<
+          Database['public']['Tables']['assessment_cycles']['Row']
+        >
       }
       user_profiles: {
         Row: {

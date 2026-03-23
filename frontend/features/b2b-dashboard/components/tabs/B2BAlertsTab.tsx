@@ -2,9 +2,9 @@
 
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from 'recharts'
 
-import { useB2BAlerts } from '../../hooks/useB2BAlerts'
-import { DOMAIN_DISPLAY_NAMES } from '../../constants/domain-mapping'
 import type { B2BAlertData } from '../../b2b-dashboard.interface'
+import { DOMAIN_DISPLAY_NAMES } from '../../constants/domain-mapping'
+import { useB2BAlerts } from '../../hooks/useB2BAlerts'
 import { useB2BOverview } from '../../hooks/useB2BOverview'
 
 const RISK_COLORS: Record<string, string> = {
@@ -54,7 +54,11 @@ interface B2BAlertsTabProps {
   cycleId: string | null
 }
 
-function DomainTags({ domainScores }: { domainScores?: Record<string, number> }) {
+function DomainTags({
+  domainScores,
+}: {
+  domainScores?: Record<string, number>
+}) {
   if (!domainScores || Object.keys(domainScores).length === 0) return null
   return (
     <div className="mt-2 flex flex-wrap gap-1">
@@ -87,7 +91,12 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
   const elevatedAlerts = alerts.filter((a) => a.riskLevel === 'elevated')
   const moderateAlerts = alerts.filter((a) => a.riskLevel === 'moderate')
 
-  const rd = overview?.riskDistribution ?? { low: 0, moderate: 0, elevated: 0, critical: 0 }
+  const rd = overview?.riskDistribution ?? {
+    low: 0,
+    moderate: 0,
+    elevated: 0,
+    critical: 0,
+  }
   const statsPieData = [
     { name: 'Baixo', value: rd.low, color: RISK_COLORS.low },
     { name: 'Moderado', value: rd.moderate, color: RISK_COLORS.moderate },
@@ -105,8 +114,9 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
       <div className="rounded-xl border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.06)] px-4 py-3 text-[13px]">
         <span className="font-semibold text-[#F87171]">⚠ Importante:</span>{' '}
         <span className="text-[#94A3B8]">
-          Todos os identificadores são anonimizados. Laudos clínicos individuais são acessíveis
-          somente pelo próprio colaborador. Esta visão agrega risco sem expor dados pessoais — conforme LGPD.
+          Todos os identificadores são anonimizados. Laudos clínicos individuais
+          são acessíveis somente pelo próprio colaborador. Esta visão agrega
+          risco sem expor dados pessoais — conforme LGPD.
         </span>
       </div>
 
@@ -116,7 +126,8 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
           {criticalAlerts.length > 0 && (
             <>
               <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.5px] text-[#F87171]">
-                Risco Crítico — {criticalAlerts.length} colaborador{criticalAlerts.length > 1 ? 'es' : ''}
+                Risco Crítico — {criticalAlerts.length} colaborador
+                {criticalAlerts.length > 1 ? 'es' : ''}
               </p>
               <div className="space-y-2.5">
                 {criticalAlerts.map((a) => (
@@ -129,7 +140,8 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
           {elevatedAlerts.length > 0 && (
             <>
               <p className="mb-2.5 mt-4 text-[11px] font-semibold uppercase tracking-[0.5px] text-[#FB923C]">
-                Risco Elevado — {elevatedAlerts.length} colaborador{elevatedAlerts.length > 1 ? 'es' : ''}
+                Risco Elevado — {elevatedAlerts.length} colaborador
+                {elevatedAlerts.length > 1 ? 'es' : ''}
               </p>
               <div className="space-y-2.5">
                 {elevatedAlerts.map((a) => (
@@ -142,7 +154,8 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
           {moderateAlerts.length > 0 && (
             <>
               <p className="mb-2.5 mt-4 text-[11px] font-semibold uppercase tracking-[0.5px] text-[#FBBF24]">
-                Risco Moderado com Vigilância — {moderateAlerts.length} colaborador{moderateAlerts.length > 1 ? 'es' : ''}
+                Risco Moderado com Vigilância — {moderateAlerts.length}{' '}
+                colaborador{moderateAlerts.length > 1 ? 'es' : ''}
               </p>
               <div className="space-y-2.5">
                 {moderateAlerts.map((a) => (
@@ -177,7 +190,10 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
                     background: p.bg,
                   }}
                 >
-                  <p className="mb-1.5 text-[12px] font-semibold" style={{ color: p.color }}>
+                  <p
+                    className="mb-1.5 text-[12px] font-semibold"
+                    style={{ color: p.color }}
+                  >
                     Risco {p.level}
                   </p>
                   {p.actions.map((action, i) => (
@@ -217,7 +233,9 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
                     verticalAlign="middle"
                     iconSize={10}
                     wrapperStyle={{ fontSize: 11 }}
-                    formatter={(value) => <span style={{ color: '#94A3B8' }}>{value}</span>}
+                    formatter={(value) => (
+                      <span style={{ color: '#94A3B8' }}>{value}</span>
+                    )}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -229,13 +247,19 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
 
             <div className="mt-3 border-t border-[rgba(255,255,255,0.08)] pt-3">
               <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] py-1.5 text-[12px]">
-                <span className="text-[#94A3B8]">Custo estimado sem intervenção</span>
+                <span className="text-[#94A3B8]">
+                  Custo estimado sem intervenção
+                </span>
                 <span className="font-semibold text-[#F87171]">
-                  {costNoAction > 0 ? `R$ ${Math.round(costNoAction / 1000)}K` : 'R$ —'}
+                  {costNoAction > 0
+                    ? `R$ ${Math.round(costNoAction / 1000)}K`
+                    : 'R$ —'}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] py-1.5 text-[12px]">
-                <span className="text-[#94A3B8]">Custo de intervenção preventiva</span>
+                <span className="text-[#94A3B8]">
+                  Custo de intervenção preventiva
+                </span>
                 <span className="font-semibold text-[#34D399]">R$ 24.000</span>
               </div>
               <div className="flex items-center justify-between py-1.5 text-[12px]">
@@ -253,10 +277,37 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
 }
 
 function AlertCard({ alert }: { alert: B2BAlertData }) {
-  const levelMap: Record<string, { border: string; bg: string; badge: string; badgeBg: string; label: string }> = {
-    critical: { border: 'rgba(239,68,68,0.3)', bg: 'rgba(239,68,68,0.05)', badge: '#F87171', badgeBg: 'rgba(239,68,68,0.2)', label: 'CRÍTICO' },
-    elevated: { border: 'rgba(249,115,22,0.3)', bg: 'rgba(249,115,22,0.05)', badge: '#FB923C', badgeBg: 'rgba(249,115,22,0.2)', label: 'ELEVADO' },
-    moderate: { border: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.05)', badge: '#FBBF24', badgeBg: 'rgba(245,158,11,0.2)', label: 'MODERADO' },
+  const levelMap: Record<
+    string,
+    {
+      border: string
+      bg: string
+      badge: string
+      badgeBg: string
+      label: string
+    }
+  > = {
+    critical: {
+      border: 'rgba(239,68,68,0.3)',
+      bg: 'rgba(239,68,68,0.05)',
+      badge: '#F87171',
+      badgeBg: 'rgba(239,68,68,0.2)',
+      label: 'CRÍTICO',
+    },
+    elevated: {
+      border: 'rgba(249,115,22,0.3)',
+      bg: 'rgba(249,115,22,0.05)',
+      badge: '#FB923C',
+      badgeBg: 'rgba(249,115,22,0.2)',
+      label: 'ELEVADO',
+    },
+    moderate: {
+      border: 'rgba(245,158,11,0.3)',
+      bg: 'rgba(245,158,11,0.05)',
+      badge: '#FBBF24',
+      badgeBg: 'rgba(245,158,11,0.2)',
+      label: 'MODERADO',
+    },
   }
   const style = levelMap[alert.riskLevel] ?? levelMap.moderate
 

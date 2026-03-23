@@ -46,7 +46,10 @@ export function DepartmentsSection({
         const res = await fetch(`${apiBase}/${companyId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'update_departments', departments: updated }),
+          body: JSON.stringify({
+            action: 'update_departments',
+            departments: updated,
+          }),
         })
         if (!res.ok) setLocalDepts(departments)
       } else {
@@ -93,7 +96,8 @@ export function DepartmentsSection({
         </h3>
       </div>
       <p className="mb-4 text-[11px] text-[#64748B]">
-        Configure os departamentos disponíveis. Estes aparecerão no cadastro e na avaliação.
+        Configure os departamentos disponíveis. Estes aparecerão no cadastro e
+        na avaliação.
       </p>
 
       <div className="mb-3 flex flex-wrap gap-2">

@@ -11,9 +11,9 @@ import {
   YAxis,
 } from 'recharts'
 
-import { useB2BDepartments } from '../../hooks/useB2BDepartments'
 import type { B2BDepartmentData } from '../../b2b-dashboard.interface'
 import type { RiskLevel } from '../../b2b-dashboard.interface'
+import { useB2BDepartments } from '../../hooks/useB2BDepartments'
 
 const SCORE_CHIP_STYLE = (score: number) => {
   if (score >= 70) return { bg: 'rgba(52,211,153,0.1)', color: '#34D399' }
@@ -61,13 +61,26 @@ function MiniStackedBar({ dept }: { dept: B2BDepartmentData }) {
   if (total === 0) {
     return <div className="h-[6px] w-[60px] rounded bg-[#1a3a5c]" />
   }
-  const px = (n: number) => Math.max(n > 0 ? 2 : 0, Math.round((n / total) * 60))
+  const px = (n: number) =>
+    Math.max(n > 0 ? 2 : 0, Math.round((n / total) * 60))
   return (
     <div className="flex items-center gap-[2px]">
-      <div className="rounded-sm bg-[#10B981]" style={{ width: px(dept.riskBreakdown.low), height: 6 }} />
-      <div className="rounded-sm bg-[#F59E0B]" style={{ width: px(dept.riskBreakdown.moderate), height: 6 }} />
-      <div className="rounded-sm bg-[#F97316]" style={{ width: px(dept.riskBreakdown.elevated), height: 6 }} />
-      <div className="rounded-sm bg-[#EF4444]" style={{ width: px(dept.riskBreakdown.critical), height: 6 }} />
+      <div
+        className="rounded-sm bg-[#10B981]"
+        style={{ width: px(dept.riskBreakdown.low), height: 6 }}
+      />
+      <div
+        className="rounded-sm bg-[#F59E0B]"
+        style={{ width: px(dept.riskBreakdown.moderate), height: 6 }}
+      />
+      <div
+        className="rounded-sm bg-[#F97316]"
+        style={{ width: px(dept.riskBreakdown.elevated), height: 6 }}
+      />
+      <div
+        className="rounded-sm bg-[#EF4444]"
+        style={{ width: px(dept.riskBreakdown.critical), height: 6 }}
+      />
     </div>
   )
 }
@@ -100,15 +113,33 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
         <table className="w-full min-w-[700px] border-collapse text-[12px]">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.08)]">
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Departamento</th>
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Total</th>
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Score Méd.</th>
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#34D399]">Baixo</th>
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#FBBF24]">Moderado</th>
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#FB923C]">Elevado</th>
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#F87171]">Crítico</th>
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Distribuição</th>
-              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Tendência</th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Departamento
+              </th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Total
+              </th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Score Méd.
+              </th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#34D399]">
+                Baixo
+              </th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#FBBF24]">
+                Moderado
+              </th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#FB923C]">
+                Elevado
+              </th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#F87171]">
+                Crítico
+              </th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Distribuição
+              </th>
+              <th className="px-2 py-1.5 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Tendência
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -116,25 +147,44 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
               const trendInfo = TREND_LABEL(d.trend)
               const chipStyle = SCORE_CHIP_STYLE(d.avgScore)
               return (
-                <tr key={d.name} className="border-b border-[rgba(255,255,255,0.04)] last:border-0">
-                  <td className="px-2 py-2 text-[12px] font-medium text-[#E2E8F0]">{d.name}</td>
+                <tr
+                  key={d.name}
+                  className="border-b border-[rgba(255,255,255,0.04)] last:border-0"
+                >
+                  <td className="px-2 py-2 text-[12px] font-medium text-[#E2E8F0]">
+                    {d.name}
+                  </td>
                   <td className="px-2 py-2 text-[#94A3B8]">{d.n}</td>
                   <td className="px-2 py-2">
                     <span
                       className="inline-flex h-[22px] w-[42px] items-center justify-center rounded-md text-[11px] font-bold"
-                      style={{ background: chipStyle.bg, color: chipStyle.color }}
+                      style={{
+                        background: chipStyle.bg,
+                        color: chipStyle.color,
+                      }}
                     >
                       {d.avgScore.toFixed(1)}
                     </span>
                   </td>
-                  <td className="px-2 py-2 font-semibold text-[#34D399]">{d.riskBreakdown.low}</td>
-                  <td className="px-2 py-2 font-semibold text-[#FBBF24]">{d.riskBreakdown.moderate}</td>
-                  <td className="px-2 py-2 font-semibold text-[#FB923C]">{d.riskBreakdown.elevated}</td>
-                  <td className="px-2 py-2 font-semibold text-[#F87171]">{d.riskBreakdown.critical}</td>
+                  <td className="px-2 py-2 font-semibold text-[#34D399]">
+                    {d.riskBreakdown.low}
+                  </td>
+                  <td className="px-2 py-2 font-semibold text-[#FBBF24]">
+                    {d.riskBreakdown.moderate}
+                  </td>
+                  <td className="px-2 py-2 font-semibold text-[#FB923C]">
+                    {d.riskBreakdown.elevated}
+                  </td>
+                  <td className="px-2 py-2 font-semibold text-[#F87171]">
+                    {d.riskBreakdown.critical}
+                  </td>
                   <td className="px-2 py-2">
                     <MiniStackedBar dept={d} />
                   </td>
-                  <td className="px-2 py-2 text-[12px]" style={{ color: trendInfo.color }}>
+                  <td
+                    className="px-2 py-2 text-[12px]"
+                    style={{ color: trendInfo.color }}
+                  >
                     {trendInfo.text}
                   </td>
                 </tr>
@@ -157,7 +207,10 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
             Risco por Nível Hierárquico
           </h3>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={HIERARCHY_DATA} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
+            <BarChart
+              data={HIERARCHY_DATA}
+              margin={{ top: 5, right: 5, left: -10, bottom: 5 }}
+            >
               <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.04)" />
               <XAxis
                 dataKey="name"
@@ -172,11 +225,27 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
               />
               <Legend
                 wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
-                formatter={(value) => <span style={{ color: '#94A3B8' }}>{value}</span>}
+                formatter={(value) => (
+                  <span style={{ color: '#94A3B8' }}>{value}</span>
+                )}
                 iconSize={10}
               />
-              <Bar dataKey="elevado" name="Elevado" stackId="a" fill="rgba(249,115,22,0.8)" radius={[0, 0, 0, 0]} barSize={32} />
-              <Bar dataKey="critico" name="Crítico" stackId="a" fill="rgba(239,68,68,0.8)" radius={[4, 4, 0, 0]} barSize={32} />
+              <Bar
+                dataKey="elevado"
+                name="Elevado"
+                stackId="a"
+                fill="rgba(249,115,22,0.8)"
+                radius={[0, 0, 0, 0]}
+                barSize={32}
+              />
+              <Bar
+                dataKey="critico"
+                name="Crítico"
+                stackId="a"
+                fill="rgba(239,68,68,0.8)"
+                radius={[4, 4, 0, 0]}
+                barSize={32}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -187,19 +256,32 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
             <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
               Fatores de Risco Mais Frequentes
             </h3>
-            <span className="text-[11px] text-[#64748B]">colaboradores em risco elevado/crítico</span>
+            <span className="text-[11px] text-[#64748B]">
+              colaboradores em risco elevado/crítico
+            </span>
           </div>
           <div className="space-y-2">
             {RISK_FACTORS.map((f) => (
-              <div key={f.label} className="flex items-center gap-2.5 text-[12px]">
-                <span className="w-[100px] shrink-0 text-[11px] text-[#94A3B8]">{f.label}</span>
+              <div
+                key={f.label}
+                className="flex items-center gap-2.5 text-[12px]"
+              >
+                <span className="w-[100px] shrink-0 text-[11px] text-[#94A3B8]">
+                  {f.label}
+                </span>
                 <div className="h-2 flex-1 overflow-hidden rounded bg-[rgba(255,255,255,0.05)]">
                   <div
                     className="h-full rounded"
-                    style={{ width: `${f.pct}%`, backgroundColor: f.color, opacity: 0.8 }}
+                    style={{
+                      width: `${f.pct}%`,
+                      backgroundColor: f.color,
+                      opacity: 0.8,
+                    }}
                   />
                 </div>
-                <span className="w-9 shrink-0 text-right text-[11px] text-[#64748B]">{f.pct}%</span>
+                <span className="w-9 shrink-0 text-right text-[11px] text-[#64748B]">
+                  {f.pct}%
+                </span>
               </div>
             ))}
           </div>

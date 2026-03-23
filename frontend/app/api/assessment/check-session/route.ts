@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -9,8 +9,10 @@ export async function GET() {
   try {
     const cookieStore = await cookies()
 
-    const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseUrl =
+      process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey =
+      process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json({ authenticated: false })
@@ -24,7 +26,9 @@ export async function GET() {
       },
     })
 
-    const { data: { user } } = await supabaseAuth.auth.getUser()
+    const {
+      data: { user },
+    } = await supabaseAuth.auth.getUser()
     if (!user) {
       return NextResponse.json({ authenticated: false })
     }

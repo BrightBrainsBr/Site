@@ -9,6 +9,8 @@ interface StepNavigationProps {
   nextLabel?: string
   prevLabel?: string
   isLastStep?: boolean
+  nextDisabled?: boolean
+  nextDisabledMessage?: string
 }
 
 export function StepNavigation({
@@ -17,34 +19,46 @@ export function StepNavigation({
   nextLabel = 'Próximo',
   prevLabel = 'Anterior',
   isLastStep,
+  nextDisabled = false,
+  nextDisabledMessage,
 }: StepNavigationProps) {
   return (
-    <div className="mt-8 flex items-center justify-between gap-4">
-      {onPrev ? (
-        <button
-          type="button"
-          onClick={onPrev}
-          className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-        >
-          {prevLabel}
-        </button>
-      ) : (
-        <div />
+    <div className="mt-8">
+      {nextDisabled && nextDisabledMessage && (
+        <p className="mb-3 text-right text-xs text-amber-400/80">
+          {nextDisabledMessage}
+        </p>
       )}
-      {onNext && (
-        <button
-          type="button"
-          onClick={onNext}
-          className={twMerge(
-            'rounded-lg px-6 py-2.5 text-sm font-medium transition-colors',
-            isLastStep
-              ? 'bg-lime-400 text-zinc-900 hover:bg-lime-300'
-              : 'bg-lime-400 text-zinc-900 hover:bg-lime-300'
-          )}
-        >
-          {nextLabel}
-        </button>
-      )}
+      <div className="flex items-center justify-between gap-4">
+        {onPrev ? (
+          <button
+            type="button"
+            onClick={onPrev}
+            className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+          >
+            {prevLabel}
+          </button>
+        ) : (
+          <div />
+        )}
+        {onNext && (
+          <button
+            type="button"
+            onClick={nextDisabled ? undefined : onNext}
+            disabled={nextDisabled}
+            className={twMerge(
+              'rounded-lg px-6 py-2.5 text-sm font-medium transition-colors',
+              nextDisabled
+                ? 'cursor-not-allowed bg-zinc-700 text-zinc-400'
+                : isLastStep
+                  ? 'bg-lime-400 text-zinc-900 hover:bg-lime-300'
+                  : 'bg-lime-400 text-zinc-900 hover:bg-lime-300'
+            )}
+          >
+            {nextLabel}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

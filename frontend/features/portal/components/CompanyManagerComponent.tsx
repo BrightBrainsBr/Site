@@ -2,9 +2,9 @@
 
 'use client'
 
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface Company {
   id: string
@@ -88,7 +88,7 @@ export function CompanyManagerComponent({
       (c) =>
         c.name.toLowerCase().includes(q) ||
         (c.cnpj && c.cnpj.toLowerCase().includes(q)) ||
-        (c.contact_email && c.contact_email.toLowerCase().includes(q)),
+        (c.contact_email && c.contact_email.toLowerCase().includes(q))
     )
   }, [companies, searchQuery])
 
@@ -127,7 +127,9 @@ export function CompanyManagerComponent({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-[#5a7fa0]">E-mail</label>
+              <label className="mb-1 block text-xs text-[#5a7fa0]">
+                E-mail
+              </label>
               <input
                 type="email"
                 value={newEmail}
@@ -137,9 +139,7 @@ export function CompanyManagerComponent({
               />
             </div>
           </div>
-          {error && (
-            <p className="mt-2 text-sm text-red-400">{error}</p>
-          )}
+          {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
           <button
             onClick={handleCreate}
             disabled={creating || !newName.trim()}
@@ -199,7 +199,9 @@ export function CompanyManagerComponent({
               <tr
                 key={c.id}
                 className="cursor-pointer border-b border-[#1a3a5c]/50 hover:bg-[#0c1a2e]/50"
-                onClick={() => router.push(`/${locale}/portal/empresas/${c.id}`)}
+                onClick={() =>
+                  router.push(`/${locale}/portal/empresas/${c.id}`)
+                }
               >
                 <td className="px-4 py-3 text-[#cce6f7]">{c.name}</td>
                 <td className="px-4 py-3 text-[#5a7fa0]">{c.cnpj ?? '–'}</td>
@@ -208,11 +210,7 @@ export function CompanyManagerComponent({
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={
-                      c.active
-                        ? 'text-green-400'
-                        : 'text-amber-400'
-                    }
+                    className={c.active ? 'text-green-400' : 'text-amber-400'}
                   >
                     {c.active ? 'Ativo' : 'Inativo'}
                   </span>

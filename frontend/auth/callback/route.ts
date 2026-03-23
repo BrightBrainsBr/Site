@@ -1,6 +1,7 @@
 // frontend/auth/callback/route.ts
 
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 import { createClient, createServiceClient } from '@/utils/supabase/server'
 
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   if (!code) {
     console.error('[Auth Callback] No code found in request URL.')
-    const redirectUrl = new URL('/pt-BR/empresa/login', request.url)
+    const redirectUrl = new URL('/pt-BR/login', request.url)
     redirectUrl.searchParams.set('error', 'missing_auth_code')
     return NextResponse.redirect(redirectUrl)
   }
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
           '[Auth Callback] Error exchanging recovery code:',
           sessionError.message
         )
-        const redirectUrl = new URL('/pt-BR/empresa/login', request.url)
+        const redirectUrl = new URL('/pt-BR/login', request.url)
         redirectUrl.searchParams.set('error', 'invalid_link_code_missing')
         return NextResponse.redirect(redirectUrl)
       }
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       )
     } catch (error) {
       console.error('[Auth Callback] Recovery flow error:', error)
-      const redirectUrl = new URL('/pt-BR/empresa/login', request.url)
+      const redirectUrl = new URL('/pt-BR/login', request.url)
       redirectUrl.searchParams.set('error', 'recovery_failed')
       return NextResponse.redirect(redirectUrl)
     }
@@ -65,13 +66,15 @@ export async function GET(request: NextRequest) {
         '[Auth Callback] Error exchanging code for session:',
         sessionError.message
       )
-      const redirectUrl = new URL('/pt-BR/empresa/login', request.url)
+      const redirectUrl = new URL('/pt-BR/login', request.url)
       redirectUrl.searchParams.set('error', 'session_exchange_failed')
       redirectUrl.searchParams.set('details', sessionError.message)
       return NextResponse.redirect(redirectUrl)
     }
 
-    console.log('[Auth Callback] Session exchanged successfully. Fetching user.')
+    console.log(
+      '[Auth Callback] Session exchanged successfully. Fetching user.'
+    )
     const {
       data: { user },
       error: userError,
@@ -82,7 +85,7 @@ export async function GET(request: NextRequest) {
         '[Auth Callback] Error getting user after session exchange:',
         userError?.message || 'No user object returned.'
       )
-      const redirectUrl = new URL('/pt-BR/empresa/login', request.url)
+      const redirectUrl = new URL('/pt-BR/login', request.url)
       redirectUrl.searchParams.set('error', 'user_fetch_failed')
       return NextResponse.redirect(redirectUrl)
     }
@@ -102,8 +105,7 @@ export async function GET(request: NextRequest) {
       console.log(
         `[Auth Callback] User is a company admin. Redirecting to dashboard.`
       )
-      const finalRedirectPath =
-        intendedRedirect || '/pt-BR/empresa/dashboard'
+      const finalRedirectPath = intendedRedirect || '/pt-BR/empresa/dashboard'
       return NextResponse.redirect(new URL(finalRedirectPath, request.url))
     }
 
@@ -126,17 +128,16 @@ export async function GET(request: NextRequest) {
     console.log(
       '[Auth Callback] User not in company_users or invites. Redirecting to login.'
     )
-    const redirectUrl = new URL('/pt-BR/empresa/login', request.url)
-    redirectUrl.searchParams.set(
-      'error',
-      'not_company_user'
-    )
+    const redirectUrl = new URL('/pt-BR/login', request.url)
+    redirectUrl.searchParams.set('error', 'not_company_user')
     return NextResponse.redirect(redirectUrl)
   } catch (error) {
     console.error('[Auth Callback] Unexpected error in try-catch block:', error)
     const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error during authentication callback'
-    const redirectUrl = new URL('/pt-BR/empresa/login', request.url)
+      error instanceof Error
+        ? error.message
+        : 'Unknown error during authentication callback'
+    const redirectUrl = new URL('/pt-BR/login', request.url)
     redirectUrl.searchParams.set('error', 'callback_error')
     redirectUrl.searchParams.set('details', errorMessage)
     return NextResponse.redirect(redirectUrl)

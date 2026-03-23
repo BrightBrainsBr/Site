@@ -1,7 +1,8 @@
 // frontend/app/api/b2b/profile/route.ts
 
 import { createClient } from '@supabase/supabase-js'
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 import { createClient as createServerClient } from '~/utils/supabase/server'
 
@@ -16,25 +17,17 @@ export async function GET() {
     } = await supabase.auth.getUser()
 
     if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Não autenticado' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
     return NextResponse.json({
       email: user.email ?? null,
       display_name:
-        user.user_metadata?.full_name ??
-        user.user_metadata?.name ??
-        null,
+        user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
     })
   } catch (err) {
     console.error('[b2b/profile] GET error:', err)
-    return NextResponse.json(
-      { error: 'Erro ao obter perfil' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao obter perfil' }, { status: 500 })
   }
 }
 
@@ -47,10 +40,7 @@ export async function PUT(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Não autenticado' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -92,10 +82,7 @@ export async function PUT(request: NextRequest) {
 
     if (updateError) {
       console.error('[b2b/profile] Update error:', updateError)
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })

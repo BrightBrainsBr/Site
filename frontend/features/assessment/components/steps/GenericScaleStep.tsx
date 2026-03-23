@@ -20,6 +20,7 @@ export function GenericScaleStep({
 }: ScaleStepProps) {
   const scores = (data[scaleKey] as (number | null)[]) ?? []
   const answered = scores.filter((v) => v !== null).length
+  const isComplete = answered >= questions.length
 
   const handleAnswer = (index: number, value: number) => {
     const updated = [...scores]
@@ -53,7 +54,16 @@ export function GenericScaleStep({
         {answered}/{questions.length} respondidas
       </div>
 
-      <StepNavigation onPrev={onPrev} onNext={onNext} />
+      <StepNavigation
+        onPrev={onPrev}
+        onNext={onNext}
+        nextDisabled={!isComplete}
+        nextDisabledMessage={
+          !isComplete
+            ? `Responda todas as ${questions.length} perguntas para continuar.`
+            : undefined
+        }
+      />
     </div>
   )
 }

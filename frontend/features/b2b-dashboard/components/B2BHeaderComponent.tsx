@@ -73,13 +73,11 @@ export function B2BHeaderComponent({
 
   const handleSignOut = async () => {
     await fetch('/api/auth/signout', { method: 'POST' })
-    router.push(localePath('/empresa/login'))
+    router.push(localePath('/login'))
     router.refresh()
   }
 
-  const initials = userEmail
-    ? userEmail.substring(0, 2).toUpperCase()
-    : '?'
+  const initials = userEmail ? userEmail.substring(0, 2).toUpperCase() : '?'
 
   return (
     <header className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-6 py-3">
@@ -89,15 +87,21 @@ export function B2BHeaderComponent({
           🧠
         </div>
         <div>
-          <div className="text-[15px] font-semibold text-[#E2E8F0]">Bright Precision</div>
-          <div className="text-[11px] text-[#64748B]">Plataforma de Saúde Mental Cognitiva</div>
+          <div className="text-[15px] font-semibold text-[#E2E8F0]">
+            Bright Precision
+          </div>
+          <div className="text-[11px] text-[#64748B]">
+            Plataforma de Saúde Mental Cognitiva
+          </div>
         </div>
       </div>
 
       {/* Center: Company + Cycle */}
       <div className="flex items-center gap-1.5">
         <span className="text-[11px] text-[#64748B]">Empresa:</span>
-        <span className="text-[13px] font-semibold text-[#14B8A6]">{companyName ?? 'Empresa'}</span>
+        <span className="text-[13px] font-semibold text-[#14B8A6]">
+          {companyName ?? 'Empresa'}
+        </span>
         {cycles.length > 0 && (
           <select
             value={activeCycleId ?? ''}
@@ -161,8 +165,12 @@ export function B2BHeaderComponent({
               <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#132540] py-2 shadow-xl">
                 {userEmail && (
                   <div className="border-b border-[rgba(255,255,255,0.08)] px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-wider text-[#64748B]">Conectado como</p>
-                    <p className="mt-0.5 truncate text-[13px] font-medium text-[#E2E8F0]">{userEmail}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-[#64748B]">
+                      Conectado como
+                    </p>
+                    <p className="mt-0.5 truncate text-[13px] font-medium text-[#E2E8F0]">
+                      {userEmail}
+                    </p>
                   </div>
                 )}
 

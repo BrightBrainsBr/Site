@@ -3,32 +3,56 @@
 import { useCallback, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { INITIAL_FORM_DATA } from '~/features/assessment/components/initial-form-data'
 import type {
   AssessmentFormData,
   MedicationEntry,
   SupplementEntry,
 } from '~/features/assessment/components/assessment.interface'
-import { cn } from '~/shared/utils/cn'
-import type { EvaluationDetail } from '../portal.interface'
-import { FIELD_LABELS, FORM_SECTIONS } from '../constants/form-sections'
-import { FIELD_CONFIG } from '../constants/field-config'
-import type { SelectOption } from '../constants/field-config'
-import { useUpdateEvaluationMutationHook } from '../hooks/useUpdateEvaluationMutationHook'
+import { INITIAL_FORM_DATA } from '~/features/assessment/components/initial-form-data'
 import { computeAllScores } from '~/features/assessment/helpers/compute-scores'
+import { cn } from '~/shared/utils/cn'
+
+import type { SelectOption } from '../constants/field-config'
+import { FIELD_CONFIG } from '../constants/field-config'
+import { FIELD_LABELS, FORM_SECTIONS } from '../constants/form-sections'
+import { useUpdateEvaluationMutationHook } from '../hooks/useUpdateEvaluationMutationHook'
+import type { EvaluationDetail } from '../portal.interface'
 
 const SCALE_FIELDS = new Set([
-  'phq9', 'gad7', 'isi', 'asrs', 'aq10', 'ocir', 'mbi', 'pcl5',
-  'mdq', 'pss10', 'ad8', 'nms', 'alsfrs', 'snapiv', 'spin', 'auditc',
+  'phq9',
+  'gad7',
+  'isi',
+  'asrs',
+  'aq10',
+  'ocir',
+  'mbi',
+  'pcl5',
+  'mdq',
+  'pss10',
+  'ad8',
+  'nms',
+  'alsfrs',
+  'snapiv',
+  'spin',
+  'auditc',
 ])
 
 const SKIP_EDIT_FIELDS = new Set(Array.from(SCALE_FIELDS))
 
 const LONG_TEXT_FIELDS = new Set([
-  'queixaPrincipal', 'transcricaoTriagem', 'triagemResumo',
-  'triagemObservacoes', 'diagAnterioresDetalhe', 'examesNeuroDetalhe',
-  'outrosSintomas', 'medPassadoDetalhe', 'estiloVidaObs',
-  'familiaDetalhes', 'infoAdicional', 'wearableObs', 'neuromodDetalhes',
+  'queixaPrincipal',
+  'transcricaoTriagem',
+  'triagemResumo',
+  'triagemObservacoes',
+  'diagAnterioresDetalhe',
+  'examesNeuroDetalhe',
+  'outrosSintomas',
+  'medPassadoDetalhe',
+  'estiloVidaObs',
+  'familiaDetalhes',
+  'infoAdicional',
+  'wearableObs',
+  'neuromodDetalhes',
 ])
 
 const TABLE_FIELDS = new Set(['medicamentos', 'suplementos'])
@@ -84,9 +108,12 @@ function PillsEditor({
     setCustomInput('')
   }, [customInput, value, onChange])
 
-  const remaining = availableItems?.filter((item) => !value.includes(item)) ?? []
+  const remaining =
+    availableItems?.filter((item) => !value.includes(item)) ?? []
   const filtered = filterText
-    ? remaining.filter((i) => i.toLowerCase().includes(filterText.toLowerCase()))
+    ? remaining.filter((i) =>
+        i.toLowerCase().includes(filterText.toLowerCase())
+      )
     : remaining
 
   return (
@@ -120,7 +147,14 @@ function PillsEditor({
             className="flex w-full items-center justify-between rounded-lg border border-[#1a3a5c] bg-[#0f2240] px-3 py-2.5 text-base text-[#5a7fa0] transition-colors hover:border-[#00c9b1]/50"
           >
             <span>Adicionar...</span>
-            <span className={cn('transition-transform', dropdownOpen && 'rotate-180')}>▾</span>
+            <span
+              className={cn(
+                'transition-transform',
+                dropdownOpen && 'rotate-180'
+              )}
+            >
+              ▾
+            </span>
           </button>
           {dropdownOpen && (
             <div className="absolute z-20 mt-1 max-h-60 w-full overflow-hidden rounded-lg border border-[#1a3a5c] bg-[#0c1a2e] shadow-xl">
@@ -148,7 +182,9 @@ function PillsEditor({
                   </button>
                 ))}
                 {filtered.length === 0 && (
-                  <div className="px-3 py-2 text-sm text-[#3a5a75]">Nenhuma opção encontrada</div>
+                  <div className="px-3 py-2 text-sm text-[#3a5a75]">
+                    Nenhuma opção encontrada
+                  </div>
                 )}
               </div>
             </div>
@@ -163,7 +199,10 @@ function PillsEditor({
             value={customInput}
             onChange={(e) => setCustomInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') { e.preventDefault(); addCustom() }
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                addCustom()
+              }
             }}
             placeholder={placeholder ?? 'Adicionar item...'}
             className={inputClass}
@@ -196,13 +235,21 @@ function SelectField({
 }) {
   return (
     <div className="relative">
-      <select value={value} onChange={(e) => onChange(e.target.value)} className={selectClass}>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={selectClass}
+      >
         <option value="">Selecione...</option>
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
         ))}
       </select>
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#5a7fa0]">▾</span>
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#5a7fa0]">
+        ▾
+      </span>
     </div>
   )
 }
@@ -230,7 +277,10 @@ function MedicationsEditor({
       {value.length > 0 && (
         <div className="space-y-2">
           {value.map((med, i) => (
-            <div key={i} className="flex items-start gap-2 rounded-lg bg-[#0a1628] p-3">
+            <div
+              key={i}
+              className="flex items-start gap-2 rounded-lg bg-[#0a1628] p-3"
+            >
               <div className="flex-1 space-y-2">
                 <input
                   type="text"
@@ -301,7 +351,10 @@ function SupplementsEditor({
       {value.length > 0 && (
         <div className="space-y-2">
           {value.map((sup, i) => (
-            <div key={i} className="flex items-center gap-2 rounded-lg bg-[#0a1628] p-3">
+            <div
+              key={i}
+              className="flex items-center gap-2 rounded-lg bg-[#0a1628] p-3"
+            >
               <input
                 type="text"
                 value={sup.nome}
@@ -371,14 +424,19 @@ export function EvaluationEditFormComponent({
 
   const onSubmit = (data: AssessmentFormData) => {
     const changedFields: Partial<AssessmentFormData> = {}
-    for (const key of Object.keys(dirtyFields) as (keyof AssessmentFormData)[]) {
+    for (const key of Object.keys(
+      dirtyFields
+    ) as (keyof AssessmentFormData)[]) {
       if (!(key in data)) continue
       ;(changedFields as Record<string, unknown>)[key] = data[key]
     }
 
     if (Object.keys(changedFields).length === 0) return
 
-    const scores = computeAllScores({ ...formData, ...changedFields } as AssessmentFormData)
+    const scores = computeAllScores({
+      ...formData,
+      ...changedFields,
+    } as AssessmentFormData)
 
     updateMutation.mutate(
       {
@@ -394,7 +452,9 @@ export function EvaluationEditFormComponent({
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-8 pb-24">
         {FORM_SECTIONS.map((section) => {
-          const sectionFields = section.fields.filter((f) => !SKIP_EDIT_FIELDS.has(f))
+          const sectionFields = section.fields.filter(
+            (f) => !SKIP_EDIT_FIELDS.has(f)
+          )
           if (sectionFields.length === 0) return null
 
           const isScalesSection = section.id === 'scales'
@@ -432,14 +492,21 @@ export function EvaluationEditFormComponent({
                     // --- Medications table ---
                     if (fieldId === 'medicamentos') {
                       const raw = watch('medicamentos')
-                      const meds: MedicationEntry[] = Array.isArray(raw) ? raw : []
+                      const meds: MedicationEntry[] = Array.isArray(raw)
+                        ? raw
+                        : []
                       return (
-                        <div key={fieldId} className="col-span-full rounded-lg bg-[#0f2240] p-4">
+                        <div
+                          key={fieldId}
+                          className="col-span-full rounded-lg bg-[#0f2240] p-4"
+                        >
                           <label className={labelClass}>{label}</label>
                           <MedicationsEditor
                             value={meds}
                             onChange={(next) =>
-                              setValue('medicamentos', next, { shouldDirty: true })
+                              setValue('medicamentos', next, {
+                                shouldDirty: true,
+                              })
                             }
                           />
                         </div>
@@ -449,14 +516,21 @@ export function EvaluationEditFormComponent({
                     // --- Supplements table ---
                     if (fieldId === 'suplementos') {
                       const raw = watch('suplementos')
-                      const sups: SupplementEntry[] = Array.isArray(raw) ? raw : []
+                      const sups: SupplementEntry[] = Array.isArray(raw)
+                        ? raw
+                        : []
                       return (
-                        <div key={fieldId} className="col-span-full rounded-lg bg-[#0f2240] p-4">
+                        <div
+                          key={fieldId}
+                          className="col-span-full rounded-lg bg-[#0f2240] p-4"
+                        >
                           <label className={labelClass}>{label}</label>
                           <SupplementsEditor
                             value={sups}
                             onChange={(next) =>
-                              setValue('suplementos', next, { shouldDirty: true })
+                              setValue('suplementos', next, {
+                                shouldDirty: true,
+                              })
                             }
                           />
                         </div>
@@ -466,9 +540,14 @@ export function EvaluationEditFormComponent({
                     // --- Pills (array multi-select) ---
                     if (config?.type === 'pills') {
                       const raw = watch(fieldId as string)
-                      const current: string[] = Array.isArray(raw) ? (raw as string[]) : []
+                      const current: string[] = Array.isArray(raw)
+                        ? (raw as string[])
+                        : []
                       return (
-                        <div key={fieldId} className="col-span-full rounded-lg bg-[#0f2240] p-4">
+                        <div
+                          key={fieldId}
+                          className="col-span-full rounded-lg bg-[#0f2240] p-4"
+                        >
                           <label className={labelClass}>{label}</label>
                           <PillsEditor
                             value={current}
@@ -488,7 +567,10 @@ export function EvaluationEditFormComponent({
                       const raw = watch(fieldId as string)
                       const current = typeof raw === 'string' ? raw : ''
                       return (
-                        <div key={fieldId} className="rounded-lg bg-[#0f2240] p-3">
+                        <div
+                          key={fieldId}
+                          className="rounded-lg bg-[#0f2240] p-3"
+                        >
                           <label className={labelClass}>{label}</label>
                           <SelectField
                             value={current}
@@ -519,7 +601,10 @@ export function EvaluationEditFormComponent({
 
                     // --- Default text input ---
                     return (
-                      <div key={fieldId} className="rounded-lg bg-[#0f2240] p-3">
+                      <div
+                        key={fieldId}
+                        className="rounded-lg bg-[#0f2240] p-3"
+                      >
                         <label className={labelClass}>{label}</label>
                         <input
                           type="text"

@@ -2,14 +2,15 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { parseAsString, useQueryState } from 'nuqs'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { cn } from '~/shared/utils/cn'
-import type { EvaluationListItem } from '../portal.interface'
+
 import { formatDate } from '../helpers/format-evaluation'
 import { useDeleteEvaluationMutationHook } from '../hooks/useDeleteEvaluationMutationHook'
 import { useEvaluationsQueryHook } from '../hooks/useEvaluationsQueryHook'
+import type { EvaluationListItem } from '../portal.interface'
 import { ProfileBadgeComponent } from './ProfileBadgeComponent'
 import {
   ProcessingStatusBadge,
@@ -130,8 +131,18 @@ function KebabMenu({
               }}
               className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[#ff4d6d] transition-colors hover:bg-[rgba(255,77,109,0.1)]"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
               Excluir
             </button>
@@ -209,7 +220,11 @@ export function EvaluationListViewComponent() {
     parseAsString.withDefault('date_desc')
   )
 
-  const { data: evaluations = [], isLoading, refetch } = useEvaluationsQueryHook({
+  const {
+    data: evaluations = [],
+    isLoading,
+    refetch,
+  } = useEvaluationsQueryHook({
     status: status ?? undefined,
     profile: profile ?? undefined,
     search: search ?? undefined,
@@ -363,7 +378,9 @@ export function EvaluationListViewComponent() {
                   <tr
                     key={evaluation.id}
                     className="cursor-pointer border-b border-[#1a3a5c] transition-colors hover:bg-[rgba(0,201,177,0.05)]"
-                    onClick={() => router.push(`/${locale}/portal/${evaluation.id}`)}
+                    onClick={() =>
+                      router.push(`/${locale}/portal/${evaluation.id}`)
+                    }
                   >
                     <td className="px-4 py-3 font-medium text-[#e8f4ff]">
                       {evaluation.patient_name || '—'}
@@ -380,7 +397,9 @@ export function EvaluationListViewComponent() {
                     <td className="px-4 py-3">
                       <div
                         className="font-mono text-xs text-[#5a7fa0]"
-                        style={{ fontFamily: 'var(--font-mono-portal), monospace' }}
+                        style={{
+                          fontFamily: 'var(--font-mono-portal), monospace',
+                        }}
                       >
                         {formatDate(evaluation.created_at)}
                       </div>
@@ -397,9 +416,7 @@ export function EvaluationListViewComponent() {
                         ) : (
                           '—'
                         )}
-                        <ProcessingStatusBadge
-                          status={evaluation.status}
-                        />
+                        <ProcessingStatusBadge status={evaluation.status} />
                       </div>
                     </td>
                     <td className="px-4 py-3">

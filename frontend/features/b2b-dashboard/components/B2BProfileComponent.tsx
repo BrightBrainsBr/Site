@@ -111,13 +111,9 @@ export function B2BProfileComponent() {
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
           <div className="mb-3 flex items-center gap-2">
             <Mail className="h-4 w-4 text-[#14B8A6]" />
-            <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
-              E-mail
-            </h3>
+            <h3 className="text-[13px] font-semibold text-[#E2E8F0]">E-mail</h3>
           </div>
-          <p className="text-[13px] text-[#94A3B8]">
-            {profile?.email ?? '—'}
-          </p>
+          <p className="text-[13px] text-[#94A3B8]">{profile?.email ?? '—'}</p>
           <p className="mt-1 text-[11px] text-[#64748B]">
             O e-mail não pode ser alterado.
           </p>
@@ -127,9 +123,7 @@ export function B2BProfileComponent() {
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
           <div className="mb-3 flex items-center gap-2">
             <User className="h-4 w-4 text-[#14B8A6]" />
-            <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
-              Nome
-            </h3>
+            <h3 className="text-[13px] font-semibold text-[#E2E8F0]">Nome</h3>
           </div>
           <form
             onSubmit={nameForm.handleSubmit(handleNameSave)}

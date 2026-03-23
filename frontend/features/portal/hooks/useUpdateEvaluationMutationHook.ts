@@ -2,8 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { apiPatch } from '~/shared/utils/api-helpers'
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
+import { apiPatch } from '~/shared/utils/api-helpers'
 
 interface UpdateEvaluationPayload {
   form_data: Partial<AssessmentFormData>
@@ -16,18 +16,19 @@ export function useUpdateEvaluationMutationHook(id: string) {
 
   return useMutation({
     mutationFn: async (payload: UpdateEvaluationPayload) => {
-      const result = await apiPatch(
-        `/api/portal/evaluations/${id}`,
-        payload
-      )
+      const result = await apiPatch(`/api/portal/evaluations/${id}`, payload)
       if (!result.success) {
         throw new Error(result.error ?? 'Falha ao salvar')
       }
       return result.data
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['portal', 'evaluations', id] })
-      void queryClient.invalidateQueries({ queryKey: ['portal', 'evaluations'] })
+      void queryClient.invalidateQueries({
+        queryKey: ['portal', 'evaluations', id],
+      })
+      void queryClient.invalidateQueries({
+        queryKey: ['portal', 'evaluations'],
+      })
     },
   })
 }

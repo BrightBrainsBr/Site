@@ -1,109 +1,110 @@
 // app/auth/services_and_hooks/useAuthQueryHook.ts
-'use client';
+'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { 
-  type LoginCredentials,
-} from '@/auth/auth.interface';
-import { useToast } from '@/components/ui/use-toast';
+import { type LoginCredentials } from '@/auth/auth.interface'
+import { useToast } from '@/components/ui/use-toast'
 
-import { authService } from './authService';
-import { useAuthStore } from './authStore';
+import { authService } from './authService'
+import { useAuthStore } from './authStore'
 
 // Export the query keys that onboarding needs
 export const authQueryKeys = {
   user: ['auth', 'user'] as const,
   session: ['auth', 'session'] as const,
   profile: (userId: string) => ['auth', 'profile', userId] as const,
-};
+}
 
 export function useAuthQueryHook() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
-  const { 
-    setSession, 
-    setProfile, 
-    setLoading, 
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  const {
+    setSession,
+    setProfile,
+    setLoading,
     reset: resetState,
   } = useAuthStore((state) => ({
     setSession: state.setSession,
     setProfile: state.setProfile,
     setLoading: state.setLoading,
     reset: state.reset,
-  }));
-  
+  }))
+
   // Get current session
   const sessionQuery = useQuery({
     queryKey: authQueryKeys.session,
     queryFn: async () => {
-      setLoading(true);
+      setLoading(true)
       try {
-        const { data, error } = await authService.getSession();
-        
+        const { data, error } = await authService.getSession()
+
         if (error) {
-          resetState();
-          setLoading(false);
+          resetState()
+          setLoading(false)
           // Return empty object instead of null
-          return { session: null, user: null };
+          return { session: null, user: null }
         }
-        
-        setSession(data || null);
-        
+
+        setSession(data || null)
+
         if (data) {
-          const userResponse = await authService.getUser();
-          
+          const userResponse = await authService.getUser()
+
           if (userResponse.data) {
-            const profileResponse = await authService.getUserProfile(userResponse.data.id);
-            const profileData = profileResponse.data || null;
-            setProfile(profileData);
+            const profileResponse = await authService.getUserProfile(
+              userResponse.data.id
+            )
+            const profileData = profileResponse.data || null
+            setProfile(profileData)
           }
         } else {
-          resetState();
+          resetState()
         }
-        
-        setLoading(false);
-        return { session: data, user: data?.user || null };
+
+        setLoading(false)
+        return { session: data, user: data?.user || null }
       } catch (error) {
-        console.error('[useAuthQueryHook] Session query error:', error);
-        resetState();
-        setLoading(false);
-        return { session: null, user: null };
+        console.error('[useAuthQueryHook] Session query error:', error)
+        resetState()
+        setLoading(false)
+        return { session: null, user: null }
       }
     },
     retry: 1,
     refetchOnWindowFocus: false,
-  });
+  })
 
   // All your mutations here (sign in, sign up, etc.)
   const signInMutation = useMutation({
-    mutationFn: (credentials: LoginCredentials) => authService.signIn(credentials),
+    mutationFn: (credentials: LoginCredentials) =>
+      authService.signIn(credentials),
     onSuccess: async (data) => {
       if (data.error) {
         toast({
           title: 'Sign in failed',
           description: data.error.message,
           variant: 'destructive',
-        });
-        return;
+        })
+        return
       }
-      
-      await queryClient.invalidateQueries({ queryKey: authQueryKeys.session });
-      
+
+      await queryClient.invalidateQueries({ queryKey: authQueryKeys.session })
+
       toast({
         title: 'Signed in successfully',
         description: 'Welcome back!',
-      });
+      })
     },
     onError: (error: Error) => {
       toast({
         title: 'Sign in failed',
         description: error.message || 'An error occurred during sign in',
         variant: 'destructive',
-      });
+      })
     },
-  });
+  })
 
   // Add all other mutations from your document...
 
@@ -114,12 +115,12 @@ export function useAuthQueryHook() {
     isSigningIn: signInMutation.isPending,
     signInError: signInMutation.error,
     // ... other methods
-    refreshSession: () => queryClient.invalidateQueries({ queryKey: authQueryKeys.session }),
-  };
+    refreshSession: () =>
+      queryClient.invalidateQueries({ queryKey: authQueryKeys.session }),
+  }
 }
 
 // // !v2!
-
 
 // // app/auth/services_and_hooks/useAuthQueryHook.ts
 // 'use client';
@@ -128,10 +129,10 @@ export function useAuthQueryHook() {
 // import { useToast } from '@/components/ui/use-toast';
 // import { Database } from '@/types/supabase';
 
-// import { 
-//   type LoginCredentials, 
+// import {
+//   type LoginCredentials,
 //   type ResetPasswordCredentials,
-//   type SignupCredentials, 
+//   type SignupCredentials,
 //   type UpdatePasswordCredentials,
 // } from '../auth.interface';
 // import { authService } from './authService';
@@ -152,13 +153,13 @@ export function useAuthQueryHook() {
 // export function useAuthQueryHook() {
 //   const queryClient = useQueryClient();
 //   const { toast } = useToast();
-  
+
 //   // ### CODE CHANGES START ###
 //   // We now get all setters from the SINGLE unified useAuthStore.
-//   const { 
-//     setSession, 
-//     setProfile, 
-//     setLoading, 
+//   const {
+//     setSession,
+//     setProfile,
+//     setLoading,
 //     reset: resetState, // Rename `reset` to `resetState` to avoid conflicts
 //   } = useAuthStore((state) => ({
 //     setSession: state.setSession,
@@ -167,25 +168,25 @@ export function useAuthQueryHook() {
 //     reset: state.reset,
 //   }));
 //   // ### CODE CHANGES FINISH ###
-  
+
 //   // Get current session
 //   const sessionQuery = useQuery({
 //     queryKey: authQueryKeys.session,
 //     queryFn: async () => {
 //       setLoading(true);
 //       const { data, error } = await authService.getSession();
-      
+
 //       if (error) {
 //         resetState();
 //         setLoading(false);
 //         return null;
 //       }
-      
+
 //       setSession(data || null);
-      
+
 //       if (data) {
 //         const userResponse = await authService.getUser();
-        
+
 //         if (userResponse.data) {
 //           const profileResponse = await authService.getUserProfile(userResponse.data.id);
 //           const profileData = profileResponse.data || null;
@@ -197,7 +198,7 @@ export function useAuthQueryHook() {
 //       } else {
 //         resetState();
 //       }
-      
+
 //       setLoading(false);
 //       return data;
 //     },
@@ -217,13 +218,13 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       // ### CODE CHANGES START ###
 //       // This is correct. Invalidating the session will trigger the sessionQuery to refetch,
 //       // which in turn will update the entire auth state.
 //       await queryClient.invalidateQueries({ queryKey: authQueryKeys.session });
 //       // ### CODE CHANGES FINISH ###
-      
+
 //       toast({
 //         title: 'Signed in successfully',
 //         description: 'Welcome back!',
@@ -250,9 +251,9 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       const needsEmailConfirmation = !data.data?.session;
-      
+
 //       if (needsEmailConfirmation) {
 //         toast({
 //           title: 'Sign up successful',
@@ -287,14 +288,14 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       // ### CODE CHANGES START ###
 //       // This is now simpler and correct. resetState handles everything.
 //       resetState();
 //       // Clear all react-query cache to ensure no stale data remains.
 //       queryClient.clear();
 //       // ### CODE CHANGES FINISH ###
-      
+
 //       toast({
 //         title: 'Signed out successfully',
 //       });
@@ -383,7 +384,7 @@ export function useAuthQueryHook() {
 //       toast({ title: 'Failed to update profile', description: error.message, variant: 'destructive' });
 //     },
 //   });
-  
+
 //   // signInWithProvider remains unchanged as it's a pure action.
 //   const signInWithProvider = async (
 //     provider: 'google' | 'github' | 'facebook' | 'twitter',
@@ -402,45 +403,44 @@ export function useAuthQueryHook() {
 //   return {
 //     // Queries
 //     sessionQuery,
-    
+
 //     // Auth mutations
 //     signIn: signInMutation.mutate,
 //     signInAsync: signInMutation.mutateAsync,
 //     isSigningIn: signInMutation.isPending,
 //     signInError: signInMutation.error,
-    
+
 //     signUp: signUpMutation.mutate,
 //     signUpAsync: signUpMutation.mutateAsync,
 //     isSigningUp: signUpMutation.isPending,
 //     signUpError: signUpMutation.error,
-    
+
 //     signOut: signOutMutation.mutate,
 //     signOutAsync: signOutMutation.mutateAsync,
 //     isSigningOut: signOutMutation.isPending,
-    
+
 //     resetPassword: resetPasswordMutation.mutate,
 //     resetPasswordAsync: resetPasswordMutation.mutateAsync,
 //     isResettingPassword: resetPasswordMutation.isPending,
-    
+
 //     updatePassword: updatePasswordMutation.mutate,
 //     updatePasswordAsync: updatePasswordMutation.mutateAsync,
 //     isUpdatingPassword: updatePasswordMutation.isPending,
-    
+
 //     signInWithProvider,
 //     // Profile mutations
 //     createUserProfile: createUserProfileMutation.mutate,
 //     createUserProfileAsync: createUserProfileMutation.mutateAsync,
 //     isCreatingProfile: createUserProfileMutation.isPending,
-    
+
 //     updateUserProfile: updateUserProfileMutation.mutate,
 //     updateUserProfileAsync: updateUserProfileMutation.mutateAsync,
 //     isUpdatingProfile: updateUserProfileMutation.isPending,
-    
+
 //     // Helper methods
 //     refreshSession: () => queryClient.invalidateQueries({ queryKey: authQueryKeys.session }),
 //   };
 // }
-
 
 // v1
 // // app/auth/services_and_hooks/useAuthQueryHook.ts
@@ -452,10 +452,10 @@ export function useAuthQueryHook() {
 // import { Database } from '@/types/supabase';
 // import { useUserStore } from '@/app/shared/store/userStore';
 
-// import { 
-//   type LoginCredentials, 
+// import {
+//   type LoginCredentials,
 //   type ResetPasswordCredentials,
-//   type SignupCredentials, 
+//   type SignupCredentials,
 //   type UpdatePasswordCredentials,
 // } from '../auth.interface';
 // import { authService } from './authService';
@@ -476,16 +476,16 @@ export function useAuthQueryHook() {
 // export function useAuthQueryHook() {
 //   const queryClient = useQueryClient();
 //   const { toast } = useToast();
-  
+
 //   // Auth store actions
-//   const { 
-//     setUser, 
-//     setSession, 
-//     setProfile, 
-//     setLoading, 
+//   const {
+//     setUser,
+//     setSession,
+//     setProfile,
+//     setLoading,
 //     resetState
 //   } = useAuthStore();
-  
+
 //   // User store actions
 //   const { setProfile: setUserStoreProfile } = useUserStore();
 
@@ -495,27 +495,27 @@ export function useAuthQueryHook() {
 //     queryFn: async () => {
 //       setLoading(true);
 //       const { data, error } = await authService.getSession();
-      
+
 //       if (error) {
 //         resetState();
 //         setLoading(false);
 //         return null;
 //       }
-      
+
 //       // Update user state
 //       setSession(data || null);
-      
+
 //       if (data) {
 //         // If we have a session, also get the user
 //         const userResponse = await authService.getUser();
 //         setUser(userResponse.data || null);
-        
+
 //         // If we have a user, fetch their profile
 //         if (userResponse.data) {
 //           const profileResponse = await authService.getUserProfile(userResponse.data.id);
 //           const profileData = profileResponse.data || null;
 //           setProfile(profileData);
-          
+
 //           // Also update the user store with the profile
 //           if (profileData) {
 //             console.log('[useAuthQueryHook] Updating user store with profile from auth session query.');
@@ -525,7 +525,7 @@ export function useAuthQueryHook() {
 //       } else {
 //         resetState();
 //       }
-      
+
 //       setLoading(false);
 //       return data;
 //     },
@@ -545,10 +545,10 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       // Refetch session which will update the auth store and user store
 //       queryClient.invalidateQueries({ queryKey: authQueryKeys.session });
-      
+
 //       toast({
 //         title: 'Signed in successfully',
 //         description: 'Welcome back!',
@@ -575,12 +575,12 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       // Check if the sign up was successful but requires email confirmation
-//       const needsEmailConfirmation = 
-//         !data.data?.user?.confirmed_at || 
+//       const needsEmailConfirmation =
+//         !data.data?.user?.confirmed_at ||
 //         data.data?.user?.confirmation_sent_at;
-      
+
 //       if (needsEmailConfirmation) {
 //         toast({
 //           title: 'Sign up successful',
@@ -589,7 +589,7 @@ export function useAuthQueryHook() {
 //       } else {
 //         // User is automatically signed in after sign up
 //         queryClient.invalidateQueries({ queryKey: authQueryKeys.session });
-        
+
 //         toast({
 //           title: 'Account created successfully',
 //           description: 'Welcome to the platform!',
@@ -617,16 +617,16 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       // Clear auth state
 //       resetState();
-      
+
 //       // Clear user store profile as well
 //       setUserStoreProfile(null);
-      
+
 //       // Clear all queries
 //       queryClient.clear();
-      
+
 //       toast({
 //         title: 'Signed out successfully',
 //       });
@@ -652,7 +652,7 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       toast({
 //         title: 'Password reset email sent',
 //         description: 'Please check your email for password reset instructions',
@@ -679,7 +679,7 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       toast({
 //         title: 'Password updated successfully',
 //       });
@@ -700,7 +700,7 @@ export function useAuthQueryHook() {
 //       if (!profile.first_name || !profile.last_name) {
 //         return Promise.reject(new Error('First name and last name are required'));
 //       }
-      
+
 //       return authService.createUserProfile(profile);
 //     },
 //     onSuccess: async (data, variables) => {
@@ -712,10 +712,10 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       // Update profile in store
 //       setProfile(data.data || null);
-      
+
 //       toast({
 //         title: 'Profile created successfully',
 //       });
@@ -743,13 +743,13 @@ export function useAuthQueryHook() {
 //         });
 //         return;
 //       }
-      
+
 //       // Update profile in store
 //       setProfile(data.data || null);
-      
+
 //       // Set onboarding completed status based on business logic
 //       useAuthStore.getState().setHasCompletedOnboarding(true);
-      
+
 //       toast({
 //         title: 'Profile updated successfully',
 //       });
@@ -795,41 +795,41 @@ export function useAuthQueryHook() {
 //   return {
 //     // Queries
 //     sessionQuery,
-    
+
 //     // Auth mutations
 //     signIn: signInMutation.mutate,
 //     signInAsync: signInMutation.mutateAsync,
 //     isSigningIn: signInMutation.isPending,
 //     signInError: signInMutation.error,
-    
+
 //     signUp: signUpMutation.mutate,
 //     signUpAsync: signUpMutation.mutateAsync,
 //     isSigningUp: signUpMutation.isPending,
 //     signUpError: signUpMutation.error,
-    
+
 //     signOut: signOutMutation.mutate,
 //     signOutAsync: signOutMutation.mutateAsync,
 //     isSigningOut: signOutMutation.isPending,
-    
+
 //     resetPassword: resetPasswordMutation.mutate,
 //     resetPasswordAsync: resetPasswordMutation.mutateAsync,
 //     isResettingPassword: resetPasswordMutation.isPending,
-    
+
 //     updatePassword: updatePasswordMutation.mutate,
 //     updatePasswordAsync: updatePasswordMutation.mutateAsync,
 //     isUpdatingPassword: updatePasswordMutation.isPending,
-    
+
 //     signInWithProvider,
 //     // Profile mutations
 //     createUserProfile: createUserProfileMutation.mutate,
 //     createUserProfileAsync: createUserProfileMutation.mutateAsync,
 //     isCreatingProfile: createUserProfileMutation.isPending,
-    
+
 //     updateUserProfile: updateUserProfileMutation.mutate,
 //     updateUserProfileAsync: updateUserProfileMutation.mutateAsync,
 //     isUpdatingProfile: updateUserProfileMutation.isPending,
-    
+
 //     // Helper methods
 //     refreshSession: () => queryClient.invalidateQueries({ queryKey: authQueryKeys.session }),
 //   };
-// } 
+// }

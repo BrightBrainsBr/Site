@@ -10,27 +10,32 @@ interface B2BReportsTabProps {
 const REGULATORY_REPORTS = [
   {
     title: 'GRO Consolidado',
-    description: 'Gerenciamento de Riscos Ocupacionais — documento completo com todos os fatores psicossociais identificados.',
+    description:
+      'Gerenciamento de Riscos Ocupacionais — documento completo com todos os fatores psicossociais identificados.',
     icon: '📋',
   },
   {
     title: 'Relatório Executivo',
-    description: 'Resumo executivo para a diretoria com indicadores-chave e recomendações prioritárias.',
+    description:
+      'Resumo executivo para a diretoria com indicadores-chave e recomendações prioritárias.',
     icon: '📊',
   },
   {
     title: 'Relatório por Departamento',
-    description: 'Análise detalhada por área organizacional com scores e distribuição de risco.',
+    description:
+      'Análise detalhada por área organizacional com scores e distribuição de risco.',
     icon: '🏢',
   },
   {
     title: 'Laudo Técnico CFM 2454/2026',
-    description: 'Laudo técnico conforme resolução CFM para avaliação de saúde mental ocupacional.',
+    description:
+      'Laudo técnico conforme resolução CFM para avaliação de saúde mental ocupacional.',
     icon: '⚕️',
   },
   {
     title: 'CIAT — Comunicação Individual',
-    description: 'Comunicação Individual de Acompanhamento Terapêutico para casos críticos identificados.',
+    description:
+      'Comunicação Individual de Acompanhamento Terapêutico para casos críticos identificados.',
     icon: '🔒',
   },
 ]
@@ -50,7 +55,8 @@ const DATA_EXPORTS = [
   },
   {
     title: 'Export JSON — Formato Dashboard',
-    description: 'Dados estruturados compatíveis com reimportação no BrightPrecision.',
+    description:
+      'Dados estruturados compatíveis com reimportação no BrightPrecision.',
     format: 'JSON',
     endpoint: 'json',
   },
@@ -63,20 +69,58 @@ const DATA_EXPORTS = [
 ]
 
 const ESOCIAL_EVENTS = [
-  { event: 'S-2240', description: 'Condições Ambientais do Trabalho', status: 'Enviado', date: '15/01/2026' },
-  { event: 'S-2220', description: 'Monitoramento da Saúde do Trabalhador', status: 'Pendente', date: '—' },
-  { event: 'S-2210', description: 'Comunicação de Acidente de Trabalho', status: 'N/A', date: '—' },
+  {
+    event: 'S-2240',
+    description: 'Condições Ambientais do Trabalho',
+    status: 'Enviado',
+    date: '15/01/2026',
+  },
+  {
+    event: 'S-2220',
+    description: 'Monitoramento da Saúde do Trabalhador',
+    status: 'Pendente',
+    date: '—',
+  },
+  {
+    event: 'S-2210',
+    description: 'Comunicação de Acidente de Trabalho',
+    status: 'N/A',
+    date: '—',
+  },
 ]
 
 const NR1_REVIEW = [
-  { item: 'Avaliação Psicossocial', frequency: 'Semestral', nextDate: 'Jul/2026', status: 'Em dia' },
-  { item: 'Relatório GRO', frequency: 'Anual', nextDate: 'Jan/2027', status: 'Em dia' },
-  { item: 'Treinamento NR-1', frequency: 'Anual', nextDate: 'Mar/2027', status: 'Em dia' },
-  { item: 'Reavaliação Críticos', frequency: 'Trimestral', nextDate: 'Abr/2026', status: 'Próximo' },
+  {
+    item: 'Avaliação Psicossocial',
+    frequency: 'Semestral',
+    nextDate: 'Jul/2026',
+    status: 'Em dia',
+  },
+  {
+    item: 'Relatório GRO',
+    frequency: 'Anual',
+    nextDate: 'Jan/2027',
+    status: 'Em dia',
+  },
+  {
+    item: 'Treinamento NR-1',
+    frequency: 'Anual',
+    nextDate: 'Mar/2027',
+    status: 'Em dia',
+  },
+  {
+    item: 'Reavaliação Críticos',
+    frequency: 'Trimestral',
+    nextDate: 'Abr/2026',
+    status: 'Próximo',
+  },
 ]
 
 export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
-  const [importStatus, setImportStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [importStatus, setImportStatus] = useState<{
+    type: 'success' | 'error'
+    text: string
+  } | null>(null)
   const [importing, setImporting] = useState(false)
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -147,7 +191,10 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
     if (file && file.name.endsWith('.json')) {
       void handleImport(file)
     } else {
-      setImportStatus({ type: 'error', text: 'Apenas arquivos .json são aceitos.' })
+      setImportStatus({
+        type: 'error',
+        text: 'Apenas arquivos .json são aceitos.',
+      })
     }
   }
 
@@ -177,8 +224,12 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
                 <div className="flex items-center gap-3">
                   <span className="text-lg">{r.icon}</span>
                   <div>
-                    <p className="text-[13px] font-medium text-[#E2E8F0]">{r.title}</p>
-                    <p className="text-[11px] text-[#64748B]">{r.description}</p>
+                    <p className="text-[13px] font-medium text-[#E2E8F0]">
+                      {r.title}
+                    </p>
+                    <p className="text-[11px] text-[#64748B]">
+                      {r.description}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -207,8 +258,12 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
                 className="flex items-center justify-between rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#0A1628] px-4 py-3"
               >
                 <div>
-                  <p className="text-[13px] font-medium text-[#E2E8F0]">{exp.title}</p>
-                  <p className="text-[11px] text-[#64748B]">{exp.description}</p>
+                  <p className="text-[13px] font-medium text-[#E2E8F0]">
+                    {exp.title}
+                  </p>
+                  <p className="text-[11px] text-[#64748B]">
+                    {exp.description}
+                  </p>
                 </div>
                 <button
                   onClick={() => handleExport(exp)}
@@ -268,14 +323,18 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
               />
             </svg>
             <p className="text-[12px] text-[#94A3B8]">
-              {importing ? 'Importando...' : 'Arraste o arquivo .json ou clique para selecionar'}
+              {importing
+                ? 'Importando...'
+                : 'Arraste o arquivo .json ou clique para selecionar'}
             </p>
           </div>
 
           {importStatus && (
             <p
               className={`mt-3 text-[12px] ${
-                importStatus.type === 'success' ? 'text-[#34D399]' : 'text-[#F87171]'
+                importStatus.type === 'success'
+                  ? 'text-[#34D399]'
+                  : 'text-[#F87171]'
               }`}
             >
               {importStatus.text}
@@ -294,17 +353,32 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.08)]">
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">Evento</th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">Descrição</th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">Status</th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">Data</th>
+                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  Evento
+                </th>
+                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  Descrição
+                </th>
+                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  Status
+                </th>
+                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  Data
+                </th>
               </tr>
             </thead>
             <tbody>
               {ESOCIAL_EVENTS.map((ev) => (
-                <tr key={ev.event} className="border-b border-[rgba(255,255,255,0.04)]">
-                  <td className="py-2.5 text-[12px] font-medium text-[#E2E8F0]">{ev.event}</td>
-                  <td className="py-2.5 text-[12px] text-[#94A3B8]">{ev.description}</td>
+                <tr
+                  key={ev.event}
+                  className="border-b border-[rgba(255,255,255,0.04)]"
+                >
+                  <td className="py-2.5 text-[12px] font-medium text-[#E2E8F0]">
+                    {ev.event}
+                  </td>
+                  <td className="py-2.5 text-[12px] text-[#94A3B8]">
+                    {ev.description}
+                  </td>
                   <td className="py-2.5">
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
@@ -318,7 +392,9 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
                       {ev.status}
                     </span>
                   </td>
-                  <td className="py-2.5 text-[12px] text-[#64748B]">{ev.date}</td>
+                  <td className="py-2.5 text-[12px] text-[#64748B]">
+                    {ev.date}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -331,23 +407,41 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
             Periodicidade de Revisão NR-1
           </h3>
           <p className="mb-4 text-[11px] text-[#64748B]">
-            Calendário de revisões obrigatórias conforme a norma regulamentadora.
+            Calendário de revisões obrigatórias conforme a norma
+            regulamentadora.
           </p>
           <table className="w-full">
             <thead>
               <tr className="border-b border-[rgba(255,255,255,0.08)]">
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">Item</th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">Frequência</th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">Próxima</th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">Status</th>
+                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  Item
+                </th>
+                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  Frequência
+                </th>
+                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  Próxima
+                </th>
+                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody>
               {NR1_REVIEW.map((r) => (
-                <tr key={r.item} className="border-b border-[rgba(255,255,255,0.04)]">
-                  <td className="py-2.5 text-[12px] font-medium text-[#E2E8F0]">{r.item}</td>
-                  <td className="py-2.5 text-[12px] text-[#94A3B8]">{r.frequency}</td>
-                  <td className="py-2.5 text-[12px] text-[#94A3B8]">{r.nextDate}</td>
+                <tr
+                  key={r.item}
+                  className="border-b border-[rgba(255,255,255,0.04)]"
+                >
+                  <td className="py-2.5 text-[12px] font-medium text-[#E2E8F0]">
+                    {r.item}
+                  </td>
+                  <td className="py-2.5 text-[12px] text-[#94A3B8]">
+                    {r.frequency}
+                  </td>
+                  <td className="py-2.5 text-[12px] text-[#94A3B8]">
+                    {r.nextDate}
+                  </td>
                   <td className="py-2.5">
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${

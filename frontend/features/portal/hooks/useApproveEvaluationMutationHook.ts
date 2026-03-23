@@ -23,8 +23,12 @@ export function useApproveEvaluationMutationHook(id: string) {
       return result.data
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['portal', 'evaluations'] })
-      void queryClient.invalidateQueries({ queryKey: ['portal', 'evaluations', id] })
+      void queryClient.invalidateQueries({
+        queryKey: ['portal', 'evaluations'],
+      })
+      void queryClient.invalidateQueries({
+        queryKey: ['portal', 'evaluations', id],
+      })
     },
   })
 }

@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react'
 
+import { useB2BCompliance } from '../hooks/useB2BCompliance'
+import { useB2BOverview } from '../hooks/useB2BOverview'
+import { useB2BSession } from '../hooks/useB2BSession'
 import { B2BHeaderComponent } from './B2BHeaderComponent'
 import { B2BKpiRowComponent } from './B2BKpiRowComponent'
 import { B2BAlertsTab } from './tabs/B2BAlertsTab'
@@ -11,11 +14,15 @@ import { B2BOverviewTab } from './tabs/B2BOverviewTab'
 import { B2BReportsTab } from './tabs/B2BReportsTab'
 import { B2BRiskMapTab } from './tabs/B2BRiskMapTab'
 import { B2BSettingsTab } from './tabs/B2BSettingsTab'
-import { useB2BCompliance } from '../hooks/useB2BCompliance'
-import { useB2BOverview } from '../hooks/useB2BOverview'
-import { useB2BSession } from '../hooks/useB2BSession'
 
-type TabId = 'overview' | 'risk' | 'domains' | 'compliance' | 'alerts' | 'reports' | 'settings'
+type TabId =
+  | 'overview'
+  | 'risk'
+  | 'domains'
+  | 'compliance'
+  | 'alerts'
+  | 'reports'
+  | 'settings'
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'overview', label: 'Visão Geral' },
@@ -82,7 +89,9 @@ export function B2BDashboardComponent({
         cyclesOverride={cycles}
         currentCycleOverride={currentCycle}
         hideSignOut={isPortalMode}
-        onSettingsClick={isPortalMode ? undefined : () => setActiveTab('settings')}
+        onSettingsClick={
+          isPortalMode ? undefined : () => setActiveTab('settings')
+        }
       />
 
       {/* KPI row — hide when on settings */}
@@ -138,9 +147,7 @@ export function B2BDashboardComponent({
         {activeTab === 'reports' && (
           <B2BReportsTab companyId={companyId} cycleId={cycleId} />
         )}
-        {activeTab === 'settings' && (
-          <B2BSettingsTab companyId={companyId} />
-        )}
+        {activeTab === 'settings' && <B2BSettingsTab companyId={companyId} />}
       </div>
     </div>
   )

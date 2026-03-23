@@ -41,10 +41,13 @@ export async function GET() {
         .limit(1)
         .maybeSingle()
 
-      return NextResponse.json({
-        isCompanyUser: false,
-        isCollaborator: !!invite,
-      }, { status: 200 })
+      return NextResponse.json(
+        {
+          isCompanyUser: false,
+          isCollaborator: !!invite,
+        },
+        { status: 200 }
+      )
     }
 
     const [companyRes, cyclesRes] = await Promise.all([

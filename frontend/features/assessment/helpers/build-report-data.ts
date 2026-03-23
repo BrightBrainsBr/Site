@@ -46,9 +46,7 @@ ${sintomas.join(', ')}${data.outrosSintomas ? `\nOutros: ${data.outrosSintomas}`
   for (const [key, score] of Object.entries(scores)) {
     const config = SCALE_RANGES[key]
     if (!config) continue
-    const range = config.ranges.find(
-      (r) => score >= r.min && score <= r.max
-    )
+    const range = config.ranges.find((r) => score >= r.min && score <= r.max)
     scaleLines.push(
       `- ${config.label}: ${score} pts → ${range?.label ?? 'N/A'}`
     )
@@ -59,9 +57,7 @@ ${sintomas.join(', ')}${data.outrosSintomas ? `\nOutros: ${data.outrosSintomas}`
 
   const meds = arr(data.medicamentos)
   if (meds.length > 0) {
-    const medLines = meds.map(
-      (m) => `- ${m.nome} ${m.dose} (${m.tempo})`
-    )
+    const medLines = meds.map((m) => `- ${m.nome} ${m.dose} (${m.tempo})`)
     s.push(`## Medicamentos Atuais\n${medLines.join('\n')}`)
     if (data.medPassado === 'sim') {
       s.push(`Medicamentos passados: ${data.medPassadoDetalhe}`)
@@ -76,25 +72,19 @@ ${sintomas.join(', ')}${data.outrosSintomas ? `\nOutros: ${data.outrosSintomas}`
 
   const sups = arr(data.suplementos)
   if (sups.length > 0) {
-    const supLines = sups.map(
-      (sup) => `- ${sup.nome} ${sup.dose}`
-    )
+    const supLines = sups.map((sup) => `- ${sup.nome} ${sup.dose}`)
     s.push(`## Suplementos\n${supLines.join('\n')}`)
   }
 
   const lifestyle: string[] = []
-  if (data.estadoCivil)
-    lifestyle.push(`Estado civil: ${data.estadoCivil}`)
+  if (data.estadoCivil) lifestyle.push(`Estado civil: ${data.estadoCivil}`)
   if (data.satisfacaoRelacionamento)
     lifestyle.push(
       `Satisfação relacionamento: ${data.satisfacaoRelacionamento}`
     )
   if (data.situacaoProfissional)
-    lifestyle.push(
-      `Situação profissional: ${data.situacaoProfissional}`
-    )
-  if (data.cargaHoraria)
-    lifestyle.push(`Carga horária: ${data.cargaHoraria}`)
+    lifestyle.push(`Situação profissional: ${data.situacaoProfissional}`)
+  if (data.cargaHoraria) lifestyle.push(`Carga horária: ${data.cargaHoraria}`)
   if (data.horaDormir)
     lifestyle.push(
       `Sono: ${data.horaDormir} – ${data.horaAcordar}, qualidade: ${data.qualidadeSono}`
@@ -110,32 +100,25 @@ ${sintomas.join(', ')}${data.outrosSintomas ? `\nOutros: ${data.outrosSintomas}`
   if (data.redeApoio) lifestyle.push(`Rede de apoio: ${data.redeApoio}`)
   const stressSources = arr(data.fontesEstresse)
   if (stressSources.length > 0)
-    lifestyle.push(
-      `Fontes de estresse: ${stressSources.join(', ')}`
-    )
+    lifestyle.push(`Fontes de estresse: ${stressSources.join(', ')}`)
   if (data.neuromod && data.neuromod !== 'Nunca') {
     lifestyle.push(
       `Neuromodulação: ${data.neuromod}${data.neuromodDetalhes ? ` — ${data.neuromodDetalhes}` : ''}`
     )
   }
-  if (data.estiloVidaObs)
-    lifestyle.push(`Obs: ${data.estiloVidaObs}`)
+  if (data.estiloVidaObs) lifestyle.push(`Obs: ${data.estiloVidaObs}`)
   if (lifestyle.length > 0) {
     s.push(`## Estilo de Vida\n${lifestyle.join('\n')}`)
   }
 
   if (data.usaWearable === 'Sim') {
     const wLines: string[] = []
-    if (data.wDispositivo)
-      wLines.push(`Dispositivo: ${data.wDispositivo}`)
-    if (data.wFCRepouso)
-      wLines.push(`FC repouso: ${data.wFCRepouso} bpm`)
+    if (data.wDispositivo) wLines.push(`Dispositivo: ${data.wDispositivo}`)
+    if (data.wFCRepouso) wLines.push(`FC repouso: ${data.wFCRepouso} bpm`)
     if (data.wHRV) wLines.push(`HRV: ${data.wHRV} ms`)
-    if (data.wSonoDuracao)
-      wLines.push(`Sono (horas): ${data.wSonoDuracao}`)
+    if (data.wSonoDuracao) wLines.push(`Sono (horas): ${data.wSonoDuracao}`)
     if (data.wPassos) wLines.push(`Passos/dia: ${data.wPassos}`)
-    if (data.wEstresse)
-      wLines.push(`Score estresse: ${data.wEstresse}`)
+    if (data.wEstresse) wLines.push(`Score estresse: ${data.wEstresse}`)
     if (data.wearableObs) wLines.push(`Obs: ${data.wearableObs}`)
     if (wLines.length > 0) {
       s.push(`## Dados de Wearable\n${wLines.join('\n')}`)
@@ -160,8 +143,7 @@ Condições: ${familyConditions.join(', ')}${data.familiaDetalhes ? `\nDetalhes:
   const laudos = arr(data.laudosAnteriores)
   if (laudos.length > 0) {
     const laudoLines = laudos.map(
-      (l) =>
-        `- ${l.tipo} (${l.data}): CID ${l.cid} — ${l.resumo}`
+      (l) => `- ${l.tipo} (${l.data}): CID ${l.cid} — ${l.resumo}`
     )
     s.push(`## Laudos Anteriores\n${laudoLines.join('\n')}`)
   }

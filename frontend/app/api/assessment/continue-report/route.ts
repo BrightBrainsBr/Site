@@ -92,7 +92,6 @@ function handleStage1(
   mode: string,
   rid: string
 ) {
-  // eslint-disable-next-line complexity
   after(async () => {
     const p = (msg: string) =>
       console.warn(`[continue-report:${rid}] [stage1] ${msg}`)

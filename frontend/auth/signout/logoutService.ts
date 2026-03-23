@@ -14,16 +14,16 @@ export async function logoutServerAction() {
   try {
     const cookieStore = cookies()
     const supabase = await createClient()
-    
+
     // Sign out on the server
     await supabase.auth.signOut()
 
     // Force a redirect to the login page with a logout success message
-    redirect('/pt-BR/empresa/login?logout=success')
+    redirect('/pt-BR/login?logout=success')
   } catch (error) {
     console.error('Error during logout:', error)
-    
+
     // Redirect to login with an error message
-    redirect('/pt-BR/empresa/login?error=logout_failed')
+    redirect('/pt-BR/login?error=logout_failed')
   }
-} 
+}

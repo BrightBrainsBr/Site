@@ -42,7 +42,11 @@ import {
 
 const IS_DEV = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
 
-function AccessGate({ onUnlock }: { onUnlock: (ctx?: CompanyContext) => void }) {
+function AccessGate({
+  onUnlock,
+}: {
+  onUnlock: (ctx?: CompanyContext) => void
+}) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -159,7 +163,11 @@ export function AssessmentPage() {
         if (cancelled) return
 
         if (result.authenticated && result.hasInvite) {
-          try { sessionStorage.setItem('bb_access', '1') } catch { /* ignore */ }
+          try {
+            sessionStorage.setItem('bb_access', '1')
+          } catch {
+            /* ignore */
+          }
           setCompanyContext({
             ...result.companyContext,
             prefilled_email: !!result.userEmail,
@@ -182,7 +190,9 @@ export function AssessmentPage() {
     }
 
     void checkSession()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -198,7 +208,9 @@ export function AssessmentPage() {
 
   useEffect(() => {
     if (!isLoaded || !sessionEmail) return
-    setData((prev) => prev.email !== sessionEmail ? { ...prev, email: sessionEmail } : prev)
+    setData((prev) =>
+      prev.email !== sessionEmail ? { ...prev, email: sessionEmail } : prev
+    )
   }, [sessionEmail, isLoaded])
 
   useEffect(() => {

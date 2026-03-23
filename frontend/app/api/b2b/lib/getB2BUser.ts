@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import type { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
+import type { NextRequest } from 'next/server'
 
 import { createClient as createServerClient } from '~/utils/supabase/server'
 

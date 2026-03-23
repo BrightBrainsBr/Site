@@ -9,7 +9,7 @@ interface II18nConfig {
 export default getRequestConfig(async ({ requestLocale }) => {
   // This typically corresponds to the `[locale]` segment.
   let locale = await requestLocale
-  
+
   // Try to get dynamic i18n configs, fallback to static config if CMS is unavailable
   let i18n: II18nConfig
   try {

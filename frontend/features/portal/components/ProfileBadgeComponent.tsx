@@ -3,7 +3,10 @@
 
 import { getProfileLabel } from '../helpers/format-evaluation'
 
-const PROFILE_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
+const PROFILE_STYLES: Record<
+  string,
+  { bg: string; text: string; dot: string }
+> = {
   adulto: {
     bg: 'rgba(96,165,250,0.12)',
     text: '#93c5fd',

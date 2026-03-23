@@ -1,12 +1,13 @@
 'use client'
 
+import { useMutation } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
 
 import { apiGet } from '~/shared/utils/api-helpers'
 import { cn } from '~/shared/utils/cn'
+
 import { formatDate, getStatusLabel } from '../helpers/format-evaluation'
 import { useDeleteEvaluationMutationHook } from '../hooks/useDeleteEvaluationMutationHook'
 import { useEvaluationByIdQueryHook } from '../hooks/useEvaluationByIdQueryHook'
@@ -91,7 +92,11 @@ export function EvaluationDetailPageComponent({
     setIsRegenerating(processing)
     if (processing && !jobStartedAt) {
       const status = evaluation?.status ?? ''
-      const prefixes = ['processing_dispatching_', 'processing_claimed_', 'processing_report_']
+      const prefixes = [
+        'processing_dispatching_',
+        'processing_claimed_',
+        'processing_report_',
+      ]
       let ts: number | null = null
       for (const p of prefixes) {
         if (status.startsWith(p)) {
@@ -192,9 +197,24 @@ export function EvaluationDetailPageComponent({
   }, [])
 
   const STATUS_OPTIONS = [
-    { value: 'pending_review', color: '#f5b842', bg: 'rgba(245,166,35,0.12)', border: 'rgba(245,166,35,0.3)' },
-    { value: 'approved', color: '#00d896', bg: 'rgba(0,216,150,0.12)', border: 'rgba(0,216,150,0.3)' },
-    { value: 'rejected', color: '#ff6b85', bg: 'rgba(255,77,109,0.15)', border: 'rgba(255,77,109,0.3)' },
+    {
+      value: 'pending_review',
+      color: '#f5b842',
+      bg: 'rgba(245,166,35,0.12)',
+      border: 'rgba(245,166,35,0.3)',
+    },
+    {
+      value: 'approved',
+      color: '#00d896',
+      bg: 'rgba(0,216,150,0.12)',
+      border: 'rgba(0,216,150,0.3)',
+    },
+    {
+      value: 'rejected',
+      color: '#ff6b85',
+      bg: 'rgba(255,77,109,0.15)',
+      border: 'rgba(255,77,109,0.3)',
+    },
   ] as const
 
   if (isCheckingAuth) {
@@ -262,8 +282,18 @@ export function EvaluationDetailPageComponent({
             className="rounded-lg border border-[#1a3a5c] p-2 text-[#5a7fa0] transition-colors hover:border-[#ff4d6d] hover:text-[#ff4d6d]"
             title="Excluir avaliação"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
 
@@ -283,8 +313,18 @@ export function EvaluationDetailPageComponent({
                 </>
               ) : (
                 <>
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                   Cancelar job
                 </>
@@ -311,7 +351,12 @@ export function EvaluationDetailPageComponent({
               </>
             ) : (
               <>
-                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -331,18 +376,38 @@ export function EvaluationDetailPageComponent({
               onClick={() => setStatusDropdownOpen((v) => !v)}
               className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
               style={{
-                borderColor: STATUS_OPTIONS.find((o) => o.value === status)?.border ?? 'rgba(90,127,160,0.3)',
-                backgroundColor: STATUS_OPTIONS.find((o) => o.value === status)?.bg ?? 'rgba(90,127,160,0.15)',
-                color: STATUS_OPTIONS.find((o) => o.value === status)?.color ?? '#5a7fa0',
+                borderColor:
+                  STATUS_OPTIONS.find((o) => o.value === status)?.border ??
+                  'rgba(90,127,160,0.3)',
+                backgroundColor:
+                  STATUS_OPTIONS.find((o) => o.value === status)?.bg ??
+                  'rgba(90,127,160,0.15)',
+                color:
+                  STATUS_OPTIONS.find((o) => o.value === status)?.color ??
+                  '#5a7fa0',
               }}
             >
               <span
                 className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: STATUS_OPTIONS.find((o) => o.value === status)?.color ?? '#5a7fa0' }}
+                style={{
+                  backgroundColor:
+                    STATUS_OPTIONS.find((o) => o.value === status)?.color ??
+                    '#5a7fa0',
+                }}
               />
               {getStatusLabel(status)}
-              <svg className="h-3.5 w-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <svg
+                className="h-3.5 w-3.5 opacity-60"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
             {statusDropdownOpen && (
@@ -351,7 +416,9 @@ export function EvaluationDetailPageComponent({
                   <button
                     key={opt.value}
                     type="button"
-                    disabled={opt.value === status || updateStatusMutation.isPending}
+                    disabled={
+                      opt.value === status || updateStatusMutation.isPending
+                    }
                     onClick={() => {
                       setStatusDropdownOpen(false)
                       updateStatusMutation.mutate(opt.value)
@@ -370,8 +437,18 @@ export function EvaluationDetailPageComponent({
                     />
                     {getStatusLabel(opt.value)}
                     {opt.value === status && (
-                      <svg className="ml-auto h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="ml-auto h-3.5 w-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                     )}
                   </button>
@@ -395,7 +472,9 @@ export function EvaluationDetailPageComponent({
             <ProfileBadgeComponent profile={evaluation.patient_profile} />
           )}
           {evaluation.form_data?.nascimento && (
-            <span>Nascimento: {formatDate(evaluation.form_data.nascimento)}</span>
+            <span>
+              Nascimento: {formatDate(evaluation.form_data.nascimento)}
+            </span>
           )}
           <span>Enviado em {formatDate(evaluation.created_at)}</span>
           <StatusBadgeComponent status={status} />
@@ -416,7 +495,8 @@ export function EvaluationDetailPageComponent({
       {(regenerateMutation.isError || cancelJobMutation.isError) && (
         <div className="mb-6 rounded-lg border border-[rgba(255,77,109,0.3)] bg-[rgba(255,77,109,0.08)] px-4 py-3">
           <p className="text-sm text-[#ff4d6d]">
-            {regenerateMutation.error?.message ?? cancelJobMutation.error?.message}
+            {regenerateMutation.error?.message ??
+              cancelJobMutation.error?.message}
           </p>
         </div>
       )}
@@ -434,7 +514,8 @@ export function EvaluationDetailPageComponent({
             {evaluation.processing_error}
           </pre>
           <p className="mt-2 text-xs text-[#5a7fa0]">
-            Use &quot;Cancelar job&quot; acima para parar e poder clicar em Regenerar.
+            Use &quot;Cancelar job&quot; acima para parar e poder clicar em
+            Regenerar.
           </p>
         </div>
       )}
@@ -471,12 +552,32 @@ export function EvaluationDetailPageComponent({
                 title="Copiar erro"
               >
                 {errorCopied ? (
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 ) : (
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
                   </svg>
                 )}
               </button>
@@ -520,8 +621,18 @@ export function EvaluationDetailPageComponent({
                 onClick={() => setMode('edit')}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-[#1a3a5c] bg-transparent px-3 py-2 text-sm font-medium text-[#cce6f7] transition-colors hover:bg-[#0f2240]"
               >
-                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
                 </svg>
                 Editar Dados
               </button>

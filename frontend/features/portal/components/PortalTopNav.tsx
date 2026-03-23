@@ -12,12 +12,17 @@ export function PortalTopNav({ companyName }: PortalTopNavProps) {
   const pathname = usePathname()
   const locale = (params?.locale as string) ?? 'pt-BR'
 
-  const isEvaluations = pathname === `/${locale}/portal` || pathname === `/${locale}/portal/`
+  const isEvaluations =
+    pathname === `/${locale}/portal` || pathname === `/${locale}/portal/`
   const isEmpresas = pathname.includes('/portal/empresas')
 
   const navItems = [
     { label: 'Avaliações', href: `/${locale}/portal`, active: isEvaluations },
-    { label: 'Empresas', href: `/${locale}/portal/empresas`, active: isEmpresas },
+    {
+      label: 'Empresas',
+      href: `/${locale}/portal/empresas`,
+      active: isEmpresas,
+    },
   ]
 
   return (
@@ -41,7 +46,10 @@ export function PortalTopNav({ companyName }: PortalTopNavProps) {
               </svg>
             </div>
             <div>
-              <span className="text-[15px] font-bold text-[#cce6f7]" style={{ fontFamily: 'var(--font-heading), sans-serif' }}>
+              <span
+                className="text-[15px] font-bold text-[#cce6f7]"
+                style={{ fontFamily: 'var(--font-heading), sans-serif' }}
+              >
                 Bright Brains
               </span>
               <span className="ml-2 text-[10px] uppercase tracking-[1.5px] text-[#3a5a75]">

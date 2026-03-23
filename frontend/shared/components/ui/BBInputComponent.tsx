@@ -3,15 +3,20 @@
 'use client'
 
 import * as React from 'react'
-import { Control, Controller, FieldPath, FieldValues, RegisterOptions } from 'react-hook-form'
+import type {
+  Control,
+  FieldPath,
+  FieldValues,
+  RegisterOptions,
+} from 'react-hook-form'
+import { Controller } from 'react-hook-form'
 
 import { cn } from '~/shared/utils/cn'
 
-interface BBInputComponentProps<TFieldValues extends FieldValues>
-  extends Omit<
-    React.InputHTMLAttributes<HTMLInputElement>,
-    'name' | 'defaultValue' | 'value' | 'onChange' | 'onBlur'
-  > {
+interface BBInputComponentProps<TFieldValues extends FieldValues> extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'name' | 'defaultValue' | 'value' | 'onChange' | 'onBlur'
+> {
   control: Control<TFieldValues>
   name: FieldPath<TFieldValues>
   label?: string
@@ -67,8 +72,7 @@ export function BBInputComponent<TFieldValues extends FieldValues>({
               error
                 ? 'border-red-500/60 ring-1 ring-red-500/30'
                 : 'border-[#1a3a5c]',
-              (disabled || field.disabled) &&
-                'cursor-not-allowed opacity-50',
+              (disabled || field.disabled) && 'cursor-not-allowed opacity-50',
               inputClassName
             )}
             value={
@@ -77,9 +81,7 @@ export function BBInputComponent<TFieldValues extends FieldValues>({
                 : field.value
             }
           />
-          {error && (
-            <p className="text-xs text-red-400">{error.message}</p>
-          )}
+          {error && <p className="text-xs text-red-400">{error.message}</p>}
         </div>
       )}
     />

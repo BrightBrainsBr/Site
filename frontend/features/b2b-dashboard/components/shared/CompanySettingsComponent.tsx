@@ -1,6 +1,15 @@
 'use client'
 
-import { ClipboardList, Mail, Search, Settings, Shield, Trash2, UserPlus, Users } from 'lucide-react'
+import {
+  ClipboardList,
+  Mail,
+  Search,
+  Settings,
+  Shield,
+  Trash2,
+  UserPlus,
+  Users,
+} from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { BulkInviteComponent } from './BulkInviteComponent'
@@ -56,7 +65,10 @@ function getApiBase(mode: 'b2b' | 'portal') {
   return mode === 'b2b' ? '/api/b2b' : '/api/portal/companies'
 }
 
-export function CompanySettingsComponent({ companyId, mode }: CompanySettingsComponentProps) {
+export function CompanySettingsComponent({
+  companyId,
+  mode,
+}: CompanySettingsComponentProps) {
   const [data, setData] = useState<SettingsData | null>(null)
   const [initialLoading, setInitialLoading] = useState(true)
   const [subTab, setSubTab] = useState<SubTab>('admins')
@@ -98,16 +110,16 @@ export function CompanySettingsComponent({ companyId, mode }: CompanySettingsCom
         </h2>
       </div>
 
-      <AllowedDomainsSection
+      <DepartmentsSection
         companyId={companyId}
-        domains={data?.allowed_domains ?? []}
+        departments={data?.departments ?? []}
         apiBase={apiBase}
         onUpdate={fetchSettings}
       />
 
-      <DepartmentsSection
+      <AllowedDomainsSection
         companyId={companyId}
-        departments={data?.departments ?? []}
+        domains={data?.allowed_domains ?? []}
         apiBase={apiBase}
         onUpdate={fetchSettings}
       />
@@ -118,7 +130,10 @@ export function CompanySettingsComponent({ companyId, mode }: CompanySettingsCom
         <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-1 pt-1">
           <div className="flex gap-0.5">
             <button
-              onClick={() => { setSubTab('admins'); setShowInvite(false) }}
+              onClick={() => {
+                setSubTab('admins')
+                setShowInvite(false)
+              }}
               className={`relative flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-[13px] font-medium transition-colors ${
                 subTab === 'admins'
                   ? 'bg-[#0E1E33] text-[#14B8A6] after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-[1px] after:bg-[#0E1E33]'
@@ -128,15 +143,22 @@ export function CompanySettingsComponent({ companyId, mode }: CompanySettingsCom
               <Shield className="h-4 w-4" />
               Administradores
               {(data?.users?.length ?? 0) > 0 && (
-                <span className={`rounded-full px-2 py-0.5 text-[10px] ${
-                  subTab === 'admins' ? 'bg-[#14B8A6]/15 text-[#14B8A6]' : 'bg-[#132540] text-[#94A3B8]'
-                }`}>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] ${
+                    subTab === 'admins'
+                      ? 'bg-[#14B8A6]/15 text-[#14B8A6]'
+                      : 'bg-[#132540] text-[#94A3B8]'
+                  }`}
+                >
                   {data!.users.length}
                 </span>
               )}
             </button>
             <button
-              onClick={() => { setSubTab('collaborators'); setShowInvite(false) }}
+              onClick={() => {
+                setSubTab('collaborators')
+                setShowInvite(false)
+              }}
               className={`relative flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-[13px] font-medium transition-colors ${
                 subTab === 'collaborators'
                   ? 'bg-[#0E1E33] text-[#14B8A6] after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-[1px] after:bg-[#0E1E33]'
@@ -145,11 +167,18 @@ export function CompanySettingsComponent({ companyId, mode }: CompanySettingsCom
             >
               <ClipboardList className="h-4 w-4" />
               Colaboradores
-              {((data?.collaborators?.evaluations?.length ?? 0) + (data?.collaborators?.pending_invites?.length ?? 0)) > 0 && (
-                <span className={`rounded-full px-2 py-0.5 text-[10px] ${
-                  subTab === 'collaborators' ? 'bg-[#14B8A6]/15 text-[#14B8A6]' : 'bg-[#132540] text-[#94A3B8]'
-                }`}>
-                  {(data?.collaborators?.evaluations?.length ?? 0) + (data?.collaborators?.pending_invites?.length ?? 0)}
+              {(data?.collaborators?.evaluations?.length ?? 0) +
+                (data?.collaborators?.pending_invites?.length ?? 0) >
+                0 && (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] ${
+                    subTab === 'collaborators'
+                      ? 'bg-[#14B8A6]/15 text-[#14B8A6]'
+                      : 'bg-[#132540] text-[#94A3B8]'
+                  }`}
+                >
+                  {(data?.collaborators?.evaluations?.length ?? 0) +
+                    (data?.collaborators?.pending_invites?.length ?? 0)}
                 </span>
               )}
             </button>
@@ -177,7 +206,10 @@ export function CompanySettingsComponent({ companyId, mode }: CompanySettingsCom
                 role={subTab === 'admins' ? 'admin' : 'collaborator'}
                 departments={data?.departments ?? []}
                 apiBase={apiBase}
-                onInvited={() => { fetchSettings(); setShowInvite(false) }}
+                onInvited={() => {
+                  fetchSettings()
+                  setShowInvite(false)
+                }}
               />
             </div>
           )}
@@ -260,8 +292,14 @@ function AllowedDomainsSection({
           Domínios de Email Permitidos
         </h3>
       </div>
-      <p className="mb-4 text-[11px] text-[#64748B]">
-        Usuários com email destes domínios podem se cadastrar automaticamente.
+      <p className="mb-1.5 text-[11px] text-[#64748B]">
+        Funcionários com e-mail destes domínios podem se cadastrar como{' '}
+        <span className="font-semibold text-[#94A3B8]">colaboradores</span>{' '}
+        automaticamente para realizar a avaliação.
+      </p>
+      <p className="mb-4 text-[10px] text-[#4a6580]">
+        Para conceder acesso administrativo ao dashboard, utilize o convite de
+        administrador na seção abaixo.
       </p>
 
       <div className="mb-3 flex flex-wrap gap-2">
@@ -281,7 +319,9 @@ function AllowedDomainsSection({
           </span>
         ))}
         {localDomains.length === 0 && (
-          <span className="text-[11px] text-[#64748B]">Nenhum domínio cadastrado</span>
+          <span className="text-[11px] text-[#64748B]">
+            Nenhum domínio cadastrado
+          </span>
         )}
       </div>
 
@@ -337,20 +377,31 @@ function AdminUsersTable({
   return (
     <div>
       {users.length === 0 ? (
-        <p className="py-8 text-center text-[12px] text-[#64748B]">Nenhum administrador vinculado.</p>
+        <p className="py-8 text-center text-[12px] text-[#64748B]">
+          Nenhum administrador vinculado.
+        </p>
       ) : (
         <table className="w-full text-[12px]">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.08)]">
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Email</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Papel</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Desde</th>
+              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Email
+              </th>
+              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Papel
+              </th>
+              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Desde
+              </th>
               <th className="px-3 py-2 text-right text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]" />
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-b border-[rgba(255,255,255,0.04)]">
+              <tr
+                key={u.id}
+                className="border-b border-[rgba(255,255,255,0.04)]"
+              >
                 <td className="px-3 py-2.5 font-medium text-[#E2E8F0]">
                   {u.email ?? u.user_id.slice(0, 8)}
                 </td>
@@ -400,14 +451,17 @@ function CollaboratorsSection({
   const [search, setSearch] = useState('')
 
   const collaborators = useMemo(() => {
-    const map = new Map<string, {
-      key: string
-      name: string | null
-      email: string | null
-      department: string | null
-      status: string
-      date: string
-    }>()
+    const map = new Map<
+      string,
+      {
+        key: string
+        name: string | null
+        email: string | null
+        department: string | null
+        status: string
+        date: string
+      }
+    >()
 
     for (const ev of evaluations) {
       const key = ev.patient_email ?? ev.id
@@ -466,9 +520,32 @@ function CollaboratorsSection({
     <div className="space-y-4">
       <div className="flex gap-3">
         <StatCard label="Total" value={collaborators.length} color="#14B8A6" />
-        <StatCard label="Completos" value={(statusCounts['completed'] ?? 0) + (statusCounts['report_generated'] ?? 0)} color="#34D399" />
-        <StatCard label="Em andamento" value={(statusCounts['in_progress'] ?? 0) + (statusCounts['started'] ?? 0) + (statusCounts['registered'] ?? 0)} color="#F59E0B" />
-        <StatCard label="Pendentes" value={(statusCounts['pending'] ?? 0) + (statusCounts['code_sent'] ?? 0) + (statusCounts['invited'] ?? 0)} color="#94A3B8" />
+        <StatCard
+          label="Completos"
+          value={
+            (statusCounts['completed'] ?? 0) +
+            (statusCounts['report_generated'] ?? 0)
+          }
+          color="#34D399"
+        />
+        <StatCard
+          label="Em andamento"
+          value={
+            (statusCounts['in_progress'] ?? 0) +
+            (statusCounts['started'] ?? 0) +
+            (statusCounts['registered'] ?? 0)
+          }
+          color="#F59E0B"
+        />
+        <StatCard
+          label="Pendentes"
+          value={
+            (statusCounts['pending'] ?? 0) +
+            (statusCounts['code_sent'] ?? 0) +
+            (statusCounts['invited'] ?? 0)
+          }
+          color="#94A3B8"
+        />
       </div>
 
       <div className="flex items-center justify-between">
@@ -490,27 +567,51 @@ function CollaboratorsSection({
 
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-[12px] text-[#64748B]">
-          {search ? 'Nenhum colaborador encontrado.' : 'Nenhum colaborador registrado.'}
+          {search
+            ? 'Nenhum colaborador encontrado.'
+            : 'Nenhum colaborador registrado.'}
         </p>
       ) : (
         <table className="w-full text-[12px]">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.08)]">
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Nome</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Email</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Departamento</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Status</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">Data</th>
+              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Nome
+              </th>
+              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Email
+              </th>
+              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Departamento
+              </th>
+              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Status
+              </th>
+              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+                Data
+              </th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((c) => {
-              const st = STATUS_LABELS[c.status] ?? { label: c.status, color: '#94A3B8' }
+              const st = STATUS_LABELS[c.status] ?? {
+                label: c.status,
+                color: '#94A3B8',
+              }
               return (
-                <tr key={c.key} className="border-b border-[rgba(255,255,255,0.04)]">
-                  <td className="px-3 py-2.5 font-medium text-[#E2E8F0]">{c.name ?? '—'}</td>
-                  <td className="px-3 py-2.5 text-[#94A3B8]">{c.email ?? '—'}</td>
-                  <td className="px-3 py-2.5 text-[#94A3B8]">{c.department ?? '—'}</td>
+                <tr
+                  key={c.key}
+                  className="border-b border-[rgba(255,255,255,0.04)]"
+                >
+                  <td className="px-3 py-2.5 font-medium text-[#E2E8F0]">
+                    {c.name ?? '—'}
+                  </td>
+                  <td className="px-3 py-2.5 text-[#94A3B8]">
+                    {c.email ?? '—'}
+                  </td>
+                  <td className="px-3 py-2.5 text-[#94A3B8]">
+                    {c.department ?? '—'}
+                  </td>
                   <td className="px-3 py-2.5">
                     <span
                       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
@@ -520,7 +621,10 @@ function CollaboratorsSection({
                         border: `1px solid ${st.color}30`,
                       }}
                     >
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ background: st.color }} />
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ background: st.color }}
+                      />
                       {st.label}
                     </span>
                   </td>
@@ -537,7 +641,15 @@ function CollaboratorsSection({
   )
 }
 
-function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
+function StatCard({
+  label,
+  value,
+  color,
+}: {
+  label: string
+  value: number
+  color: string
+}) {
   return (
     <div
       className="flex-1 rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#07111F] px-4 py-3"

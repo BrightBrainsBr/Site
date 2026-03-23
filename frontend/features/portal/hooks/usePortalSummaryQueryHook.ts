@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { apiGet } from '~/shared/utils/api-helpers'
+
 import type { EvaluationListItem } from '../portal.interface'
 
 interface PortalSummary {
@@ -29,9 +30,12 @@ export function usePortalSummaryQueryHook(params?: UsePortalSummaryParams) {
       const data = result.data!
       return {
         totalCount: data.length,
-        pendingCount: data.filter((e) => e.reviewer_status === 'pending_review').length,
-        approvedCount: data.filter((e) => e.reviewer_status === 'approved').length,
-        rejectedCount: data.filter((e) => e.reviewer_status === 'rejected').length,
+        pendingCount: data.filter((e) => e.reviewer_status === 'pending_review')
+          .length,
+        approvedCount: data.filter((e) => e.reviewer_status === 'approved')
+          .length,
+        rejectedCount: data.filter((e) => e.reviewer_status === 'rejected')
+          .length,
       }
     },
     enabled: params?.enabled !== false,

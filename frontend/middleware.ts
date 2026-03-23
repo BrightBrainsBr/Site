@@ -8,7 +8,7 @@ export const config = {
 
 const redirectToCanonicalPtBr = (
   request: NextRequest,
-  restPath: string = '',
+  restPath: string = ''
 ) => {
   const url = request.nextUrl.clone()
   url.pathname = `/pt-BR${restPath}`
@@ -23,13 +23,26 @@ const handleI18nRouting = createIntlMiddleware({
 })
 
 function refreshSupabaseSession(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL
   const supabaseAnonKey =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseAnonKey) return { supabase: null, cookiesToSet: [] as Array<{ name: string; value: string; options: Record<string, unknown> }> }
+  if (!supabaseUrl || !supabaseAnonKey)
+    return {
+      supabase: null,
+      cookiesToSet: [] as Array<{
+        name: string
+        value: string
+        options: Record<string, unknown>
+      }>,
+    }
 
-  const cookiesToSet: Array<{ name: string; value: string; options: Record<string, unknown> }> = []
+  const cookiesToSet: Array<{
+    name: string
+    value: string
+    options: Record<string, unknown>
+  }> = []
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {

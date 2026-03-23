@@ -17,7 +17,10 @@ async function fetchOverview(
   return res.json()
 }
 
-export function useB2BOverview(companyId: string | null, cycleId?: string | null) {
+export function useB2BOverview(
+  companyId: string | null,
+  cycleId?: string | null
+) {
   return useQuery({
     queryKey: ['b2b', 'overview', companyId, cycleId],
     queryFn: () => fetchOverview(companyId!, cycleId),

@@ -1,11 +1,15 @@
 // frontend/features/portal/components/EvaluationDetailViewComponent.tsx
 'use client'
 
-import type { MedicationEntry, SupplementEntry } from '~/features/assessment/components/assessment.interface'
+import type {
+  MedicationEntry,
+  SupplementEntry,
+} from '~/features/assessment/components/assessment.interface'
 import { cn } from '~/shared/utils/cn'
-import type { EvaluationDetail } from '../portal.interface'
+
 import { FIELD_LABELS, FORM_SECTIONS } from '../constants/form-sections'
 import { getScaleColor, getScaleMax } from '../constants/scale-max'
+import type { EvaluationDetail } from '../portal.interface'
 const ARRAY_FIELDS = new Set([
   'sintomasAtuais',
   'condicoesCronicas',
@@ -130,7 +134,11 @@ function formatValue(
     )
   }
 
-  if (SCALE_FIELDS.has(fieldId) && scores && typeof scores[fieldId] === 'number') {
+  if (
+    SCALE_FIELDS.has(fieldId) &&
+    scores &&
+    typeof scores[fieldId] === 'number'
+  ) {
     const score = scores[fieldId]
     const max = getScaleMax(fieldId)
     const pct = Math.min((score / max) * 100, 100)
@@ -154,7 +162,9 @@ function formatValue(
     )
   }
 
-  return <span className="text-sm font-medium text-[#cce6f7]">{String(value)}</span>
+  return (
+    <span className="text-sm font-medium text-[#cce6f7]">{String(value)}</span>
+  )
 }
 
 interface EvaluationDetailViewComponentProps {
@@ -212,7 +222,9 @@ export function EvaluationDetailViewComponent({
                   <div
                     key={fieldId}
                     className={cn(
-                      isLongText ? 'col-span-full' : 'rounded-lg bg-[#0f2240] p-3'
+                      isLongText
+                        ? 'col-span-full'
+                        : 'rounded-lg bg-[#0f2240] p-3'
                     )}
                   >
                     <div className="mb-1 text-[10px] font-semibold uppercase tracking-[1.5px] text-[#3a5a75]">
@@ -220,7 +232,8 @@ export function EvaluationDetailViewComponent({
                     </div>
                     <div
                       className={cn(
-                        isLongText && 'rounded-lg border-l-[3px] border-l-[#00c9b1] bg-[#0f2240] p-4 text-sm leading-[1.75] text-[#cce6f7]'
+                        isLongText &&
+                          'rounded-lg border-l-[3px] border-l-[#00c9b1] bg-[#0f2240] p-4 text-sm leading-[1.75] text-[#cce6f7]'
                       )}
                     >
                       {formatValue(value, fieldId, scores)}

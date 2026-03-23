@@ -21,7 +21,12 @@ interface SignupFormData {
   confirmPassword: string
 }
 
-type EmailStatus = 'idle' | 'checking' | 'matched_domain' | 'matched_invite' | 'no_match'
+type EmailStatus =
+  | 'idle'
+  | 'checking'
+  | 'matched_domain'
+  | 'matched_invite'
+  | 'no_match'
 
 export function B2BSignupComponent() {
   const router = useRouter()
@@ -42,7 +47,12 @@ export function B2BSignupComponent() {
 
   const checkEmail = useCallback(async (emailValue: string) => {
     const trimmed = emailValue.trim().toLowerCase()
-    if (!trimmed || !trimmed.includes('@') || !trimmed.split('@')[1]?.includes('.')) return
+    if (
+      !trimmed ||
+      !trimmed.includes('@') ||
+      !trimmed.split('@')[1]?.includes('.')
+    )
+      return
     if (trimmed === lastCheckedEmail.current) return
     lastCheckedEmail.current = trimmed
 
@@ -56,7 +66,9 @@ export function B2BSignupComponent() {
       })
       const data = await res.json()
       if (data.matched) {
-        setEmailStatus(data.matchType === 'invite' ? 'matched_invite' : 'matched_domain')
+        setEmailStatus(
+          data.matchType === 'invite' ? 'matched_invite' : 'matched_domain'
+        )
       } else {
         setEmailStatus('no_match')
       }
@@ -94,7 +106,7 @@ export function B2BSignupComponent() {
       })
 
       if (signInResult.error) {
-        router.push(localePath('/empresa/login?message=account_created'))
+        router.push(localePath('/login?message=account_created'))
         return
       }
 
@@ -105,10 +117,8 @@ export function B2BSignupComponent() {
 
       if (meData.isCompanyUser) {
         router.push(localePath('/empresa/dashboard'))
-      } else if (meData.isCollaborator) {
-        router.push(localePath('/avaliacao'))
       } else {
-        router.push(localePath('/empresa/dashboard'))
+        router.push(localePath('/avaliacao'))
       }
       router.refresh()
     } catch {
@@ -123,26 +133,38 @@ export function B2BSignupComponent() {
       case 'checking':
         return { text: 'Verificando...', color: 'text-[#5a7fa0]' }
       case 'matched_domain':
-        return { text: 'Domínio reconhecido. Sua conta será vinculada automaticamente.', color: 'text-[#34D399]' }
+        return {
+          text: 'Domínio reconhecido. Crie sua conta para acessar a avaliação como colaborador.',
+          color: 'text-[#34D399]',
+        }
       case 'matched_invite':
-        return { text: 'Convite encontrado. Crie sua senha para acessar a avaliação.', color: 'text-[#34D399]' }
+        return {
+          text: 'Convite encontrado. Crie sua senha para acessar a avaliação.',
+          color: 'text-[#34D399]',
+        }
       case 'no_match':
-        return { text: 'E-mail não vinculado a nenhuma empresa. Use o e-mail corporativo ou peça um convite.', color: 'text-[#F59E0B]' }
+        return {
+          text: 'Você ainda não foi convidado. Solicite um convite à sua empresa para acessar a plataforma.',
+          color: 'text-[#F59E0B]',
+        }
       default:
-        return { text: 'Use o e-mail corporativo ou o e-mail no qual recebeu um convite.', color: 'text-[#5a7fa0]' }
+        return {
+          text: 'Use o e-mail corporativo ou o e-mail no qual recebeu um convite.',
+          color: 'text-[#5a7fa0]',
+        }
     }
   })()
 
   return (
     <BBAuthLayoutComponent
       heading="Bright Brains"
-      subheading="Crie sua conta para acessar o dashboard empresarial."
+      subheading="Crie sua conta para acessar a plataforma Bright Brains."
       cardTitle="Criar conta"
       footer={
         <p className="text-sm text-[#5a7fa0]">
           Já tem conta?{' '}
           <Link
-            href={localePath('/empresa/login')}
+            href={localePath('/login')}
             className="font-medium text-[#00c9b1] hover:text-[#00c9b1]/80 transition-colors"
           >
             Entrar
@@ -219,7 +241,9 @@ export function B2BSignupComponent() {
           type="submit"
           loading={loading}
           loadingText="Criando conta..."
-          disabled={success}
+          disabled={
+            success || emailStatus === 'no_match' || emailStatus === 'checking'
+          }
           className="!py-3.5 text-base"
         >
           Criar conta

@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
+// eslint-disable-next-line complexity -- B2B signup domain matching and user creation
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
@@ -18,7 +19,10 @@ export async function POST(request: NextRequest) {
     const department = body.department?.trim() ?? null
 
     if (!email) {
-      return NextResponse.json({ error: 'Email é obrigatório' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Email é obrigatório' },
+        { status: 400 }
+      )
     }
 
     const sb = createClient(
@@ -39,7 +43,11 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .maybeSingle()
 
-    let inviteMatch: { company_id: string; department: string | null; departments: string[] } | null = null
+    let inviteMatch: {
+      company_id: string
+      department: string | null
+      departments: string[]
+    } | null = null
     if (!domainMatch) {
       const { data: invite } = await sb
         .from('company_access_codes')
@@ -70,6 +78,7 @@ export async function POST(request: NextRequest) {
       if (domainMatch) {
         return NextResponse.json({
           matched: true,
+          matchType: 'domain',
           companyId: domainMatch.id,
           departments: domainMatch.departments ?? [],
         })
@@ -87,7 +96,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!password) {
-      return NextResponse.json({ error: 'Email e senha são obrigatórios' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Email e senha são obrigatórios' },
+        { status: 400 }
+      )
     }
 
     if (password.length < 6) {
@@ -100,24 +112,27 @@ export async function POST(request: NextRequest) {
     const companyId = domainMatch?.id ?? inviteMatch?.company_id
     if (!companyId) {
       return NextResponse.json(
-        { error: 'Nenhuma empresa encontrada para este e-mail. Verifique se você recebeu um convite ou use o e-mail corporativo.' },
+        {
+          error:
+            'Nenhuma empresa encontrada para este e-mail. Verifique se você recebeu um convite ou use o e-mail corporativo.',
+        },
         { status: 422 }
       )
     }
 
-    const isCollaboratorInvite = !!inviteMatch && !domainMatch
     const effectiveDepartment = department ?? inviteMatch?.department ?? null
 
-    const { data: authUser, error: createErr } =
-      await sb.auth.admin.createUser({
+    const { data: authUser, error: createErr } = await sb.auth.admin.createUser(
+      {
         email,
         password,
         email_confirm: true,
         user_metadata: {
+          company_id: companyId,
           ...(effectiveDepartment ? { department: effectiveDepartment } : {}),
-          ...(isCollaboratorInvite ? { company_id: companyId } : {}),
         },
-      })
+      }
+    )
 
     if (createErr) {
       if (createErr.message?.includes('already been registered')) {
@@ -131,19 +146,32 @@ export async function POST(request: NextRequest) {
     }
 
     if (!authUser.user) {
-      return NextResponse.json({ error: 'Erro ao criar usuário' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Erro ao criar usuário' },
+        { status: 500 }
+      )
     }
 
-    if (!isCollaboratorInvite) {
-      const { error: linkErr } = await sb.from('company_users').insert({
-        user_id: authUser.user.id,
-        company_id: companyId,
-        role: 'viewer',
-      })
+    if (domainMatch && !inviteMatch) {
+      let currentCycleId: string | null = null
+      const { data: cycles } = await sb
+        .from('assessment_cycles')
+        .select('id')
+        .eq('company_id', companyId)
+        .eq('is_current', true)
+        .limit(1)
 
-      if (linkErr) {
-        console.error('[b2b/signup] company_users insert:', linkErr)
-      }
+      currentCycleId = cycles?.[0]?.id ?? null
+
+      await sb.from('company_access_codes').insert({
+        company_id: companyId,
+        cycle_id: currentCycleId,
+        code: `DOM-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`.toUpperCase(),
+        employee_email: email,
+        department: effectiveDepartment,
+        active: true,
+        started_at: new Date().toISOString(),
+      })
     }
 
     if (inviteMatch) {
@@ -159,7 +187,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Conta criada com sucesso.',
-      redirect: isCollaboratorInvite ? '/avaliacao' : '/empresa/dashboard',
+      redirect: '/avaliacao',
+      userType: 'collaborator',
     })
   } catch (err) {
     console.error('[b2b/signup] Error:', err)

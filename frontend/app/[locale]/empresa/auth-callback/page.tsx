@@ -14,7 +14,10 @@ export default function EmpresaAuthCallbackPage() {
       const hash = window.location.hash
       if (!hash) {
         setStatus('Link inválido. Redirecionando...')
-        setTimeout(() => router.replace('/pt-BR/empresa/login?error=missing_auth_tokens'), 1500)
+        setTimeout(
+          () => router.replace('/pt-BR/login?error=missing_auth_tokens'),
+          1500
+        )
         return
       }
 
@@ -24,7 +27,10 @@ export default function EmpresaAuthCallbackPage() {
 
       if (!accessToken || !refreshToken) {
         setStatus('Tokens de autenticação ausentes. Redirecionando...')
-        setTimeout(() => router.replace('/pt-BR/empresa/login?error=missing_auth_tokens'), 1500)
+        setTimeout(
+          () => router.replace('/pt-BR/login?error=missing_auth_tokens'),
+          1500
+        )
         return
       }
 
@@ -40,17 +46,37 @@ export default function EmpresaAuthCallbackPage() {
         console.error('[auth-callback] setSession error:', error.message)
         setStatus('Erro ao estabelecer sessão. Redirecionando...')
         setTimeout(
-          () => router.replace(`/pt-BR/empresa/login?error=session_failed&details=${encodeURIComponent(error.message)}`),
+          () =>
+            router.replace(
+              `/pt-BR/login?error=session_failed&details=${encodeURIComponent(error.message)}`
+            ),
           1500
         )
         return
       }
 
-      setStatus('Sessão estabelecida! Redirecionando...')
-      router.replace('/pt-BR/empresa/dashboard')
+      setStatus('Sessão estabelecida! Verificando tipo de acesso...')
+
+      try {
+        const meRes = await fetch('/api/b2b/me')
+        const meData = (await meRes.json()) as {
+          isCompanyUser?: boolean
+          isCollaborator?: boolean
+        }
+
+        if (meData.isCompanyUser) {
+          router.replace('/pt-BR/empresa/dashboard')
+        } else if (meData.isCollaborator) {
+          router.replace('/pt-BR/avaliacao')
+        } else {
+          router.replace('/pt-BR/empresa/dashboard')
+        }
+      } catch {
+        router.replace('/pt-BR/empresa/dashboard')
+      }
     }
 
-    handleAuthCallback()
+    void handleAuthCallback()
   }, [router])
 
   return (

@@ -1,9 +1,10 @@
-// frontend/app/[locale]/empresa/signup/page.tsx
+import { redirect } from 'next/navigation'
 
-'use client'
-
-import { B2BSignupComponent } from '~/features/b2b-dashboard/components/B2BSignupComponent'
-
-export default function EmpresaSignupPage() {
-  return <B2BSignupComponent />
+export default async function EmpresaSignupRedirect({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  redirect(`/${locale}/signup`)
 }

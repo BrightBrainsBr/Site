@@ -10,11 +10,11 @@ import {
   YAxis,
 } from 'recharts'
 
-import { useB2BDomains } from '../../hooks/useB2BDomains'
 import {
   DOMAIN_DISPLAY_NAMES,
   DOMAIN_MAX_SCORES,
 } from '../../constants/domain-mapping'
+import { useB2BDomains } from '../../hooks/useB2BDomains'
 
 interface B2BDomainsTabProps {
   companyId: string | null
@@ -54,7 +54,9 @@ const DIST_BUCKETS = [
   { label: '91–100', color: '#34D399' },
 ]
 
-function buildDistribution(rows: DomainRow[]): { label: string; count: number; color: string }[] {
+function buildDistribution(
+  rows: DomainRow[]
+): { label: string; count: number; color: string }[] {
   const counts = new Array(8).fill(0)
   rows.forEach((r) => {
     const s = r.healthScore ?? 0
@@ -67,7 +69,11 @@ function buildDistribution(rows: DomainRow[]): { label: string; count: number; c
     else if (s <= 90) counts[6]++
     else counts[7]++
   })
-  return DIST_BUCKETS.map((b, i) => ({ label: b.label, count: counts[i], color: b.color }))
+  return DIST_BUCKETS.map((b, i) => ({
+    label: b.label,
+    count: counts[i],
+    color: b.color,
+  }))
 }
 
 export function B2BDomainsTab({ companyId, cycleId }: B2BDomainsTabProps) {
@@ -98,8 +104,12 @@ export function B2BDomainsTab({ companyId, cycleId }: B2BDomainsTabProps) {
     })
     .sort((a, b) => (b.healthScore ?? 0) - (a.healthScore ?? 0))
 
-  const criticalDomains = rows.filter((r) => r.healthScore != null && r.healthScore < 60)
-  const strongDomains = rows.filter((r) => r.healthScore != null && r.healthScore >= 70)
+  const criticalDomains = rows.filter(
+    (r) => r.healthScore != null && r.healthScore < 60
+  )
+  const strongDomains = rows.filter(
+    (r) => r.healthScore != null && r.healthScore >= 70
+  )
   const distData = buildDistribution(rows)
 
   return (
@@ -110,7 +120,9 @@ export function B2BDomainsTab({ companyId, cycleId }: B2BDomainsTabProps) {
           <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
             Perfil Cognitivo da Organização
           </h3>
-          <span className="text-[11px] text-[#64748B]">score médio por domínio (0–100)</span>
+          <span className="text-[11px] text-[#64748B]">
+            score médio por domínio (0–100)
+          </span>
         </div>
         <div className="mb-2 flex gap-2 text-[11px]">
           <span className="flex items-center gap-1.5 text-[#64748B]">
@@ -160,7 +172,8 @@ export function B2BDomainsTab({ companyId, cycleId }: B2BDomainsTabProps) {
                     className="w-[50px] shrink-0 text-right text-[10px]"
                     style={{ color: aboveBench ? '#34D399' : '#F87171' }}
                   >
-                    {aboveBench ? '▲' : '▼'}{Math.abs(delta)} bm
+                    {aboveBench ? '▲' : '▼'}
+                    {Math.abs(delta)} bm
                   </span>
                 </div>
               )
@@ -179,7 +192,10 @@ export function B2BDomainsTab({ companyId, cycleId }: B2BDomainsTabProps) {
           Distribuição de Scores
         </h3>
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={distData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
+          <BarChart
+            data={distData}
+            margin={{ top: 5, right: 5, left: -10, bottom: 5 }}
+          >
             <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.04)" />
             <XAxis
               dataKey="label"

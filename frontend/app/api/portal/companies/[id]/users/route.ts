@@ -32,7 +32,7 @@ export async function GET(
     return NextResponse.json({ message: error.message }, { status: 500 })
   }
 
-  const userIds = (companyUsers ?? []).map((cu) => cu.user_id)
+  const userIds = (companyUsers ?? []).map((cu) => String(cu.user_id))
 
   let emailMap: Record<string, string> = {}
   if (userIds.length > 0) {

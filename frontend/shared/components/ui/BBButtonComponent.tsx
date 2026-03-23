@@ -8,8 +8,7 @@ import { cn } from '~/shared/utils/cn'
 
 type BBButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
-interface BBButtonComponentProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface BBButtonComponentProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: BBButtonVariant
   loading?: boolean
   loadingText?: string
@@ -18,12 +17,10 @@ interface BBButtonComponentProps
 const variantStyles: Record<BBButtonVariant, string> = {
   primary:
     'bg-gradient-to-r from-[#00c9b1] to-[#0090ff] font-bold text-black hover:opacity-90',
-  secondary:
-    'bg-[#0D9488] font-semibold text-white hover:bg-[#0D9488]/80',
+  secondary: 'bg-[#0D9488] font-semibold text-white hover:bg-[#0D9488]/80',
   ghost:
     'bg-transparent font-medium text-[#cce6f7] hover:bg-[rgba(255,255,255,0.05)]',
-  danger:
-    'bg-red-600/20 font-semibold text-red-300 hover:bg-red-600/30',
+  danger: 'bg-red-600/20 font-semibold text-red-300 hover:bg-red-600/30',
 }
 
 export function BBButtonComponent({

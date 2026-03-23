@@ -12,7 +12,7 @@ import { BBAuthLayoutComponent } from '~/shared/components/ui/BBAuthLayoutCompon
 import { BBButtonComponent } from '~/shared/components/ui/BBButtonComponent'
 import { BBInputComponent } from '~/shared/components/ui/BBInputComponent'
 
-const LOGIN_PATH = '/pt-BR/empresa/login'
+const LOGIN_PATH = '/pt-BR/login'
 
 interface UpdatePasswordFormData {
   password: string
@@ -49,8 +49,7 @@ export default function UpdatePasswordPage() {
         }, 2000)
       }
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : 'Erro ao atualizar senha'
+      const msg = err instanceof Error ? err.message : 'Erro ao atualizar senha'
       setError(msg)
     } finally {
       setLoading(false)
