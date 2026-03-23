@@ -14,6 +14,8 @@ export function SymptomsStep({
   onPrev,
   onNext,
 }: StepComponentProps) {
+  const hasSymptoms = data.sintomasAtuais.length > 0
+
   const toggleSymptom = (item: string) => {
     const current = data.sintomasAtuais
     const updated = current.includes(item)
@@ -70,7 +72,16 @@ export function SymptomsStep({
         />
       </div>
 
-      <StepNavigation onPrev={onPrev} onNext={onNext} />
+      <StepNavigation
+        onPrev={onPrev}
+        onNext={onNext}
+        nextDisabled={!hasSymptoms}
+        nextDisabledMessage={
+          !hasSymptoms
+            ? 'Selecione ao menos um sintoma para continuar.'
+            : undefined
+        }
+      />
     </div>
   )
 }
