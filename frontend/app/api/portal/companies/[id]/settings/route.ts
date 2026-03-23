@@ -51,7 +51,7 @@ export async function GET(
 
   const { data: pendingInvites } = await sb
     .from('company_access_codes')
-    .select('id, employee_email, department, created_at, cycle_id')
+    .select('id, employee_email, department, created_at, cycle_id, started_at')
     .eq('company_id', companyId)
     .is('used_at', null)
     .eq('active', true)

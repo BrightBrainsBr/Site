@@ -60,14 +60,29 @@ export async function GET(request: NextRequest) {
 
       if (companyUser) {
         console.log(
-          `[Auth Confirm PKCE] User is a company HR. Redirecting to dashboard.`
+          `[Auth Confirm PKCE] User is a company admin. Redirecting to dashboard.`
         )
         return redirect(REDIRECT_EMPRESA_DASHBOARD)
       }
 
-      // Not a company user
+      const { data: invite } = await serviceClient
+        .from('company_access_codes')
+        .select('id')
+        .eq('employee_email', user.email!)
+        .is('used_at', null)
+        .eq('active', true)
+        .limit(1)
+        .maybeSingle()
+
+      if (invite) {
+        console.log(
+          `[Auth Confirm PKCE] User is a collaborator with active invite. Redirecting to assessment.`
+        )
+        return redirect('/pt-BR/avaliacao')
+      }
+
       console.log(
-        `[Auth Confirm PKCE] User not in company_users. Redirecting to login.`
+        `[Auth Confirm PKCE] User not in company_users or invites. Redirecting to login.`
       )
       return redirect(
         `${REDIRECT_EMPRESA_LOGIN}?error=not_company_user`

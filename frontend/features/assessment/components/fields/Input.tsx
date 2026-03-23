@@ -13,6 +13,7 @@ interface InputProps {
   hint?: string
   className?: string
   mask?: (value: string) => string
+  readOnly?: boolean
 }
 
 export function Input({
@@ -25,6 +26,7 @@ export function Input({
   hint,
   className,
   mask,
+  readOnly,
 }: InputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value
@@ -42,7 +44,11 @@ export function Input({
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 transition-colors focus:border-lime-400 focus:outline-none focus:ring-1 focus:ring-lime-400/30"
+        readOnly={readOnly}
+        className={twMerge(
+          'w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-2.5 text-sm text-white placeholder-zinc-500 transition-colors focus:border-lime-400 focus:outline-none focus:ring-1 focus:ring-lime-400/30',
+          readOnly && 'cursor-not-allowed opacity-60'
+        )}
       />
       {hint && <span className="mt-1 block text-xs text-zinc-500">{hint}</span>}
     </label>

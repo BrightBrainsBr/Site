@@ -110,6 +110,8 @@ export function PersonalDataStep({
           value={data.email}
           onChange={(v) => update('email', v)}
           type="email"
+          readOnly={!!companyContext?.prefilled_email}
+          hint={companyContext?.prefilled_email ? 'E-mail vinculado ao convite da empresa' : undefined}
         />
 
         {hasDepartments && (

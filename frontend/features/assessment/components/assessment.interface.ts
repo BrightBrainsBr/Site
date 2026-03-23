@@ -196,6 +196,7 @@ export interface CompanyContext {
   departments?: string[]
   cycle_id?: string
   code_id?: string
+  prefilled_email?: boolean
 }
 
 export interface StepComponentProps {

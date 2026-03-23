@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 
 export interface B2BCompanyUserData {
   isCompanyUser: boolean
+  isCollaborator?: boolean
   user_email?: string | null
   company_id?: string
   company_name?: string | null
@@ -43,6 +44,7 @@ export function useB2BCompanyUser(enabled = true) {
   return {
     ...query,
     isCompanyUser: query.data?.isCompanyUser ?? false,
+    isCollaborator: query.data?.isCollaborator ?? false,
     userEmail: query.data?.user_email ?? null,
     companyId: query.data?.company_id,
     companyName: query.data?.company_name,

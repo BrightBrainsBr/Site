@@ -100,16 +100,31 @@ export async function GET(request: NextRequest) {
 
     if (companyUser) {
       console.log(
-        `[Auth Callback] User is a company HR. Redirecting to dashboard.`
+        `[Auth Callback] User is a company admin. Redirecting to dashboard.`
       )
       const finalRedirectPath =
         intendedRedirect || '/pt-BR/empresa/dashboard'
       return NextResponse.redirect(new URL(finalRedirectPath, request.url))
     }
 
-    // Not a company user - redirect to login with message
+    const { data: invite } = await serviceClient
+      .from('company_access_codes')
+      .select('id')
+      .eq('employee_email', user.email!)
+      .is('used_at', null)
+      .eq('active', true)
+      .limit(1)
+      .maybeSingle()
+
+    if (invite) {
+      console.log(
+        `[Auth Callback] User is a collaborator with active invite. Redirecting to assessment.`
+      )
+      return NextResponse.redirect(new URL('/pt-BR/avaliacao', request.url))
+    }
+
     console.log(
-      '[Auth Callback] User not in company_users. Redirecting to login.'
+      '[Auth Callback] User not in company_users or invites. Redirecting to login.'
     )
     const redirectUrl = new URL('/pt-BR/empresa/login', request.url)
     redirectUrl.searchParams.set(

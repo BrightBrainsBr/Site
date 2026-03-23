@@ -54,8 +54,11 @@ export function B2BLoginComponent() {
 
       if (meData.isCompanyUser) {
         router.push(localePath('/empresa/dashboard'))
-      } else {
+      } else if (meData.isCollaborator) {
         router.push(localePath('/avaliacao'))
+      } else {
+        setError('Esta conta não tem acesso ao dashboard empresarial.')
+        return
       }
       router.refresh()
     } catch (err) {

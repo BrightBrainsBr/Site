@@ -134,53 +134,72 @@ export function AssessmentPage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [companyContext, setCompanyContext] = useState<CompanyContext>({})
   const [sessionChecked, setSessionChecked] = useState(false)
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
+    const isDevMode = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
 
-    async function checkAccess() {
+    let hasSessionFlag = false
+    try {
+      hasSessionFlag = sessionStorage.getItem('bb_access') === '1'
+    } catch {
+      // ignore
+    }
+
+    if (isDevMode) {
+      setAuthorized(true)
+      setSessionChecked(true)
+    }
+
+    async function checkSession() {
       try {
-        if (
-          sessionStorage.getItem('bb_access') === '1' ||
-          process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
-        ) {
+        const res = await fetch('/api/assessment/check-session')
+        const result = await res.json()
+        if (cancelled) return
+
+        if (result.authenticated && result.hasInvite) {
+          try { sessionStorage.setItem('bb_access', '1') } catch { /* ignore */ }
+          setCompanyContext({
+            ...result.companyContext,
+            prefilled_email: !!result.userEmail,
+          })
+          if (result.userEmail) setSessionEmail(result.userEmail)
           setAuthorized(true)
           setSessionChecked(true)
           return
         }
       } catch {
-        // ignore sessionStorage access issues
+        // Session check failed
       }
 
-      try {
-        const res = await fetch('/api/assessment/check-session')
-        const result = await res.json()
-
-        if (cancelled) return
-
-        if (result.authenticated && result.hasInvite) {
-          sessionStorage.setItem('bb_access', '1')
-          setCompanyContext(result.companyContext)
+      if (!isDevMode) {
+        if (hasSessionFlag) {
           setAuthorized(true)
         }
-      } catch {
-        // Session check failed; fall back to code gate
+        if (!cancelled) setSessionChecked(true)
       }
-
-      if (!cancelled) setSessionChecked(true)
     }
 
-    void checkAccess()
+    void checkSession()
     return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
     if (!authorized) return
-    setData(loadFormData())
+    if (isLoaded) return
+    const loaded = loadFormData()
+    if (sessionEmail) loaded.email = sessionEmail
+    setData(loaded)
     const savedStep = loadCurrentStep()
     setCurrentStepIndex(savedStep >= 0 ? savedStep : 0)
     setIsLoaded(true)
-  }, [authorized])
+  }, [authorized, sessionEmail, isLoaded])
+
+  useEffect(() => {
+    if (!isLoaded || !sessionEmail) return
+    setData((prev) => prev.email !== sessionEmail ? { ...prev, email: sessionEmail } : prev)
+  }, [sessionEmail, isLoaded])
 
   useEffect(() => {
     if (!isLoaded) return

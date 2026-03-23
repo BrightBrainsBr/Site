@@ -32,7 +32,19 @@ export async function GET() {
       .maybeSingle()
 
     if (cuError || !cu) {
-      return NextResponse.json({ isCompanyUser: false }, { status: 200 })
+      const { data: invite } = await sb
+        .from('company_access_codes')
+        .select('id, company_id')
+        .eq('employee_email', user.email!)
+        .is('used_at', null)
+        .eq('active', true)
+        .limit(1)
+        .maybeSingle()
+
+      return NextResponse.json({
+        isCompanyUser: false,
+        isCollaborator: !!invite,
+      }, { status: 200 })
     }
 
     const [companyRes, cyclesRes] = await Promise.all([
@@ -50,6 +62,7 @@ export async function GET() {
 
     return NextResponse.json({
       isCompanyUser: true,
+      isCollaborator: false,
       user_email: user.email ?? null,
       company_id: cu.company_id,
       company_name: company?.name ?? null,

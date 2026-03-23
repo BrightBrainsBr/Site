@@ -100,10 +100,16 @@ export function B2BSignupComponent() {
 
       await queryClient.resetQueries({ queryKey: ['b2b'] })
 
-      const redirectTo = resData.redirect === '/avaliacao'
-        ? localePath('/avaliacao')
-        : localePath('/empresa/dashboard')
-      router.push(redirectTo)
+      const meRes = await fetch('/api/b2b/me')
+      const meData = await meRes.json()
+
+      if (meData.isCompanyUser) {
+        router.push(localePath('/empresa/dashboard'))
+      } else if (meData.isCollaborator) {
+        router.push(localePath('/avaliacao'))
+      } else {
+        router.push(localePath('/empresa/dashboard'))
+      }
       router.refresh()
     } catch {
       setError('Erro de conexão. Tente novamente.')

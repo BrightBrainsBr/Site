@@ -57,6 +57,7 @@ export async function GET() {
     return NextResponse.json({
       authenticated: true,
       hasInvite: true,
+      userEmail: user.email,
       companyContext: {
         company_id: invite.company_id,
         department: invite.department ?? undefined,

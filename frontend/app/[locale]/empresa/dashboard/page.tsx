@@ -10,16 +10,20 @@ import { B2BDashboardComponent } from '~/features/b2b-dashboard/components/B2BDa
 
 export default function EmpresaDashboardPage() {
   const router = useRouter()
-  const { isCompanyUser, isLoading, isFetching } = useB2BCompanyUser()
+  const { isCompanyUser, isCollaborator, isLoading, isFetching } = useB2BCompanyUser()
 
   const isResolving = isLoading || isFetching
 
   useEffect(() => {
     if (isResolving) return
     if (!isCompanyUser) {
-      router.replace('/pt-BR/avaliacao')
+      if (isCollaborator) {
+        router.replace('/pt-BR/avaliacao')
+      } else {
+        router.replace('/pt-BR/empresa/login')
+      }
     }
-  }, [isCompanyUser, isResolving, router])
+  }, [isCompanyUser, isCollaborator, isResolving, router])
 
   if (isResolving) {
     return (

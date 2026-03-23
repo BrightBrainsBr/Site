@@ -31,6 +31,7 @@ interface PendingInvite {
   department: string | null
   created_at: string
   cycle_id: string | null
+  started_at: string | null
 }
 
 interface SettingsData {
@@ -384,6 +385,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   in_progress: { label: 'Em andamento', color: '#F59E0B' },
   pending: { label: 'Pendente', color: '#94A3B8' },
   started: { label: 'Iniciado', color: '#60A5FA' },
+  registered: { label: 'Cadastrado', color: '#60A5FA' },
   invited: { label: 'Convidado', color: '#A78BFA' },
   code_sent: { label: 'Código enviado', color: '#A78BFA' },
 }
@@ -430,7 +432,7 @@ function CollaboratorsSection({
           name: null,
           email: inv.employee_email,
           department: inv.department,
-          status: 'invited',
+          status: inv.started_at ? 'registered' : 'invited',
           date: inv.created_at,
         })
       }
@@ -465,7 +467,7 @@ function CollaboratorsSection({
       <div className="flex gap-3">
         <StatCard label="Total" value={collaborators.length} color="#14B8A6" />
         <StatCard label="Completos" value={(statusCounts['completed'] ?? 0) + (statusCounts['report_generated'] ?? 0)} color="#34D399" />
-        <StatCard label="Em andamento" value={(statusCounts['in_progress'] ?? 0) + (statusCounts['started'] ?? 0)} color="#F59E0B" />
+        <StatCard label="Em andamento" value={(statusCounts['in_progress'] ?? 0) + (statusCounts['started'] ?? 0) + (statusCounts['registered'] ?? 0)} color="#F59E0B" />
         <StatCard label="Pendentes" value={(statusCounts['pending'] ?? 0) + (statusCounts['code_sent'] ?? 0) + (statusCounts['invited'] ?? 0)} color="#94A3B8" />
       </div>
 
