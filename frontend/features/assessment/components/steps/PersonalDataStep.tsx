@@ -49,6 +49,8 @@ export function PersonalDataStep({
   companyContext,
   setCompanyContext,
 }: StepComponentProps) {
+  const isComplete = data.nome.trim() !== '' && data.nascimento.trim() !== ''
+
   const update = (field: string, value: string) => {
     setData({ ...data, [field]: value })
   }
@@ -69,6 +71,7 @@ export function PersonalDataStep({
         icon="👤"
         title="Dados Pessoais"
         subtitle="Informações básicas do paciente"
+        required
       />
 
       <div className="space-y-4">
@@ -167,7 +170,16 @@ export function PersonalDataStep({
         </div>
       </div>
 
-      <StepNavigation onPrev={onPrev} onNext={onNext} />
+      <StepNavigation
+        onPrev={onPrev}
+        onNext={onNext}
+        nextDisabled={!isComplete}
+        nextDisabledMessage={
+          !isComplete
+            ? 'Preencha o nome e a data de nascimento para continuar.'
+            : undefined
+        }
+      />
     </div>
   )
 }

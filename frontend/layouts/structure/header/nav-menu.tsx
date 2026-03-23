@@ -184,7 +184,7 @@ const NavMenu: React.FC<Properties> = ({
               )}
               onClick={() => closeMenu()}
             >
-              Entrar
+              Login
             </a>
           </li>
         </ul>
