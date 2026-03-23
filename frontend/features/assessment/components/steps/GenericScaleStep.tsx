@@ -35,6 +35,7 @@ export function GenericScaleStep({
         title={title}
         subtitle={subtitle}
         badge={badge}
+        required
       />
 
       <div className="mt-4 space-y-3">

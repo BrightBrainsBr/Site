@@ -35,6 +35,7 @@ export function MDQStep({ data, setData, onPrev, onNext }: StepComponentProps) {
         title="MDQ — Questionário de Humor"
         subtitle="Rastreamento de transtorno bipolar"
         badge="Bipolaridade"
+        required
       />
 
       <div className="space-y-3">
@@ -75,6 +76,7 @@ export function MDQStep({ data, setData, onPrev, onNext }: StepComponentProps) {
               { label: 'Não', value: 'nao' },
             ]}
             inline
+            required
           />
 
           <RadioGroup
@@ -82,6 +84,7 @@ export function MDQStep({ data, setData, onPrev, onNext }: StepComponentProps) {
             value={data.mdqImpacto}
             onChange={(v) => setData({ ...data, mdqImpacto: v })}
             options={IMPACTO_OPTIONS}
+            required
           />
         </div>
       )}

@@ -29,6 +29,7 @@ export function SymptomsStep({
         title="Sintomas Atuais"
         subtitle="Selecione os sintomas presentes nas últimas semanas"
         badge={`${data.sintomasAtuais.length} selecionados`}
+        required
       />
 
       <div className="space-y-5">
