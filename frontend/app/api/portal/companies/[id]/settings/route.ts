@@ -158,6 +158,31 @@ export async function POST(
               data: { needs_password_setup: true },
             })
           if (inviteErr) {
+            const isAlreadyRegistered =
+              inviteErr.message
+                ?.toLowerCase()
+                .includes('already been registered') ||
+              inviteErr.message?.toLowerCase().includes('already registered')
+
+            if (isAlreadyRegistered) {
+              const { data: usersListData } = await sb.auth.admin.listUsers()
+              const existingUser = usersListData?.users?.find(
+                (u) => u.email?.toLowerCase() === email
+              )
+              if (existingUser) {
+                await sb.from('company_users').upsert(
+                  {
+                    user_id: existingUser.id,
+                    company_id: companyId,
+                    role: 'viewer',
+                  },
+                  { onConflict: 'user_id,company_id' }
+                )
+                results.push({ email, ok: true })
+                continue
+              }
+            }
+
             results.push({ email, ok: false, error: inviteErr.message })
             continue
           }

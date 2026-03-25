@@ -1,6 +1,7 @@
 // frontend/features/assessment/components/steps/ClinicalProfileStep.tsx
 'use client'
 
+import { useEffect } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import type {
@@ -53,7 +54,14 @@ export function ClinicalProfileStep({
   setData,
   onPrev,
   onNext,
+  companyContext,
 }: StepComponentProps) {
+  const isCorporate = !!companyContext?.company_id
+
+  const visibleProfiles = isCorporate
+    ? PROFILES.filter((p) => p.id === 'adulto')
+    : PROFILES
+
   const isComplete =
     data.publico !== '' && data.queixaPrincipal.trim() !== ''
 
@@ -61,17 +69,27 @@ export function ClinicalProfileStep({
     setData({ ...data, [field]: value })
   }
 
+  useEffect(() => {
+    if (isCorporate && data.publico !== 'adulto') {
+      setData({ ...data, publico: 'adulto' })
+    }
+  }, [isCorporate]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div>
       <SectionTitle
         icon="🎯"
         title="Perfil Clínico"
-        subtitle="Selecione o perfil e descreva o motivo principal da avaliação"
+        subtitle={
+          isCorporate
+            ? 'Perfil pré-selecionado para avaliação corporativa'
+            : 'Selecione o perfil e descreva o motivo principal da avaliação'
+        }
         required
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {PROFILES.map((p) => (
+        {visibleProfiles.map((p) => (
           <button
             key={p.id}
             type="button"

@@ -82,6 +82,14 @@ export default async function middleware(request: NextRequest) {
     await supabase.auth.getUser()
   }
 
+  if (pathname.startsWith('/auth/')) {
+    const response = NextResponse.next()
+    cookiesToSet.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options)
+    })
+    return response
+  }
+
   const nestedPtPrefix = pathname.match(/^\/pt-BR\/pt(?:-br)?(\/.*)?$/i)
   if (nestedPtPrefix) {
     return redirectToCanonicalPtBr(request, nestedPtPrefix[1] ?? '')

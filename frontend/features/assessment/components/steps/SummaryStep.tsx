@@ -18,6 +18,7 @@ export function SummaryStep({
   const [phase, setPhase] = useState<Phase>('review')
   const [error, setError] = useState<string | null>(null)
   const [evaluationId, setEvaluationId] = useState<string | null>(null)
+  const isCorporate = !!companyContext?.company_id
 
   const scores = computeAllScores(data)
 
@@ -193,8 +194,9 @@ export function SummaryStep({
               Avaliação Enviada com Sucesso
             </h3>
             <p className="text-sm text-zinc-400">
-              Obrigado por preencher a avaliação. Seus dados foram recebidos com
-              segurança.
+              {isCorporate
+                ? 'Obrigado por preencher a avaliação corporativa. Seus dados foram recebidos com segurança e confidencialidade.'
+                : 'Obrigado por preencher a avaliação. Seus dados foram recebidos com segurança.'}
             </p>
             {evaluationId && (
               <p className="mt-2 font-mono text-xs text-zinc-500">
@@ -207,34 +209,67 @@ export function SummaryStep({
             <p className="mb-2 text-sm font-medium text-zinc-300">
               O que acontece agora?
             </p>
-            <ol className="mx-auto max-w-md space-y-2 text-left text-xs text-zinc-400">
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                  1
-                </span>
-                O sistema está gerando seu relatório com inteligência artificial
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                  2
-                </span>
-                O relatório será enviado automaticamente para a clínica
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                  3
-                </span>
-                O Comitê Médico analisará e validará as recomendações
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                  4
-                </span>
-                A clínica entrará em contato com você
-              </li>
-            </ol>
+            {isCorporate ? (
+              <ol className="mx-auto max-w-md space-y-2 text-left text-xs text-zinc-400">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                    1
+                  </span>
+                  O sistema está gerando um relatório simplificado com
+                  inteligência artificial
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                    2
+                  </span>
+                  O relatório será disponibilizado no painel da sua empresa
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                    3
+                  </span>
+                  Seus dados individuais são confidenciais — a empresa recebe
+                  apenas indicadores agregados
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                    4
+                  </span>
+                  O RH poderá entrar em contato para agendar acompanhamento, se
+                  necessário
+                </li>
+              </ol>
+            ) : (
+              <ol className="mx-auto max-w-md space-y-2 text-left text-xs text-zinc-400">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                    1
+                  </span>
+                  O sistema está gerando seu relatório com inteligência
+                  artificial
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                    2
+                  </span>
+                  O relatório será enviado automaticamente para a clínica
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                    3
+                  </span>
+                  O Comitê Médico analisará e validará as recomendações
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                    4
+                  </span>
+                  A clínica entrará em contato com você
+                </li>
+              </ol>
+            )}
 
-            {evaluationId && (
+            {evaluationId && !isCorporate && (
               <a
                 href={`/pt-BR/portal/${evaluationId}`}
                 className="mt-4 inline-flex items-center gap-2 rounded-lg border border-lime-400/30 bg-lime-400/10 px-4 py-2.5 text-sm font-medium text-lime-400 transition-colors hover:bg-lime-400/20"

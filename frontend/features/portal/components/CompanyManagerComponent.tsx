@@ -49,6 +49,7 @@ export function CompanyManagerComponent({
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const [editingCompany, setEditingCompany] = useState<Company | null>(null)
   const [editName, setEditName] = useState('')
+  const [editCnpj, setEditCnpj] = useState('')
   const [editSaving, setEditSaving] = useState(false)
   const [deletingCompany, setDeletingCompany] = useState<Company | null>(null)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
@@ -110,7 +111,10 @@ export function CompanyManagerComponent({
       const res = await fetch(`/api/portal/companies/${editingCompany.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editName.trim() }),
+        body: JSON.stringify({
+          name: editName.trim(),
+          cnpj: editCnpj.trim() || null,
+        }),
       })
       if (!res.ok) {
         const err = await res.json()
@@ -123,7 +127,7 @@ export function CompanyManagerComponent({
     } finally {
       setEditSaving(false)
     }
-  }, [editingCompany, editName, queryClient])
+  }, [editingCompany, editName, editCnpj, queryClient])
 
   const handleDelete = useCallback(async () => {
     if (!deletingCompany) return
@@ -325,6 +329,7 @@ export function CompanyManagerComponent({
                           setMenuOpenId(null)
                           setEditingCompany(c)
                           setEditName(c.name)
+                          setEditCnpj(c.cnpj ?? '')
                           setActionError(null)
                         }}
                         className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[#cce6f7] hover:bg-[#1a3a5c]"
@@ -387,6 +392,14 @@ export function CompanyManagerComponent({
               className="mb-4 w-full rounded-lg border border-[#1a3a5c] bg-[#060e1a] px-4 py-2 text-[#cce6f7] focus:border-[#00c9b1] focus:outline-none"
               onKeyDown={(e) => e.key === 'Enter' && handleEditSave()}
               autoFocus
+            />
+            <label className="mb-1 block text-xs text-[#5a7fa0]">CNPJ</label>
+            <input
+              value={editCnpj}
+              onChange={(e) => setEditCnpj(e.target.value)}
+              placeholder="00.000.000/0000-00"
+              className="mb-4 w-full rounded-lg border border-[#1a3a5c] bg-[#060e1a] px-4 py-2 text-[#cce6f7] focus:border-[#00c9b1] focus:outline-none"
+              onKeyDown={(e) => e.key === 'Enter' && handleEditSave()}
             />
             {actionError && (
               <p className="mb-3 text-sm text-red-400">{actionError}</p>
