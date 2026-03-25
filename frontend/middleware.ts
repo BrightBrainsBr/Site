@@ -60,10 +60,21 @@ function refreshSupabaseSession(request: NextRequest) {
 }
 
 export default async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, searchParams } = request.nextUrl
 
   if (pathname === '/BitKeeper') {
     return NextResponse.error()
+  }
+
+  const authCode = searchParams.get('code')
+  const isAuthRoute =
+    pathname.startsWith('/auth/') ||
+    pathname.includes('/empresa/auth-callback')
+  if (authCode && !isAuthRoute) {
+    const callbackUrl = request.nextUrl.clone()
+    callbackUrl.pathname = '/auth/callback'
+    callbackUrl.searchParams.set('code', authCode)
+    return NextResponse.redirect(callbackUrl)
   }
 
   const { supabase, cookiesToSet } = refreshSupabaseSession(request)

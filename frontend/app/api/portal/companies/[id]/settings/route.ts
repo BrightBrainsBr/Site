@@ -8,12 +8,21 @@ import { validatePortalSession } from '../../../lib/validatePortalSession'
 
 export const runtime = 'nodejs'
 
+const CANONICAL_PROD_URL = 'https://www.brightbrains.com.br'
+
 function getSiteUrl(): string {
-  if (process.env.SITE_URL) return process.env.SITE_URL
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
-  return 'http://localhost:3000'
+  const raw =
+    process.env.SITE_URL ??
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : undefined) ??
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : undefined) ??
+    'http://localhost:3000'
+
+  if (raw.includes('brightbrains.com')) return CANONICAL_PROD_URL
+  return raw
 }
 
 export async function GET(
