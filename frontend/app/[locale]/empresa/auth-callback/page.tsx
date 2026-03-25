@@ -57,6 +57,16 @@ export default function EmpresaAuthCallbackPage() {
 
       setStatus('Sessão estabelecida! Verificando tipo de acesso...')
 
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (user?.user_metadata?.needs_password_setup) {
+        setStatus('Primeiro acesso — definindo senha...')
+        router.replace('/auth/update-password?from=invite')
+        return
+      }
+
       try {
         const meRes = await fetch('/api/b2b/me')
         const meData = (await meRes.json()) as {

@@ -153,7 +153,10 @@ export async function POST(
       try {
         if (role === 'admin') {
           const { data: inviteData, error: inviteErr } =
-            await sb.auth.admin.inviteUserByEmail(email, { redirectTo })
+            await sb.auth.admin.inviteUserByEmail(email, {
+              redirectTo,
+              data: { needs_password_setup: true },
+            })
           if (inviteErr) {
             results.push({ email, ok: false, error: inviteErr.message })
             continue

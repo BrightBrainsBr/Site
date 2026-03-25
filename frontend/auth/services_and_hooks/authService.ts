@@ -718,6 +718,32 @@ export const authService = {
     }
   },
 
+  async updateUserMetadata(
+    metadata: Record<string, unknown>
+  ): Promise<AuthResponse> {
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.updateUser({ data: metadata })
+      if (error) {
+        return {
+          error: {
+            message: error.message,
+            code: mapErrorCodeToAuthErrorCode(error.message),
+          },
+        }
+      }
+      return { data: true }
+    } catch (error: unknown) {
+      const err = error as Error
+      return {
+        error: {
+          message: err.message || 'An error occurred updating user metadata',
+          code: AuthErrorCode.UNKNOWN_ERROR,
+        },
+      }
+    }
+  },
+
   /**
    * Refreshes the session and updates the auth state
    */

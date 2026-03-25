@@ -60,7 +60,10 @@ export async function POST(
   const redirectTo = `${getSiteUrl()}/pt-BR/empresa/auth-callback`
 
   const { data: inviteData, error: inviteErr } =
-    await sb.auth.admin.inviteUserByEmail(email, { redirectTo })
+    await sb.auth.admin.inviteUserByEmail(email, {
+      redirectTo,
+      data: { needs_password_setup: true },
+    })
 
   if (inviteErr) {
     console.error('[portal/invite-hr]', inviteErr)

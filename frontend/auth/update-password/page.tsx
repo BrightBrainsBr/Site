@@ -3,7 +3,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -21,6 +21,8 @@ interface UpdatePasswordFormData {
 
 export default function UpdatePasswordPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isFromInvite = searchParams.get('from') === 'invite'
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -43,9 +45,17 @@ export default function UpdatePasswordPage() {
       if (result.error) {
         setError(result.error.message)
       } else {
+        if (isFromInvite) {
+          await authService.updateUserMetadata({
+            needs_password_setup: false,
+          })
+        }
         setSuccess(true)
+        const destination = isFromInvite
+          ? '/pt-BR/empresa/dashboard'
+          : `${LOGIN_PATH}?message=password_updated`
         setTimeout(() => {
-          router.push(`${LOGIN_PATH}?message=password_updated`)
+          router.push(destination)
         }, 2000)
       }
     } catch (err: unknown) {
@@ -80,7 +90,8 @@ export default function UpdatePasswordPage() {
             </svg>
           </div>
           <p className="text-sm text-green-300">
-            Senha atualizada com sucesso! Redirecionando para o login...
+            Senha atualizada com sucesso! Redirecionando
+            {isFromInvite ? ' para o painel...' : ' para o login...'}
           </p>
         </div>
       </BBAuthLayoutComponent>
@@ -90,22 +101,26 @@ export default function UpdatePasswordPage() {
   return (
     <BBAuthLayoutComponent
       heading="Bright Brains"
-      subheading="Nova senha"
-      cardTitle="Atualizar senha"
+      subheading={isFromInvite ? 'Bem-vindo!' : 'Nova senha'}
+      cardTitle={isFromInvite ? 'Crie sua senha' : 'Atualizar senha'}
       footer={
-        <p className="text-sm text-[#5a7fa0]">
-          <Link
-            href={LOGIN_PATH}
-            className="font-medium text-[#00c9b1] hover:text-[#00c9b1]/80 transition-colors"
-          >
-            Voltar ao login
-          </Link>
-        </p>
+        !isFromInvite ? (
+          <p className="text-sm text-[#5a7fa0]">
+            <Link
+              href={LOGIN_PATH}
+              className="font-medium text-[#00c9b1] hover:text-[#00c9b1]/80 transition-colors"
+            >
+              Voltar ao login
+            </Link>
+          </p>
+        ) : undefined
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <p className="text-sm text-[#5a7fa0]">
-          Escolha uma nova senha para sua conta.
+          {isFromInvite
+            ? 'Você foi convidado como administrador. Defina uma senha para acessar o painel.'
+            : 'Escolha uma nova senha para sua conta.'}
         </p>
 
         <BBInputComponent

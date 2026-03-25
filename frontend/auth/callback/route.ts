@@ -94,6 +94,15 @@ export async function GET(request: NextRequest) {
       `[Auth Callback] User ${user.id} (${user.email}) fetched. Checking company_users...`
     )
 
+    if (user.user_metadata?.needs_password_setup) {
+      console.log(
+        '[Auth Callback] Invited user needs password setup. Redirecting.'
+      )
+      return NextResponse.redirect(
+        new URL('/auth/update-password?from=invite', request.url)
+      )
+    }
+
     const { data: companyUser } = await serviceClient
       .from('company_users')
       .select('id, company_id')
