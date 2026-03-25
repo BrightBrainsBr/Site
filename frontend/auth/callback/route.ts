@@ -29,11 +29,12 @@ export async function GET(request: NextRequest) {
 
       if (sessionError) {
         console.error(
-          '[Auth Callback] Error exchanging recovery code:',
-          sessionError.message
+          '[Auth Callback] PKCE exchange failed for recovery:',
+          sessionError.message,
+          '— this usually means the email was opened in a different browser.'
         )
-        const redirectUrl = new URL('/pt-BR/login', request.url)
-        redirectUrl.searchParams.set('error', 'invalid_link_code_missing')
+        const redirectUrl = new URL('/pt-BR/empresa/reset-password', request.url)
+        redirectUrl.searchParams.set('error', 'link_expired')
         return NextResponse.redirect(redirectUrl)
       }
 
@@ -45,8 +46,8 @@ export async function GET(request: NextRequest) {
       )
     } catch (error) {
       console.error('[Auth Callback] Recovery flow error:', error)
-      const redirectUrl = new URL('/pt-BR/login', request.url)
-      redirectUrl.searchParams.set('error', 'recovery_failed')
+      const redirectUrl = new URL('/pt-BR/empresa/reset-password', request.url)
+      redirectUrl.searchParams.set('error', 'link_expired')
       return NextResponse.redirect(redirectUrl)
     }
   }
