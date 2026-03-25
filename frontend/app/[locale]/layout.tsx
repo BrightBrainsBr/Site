@@ -163,6 +163,13 @@ const RootLayout = async ({ children, params }: any) => {
           crossOrigin="use-credentials"
         />
 
+        {/* Auth token interceptor — catches Supabase hash tokens on any page */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var h=window.location.hash;if(!h)return;var p=new URLSearchParams(h.substring(1));if(p.get('access_token')&&p.get('refresh_token')){var dest='/pt-BR/empresa/auth-callback'+h;if(window.location.pathname!=='/pt-BR/empresa/auth-callback'){window.location.replace(dest)}}})();`,
+          }}
+        />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
