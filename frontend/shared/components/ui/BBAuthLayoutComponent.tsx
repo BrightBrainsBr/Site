@@ -33,7 +33,7 @@ export function BBAuthLayoutComponent({
       </div>
 
       <div className="max-w-md mx-auto px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="rounded-lg border-t-4 border-[#00c9b1] bg-[#0c1a2e]/80 shadow-xl p-8">
+        <div className="rounded-lg border-t-4 border-[#00c9b1] bg-[#0c1a2e]/80 shadow-xl p-5 sm:p-8">
           <div className="text-center mb-8">
             <h3 className="text-xl font-bold text-[#cce6f7]">{cardTitle}</h3>
           </div>

@@ -111,7 +111,7 @@ export function PortalEmpresaDetailPageComponent({
     return (
       <>
         <PortalTopNav />
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           <p className="text-red-400">Empresa não encontrada.</p>
           <Link
             href={`/${locale}/portal/empresas`}
@@ -127,7 +127,7 @@ export function PortalEmpresaDetailPageComponent({
   return (
     <div className="min-h-screen bg-[#07111F]">
       <PortalTopNav companyName={company.name} />
-      <div className="flex items-center gap-1 border-b border-[rgba(255,255,255,0.08)] bg-[#0a1628] px-8 py-1.5">
+      <div className="flex items-center gap-1 border-b border-[rgba(255,255,255,0.08)] bg-[#0a1628] px-4 py-1.5 md:px-8">
         <button
           onClick={() => setActiveView('dashboard')}
           className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${

@@ -80,33 +80,155 @@ export function B2BHeaderComponent({
   const initials = userEmail ? userEmail.substring(0, 2).toUpperCase() : '?'
 
   return (
-    <header className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-6 py-3">
-      {/* Left: Logo */}
-      <div className="flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0D9488] text-[18px]">
-          🧠
+    <header className="border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-4 py-3 md:px-6">
+      <div className="flex items-center justify-between">
+        {/* Left: Logo */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0D9488] text-[18px]">
+            🧠
+          </div>
+          <div className="hidden sm:block">
+            <div className="text-[15px] font-semibold text-[#E2E8F0]">
+              Bright Precision
+            </div>
+            <div className="text-[11px] text-[#64748B]">
+              Plataforma de Saúde Mental Cognitiva
+            </div>
+          </div>
         </div>
-        <div>
-          <div className="text-[15px] font-semibold text-[#E2E8F0]">
-            Bright Precision
-          </div>
-          <div className="text-[11px] text-[#64748B]">
-            Plataforma de Saúde Mental Cognitiva
-          </div>
+
+        {/* Center: Company + Cycle — hidden on small screens, shown below */}
+        <div className="hidden items-center gap-1.5 md:flex">
+          <span className="text-[11px] text-[#64748B]">Empresa:</span>
+          <span className="text-[13px] font-semibold text-[#14B8A6]">
+            {companyName ?? 'Empresa'}
+          </span>
+          {cycles.length > 0 && (
+            <select
+              value={activeCycleId ?? ''}
+              onChange={(e) => onCycleChange?.(e.target.value)}
+              className="ml-2 rounded-md border border-[rgba(255,255,255,0.08)] bg-[#132540] px-2 py-1 text-[12px] text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none"
+            >
+              {cycles.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {/* Right: Badge + User Menu */}
+        <div className="flex items-center gap-2 md:gap-3">
+          <span className="hidden text-[12px] text-[#64748B] lg:inline">
+            Ciclo: {cycleLabel} · Atualizado {updatedDate}
+          </span>
+          <span className="hidden sm:inline">
+            {hasValidGro ? (
+              <span
+                className="whitespace-nowrap rounded-[20px] px-2 py-1 text-[11px] font-medium md:px-3 md:text-[12px]"
+                style={{
+                  background: 'rgba(16,185,129,0.15)',
+                  color: '#34D399',
+                  border: '1px solid rgba(16,185,129,0.3)',
+                }}
+              >
+                ✓ GRO Emitido
+              </span>
+            ) : (
+              <span
+                className="whitespace-nowrap rounded-[20px] px-2 py-1 text-[11px] font-medium md:px-3 md:text-[12px]"
+                style={{
+                  background: 'rgba(245,158,11,0.15)',
+                  color: '#F59E0B',
+                  border: '1px solid rgba(245,158,11,0.3)',
+                }}
+              >
+                ⚠ GRO Pendente
+              </span>
+            )}
+          </span>
+
+          {/* User Dropdown */}
+          {!hideSignOut && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0D9488]/30">
+                  <User className="h-4 w-4 text-[#14B8A6]" />
+                </div>
+                <ChevronDown
+                  className={`h-4 w-4 text-[#94A3B8] transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {isMenuOpen && (
+                <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#132540] py-2 shadow-xl">
+                  {userEmail && (
+                    <div className="border-b border-[rgba(255,255,255,0.08)] px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-wider text-[#64748B]">
+                        Conectado como
+                      </p>
+                      <p className="mt-0.5 truncate text-[13px] font-medium text-[#E2E8F0]">
+                        {userEmail}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false)
+                        router.push(localePath('/empresa/perfil'))
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#E2E8F0]"
+                    >
+                      <User className="h-4 w-4" />
+                      Meu Perfil
+                    </button>
+                    {onSettingsClick && (
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false)
+                          onSettingsClick()
+                        }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#E2E8F0]"
+                      >
+                        <Settings className="h-4 w-4" />
+                        Configurações
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="border-t border-[rgba(255,255,255,0.08)] pt-1">
+                    <button
+                      onClick={handleSignOut}
+                      className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#F87171] transition-colors hover:bg-[rgba(239,68,68,0.06)]"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sair
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Center: Company + Cycle */}
-      <div className="flex items-center gap-1.5">
+      {/* Mobile: Company + Cycle row */}
+      <div className="mt-2 flex items-center gap-1.5 md:hidden">
         <span className="text-[11px] text-[#64748B]">Empresa:</span>
-        <span className="text-[13px] font-semibold text-[#14B8A6]">
+        <span className="truncate text-[13px] font-semibold text-[#14B8A6]">
           {companyName ?? 'Empresa'}
         </span>
         {cycles.length > 0 && (
           <select
             value={activeCycleId ?? ''}
             onChange={(e) => onCycleChange?.(e.target.value)}
-            className="ml-2 rounded-md border border-[rgba(255,255,255,0.08)] bg-[#132540] px-2 py-1 text-[12px] text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none"
+            className="ml-auto rounded-md border border-[rgba(255,255,255,0.08)] bg-[#132540] px-2 py-1 text-[12px] text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none"
           >
             {cycles.map((c) => (
               <option key={c.id} value={c.id}>
@@ -114,103 +236,6 @@ export function B2BHeaderComponent({
               </option>
             ))}
           </select>
-        )}
-      </div>
-
-      {/* Right: Date, Badge, User Menu */}
-      <div className="flex items-center gap-3">
-        <span className="text-[12px] text-[#64748B]">
-          Ciclo: {cycleLabel} · Atualizado {updatedDate}
-        </span>
-        {hasValidGro ? (
-          <span
-            className="rounded-[20px] px-3 py-1 text-[12px] font-medium"
-            style={{
-              background: 'rgba(16,185,129,0.15)',
-              color: '#34D399',
-              border: '1px solid rgba(16,185,129,0.3)',
-            }}
-          >
-            ✓ GRO Emitido · NR-1 Conforme
-          </span>
-        ) : (
-          <span
-            className="rounded-[20px] px-3 py-1 text-[12px] font-medium"
-            style={{
-              background: 'rgba(245,158,11,0.15)',
-              color: '#F59E0B',
-              border: '1px solid rgba(245,158,11,0.3)',
-            }}
-          >
-            ⚠ GRO Pendente
-          </span>
-        )}
-
-        {/* User Dropdown */}
-        {!hideSignOut && (
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[rgba(255,255,255,0.05)]"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0D9488]/30">
-                <User className="h-4 w-4 text-[#14B8A6]" />
-              </div>
-              <ChevronDown
-                className={`h-4 w-4 text-[#94A3B8] transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            {isMenuOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#132540] py-2 shadow-xl">
-                {userEmail && (
-                  <div className="border-b border-[rgba(255,255,255,0.08)] px-4 py-3">
-                    <p className="text-[10px] uppercase tracking-wider text-[#64748B]">
-                      Conectado como
-                    </p>
-                    <p className="mt-0.5 truncate text-[13px] font-medium text-[#E2E8F0]">
-                      {userEmail}
-                    </p>
-                  </div>
-                )}
-
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false)
-                      router.push(localePath('/empresa/perfil'))
-                    }}
-                    className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#E2E8F0]"
-                  >
-                    <User className="h-4 w-4" />
-                    Meu Perfil
-                  </button>
-                  {onSettingsClick && (
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false)
-                        onSettingsClick()
-                      }}
-                      className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#E2E8F0]"
-                    >
-                      <Settings className="h-4 w-4" />
-                      Configurações
-                    </button>
-                  )}
-                </div>
-
-                <div className="border-t border-[rgba(255,255,255,0.08)] pt-1">
-                  <button
-                    onClick={handleSignOut}
-                    className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#F87171] transition-colors hover:bg-[rgba(239,68,68,0.06)]"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sair
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
         )}
       </div>
     </header>

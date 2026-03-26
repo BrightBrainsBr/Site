@@ -247,15 +247,15 @@ export function ReportPreviewComponent({
     <div>
       {/* Processing pipeline */}
       {isRegenerating && pipeline && (
-        <div className="mb-4 rounded-lg border border-[rgba(240,160,48,0.3)] bg-[rgba(240,160,48,0.08)] px-5 py-4">
-          <div className="mb-3 flex items-center justify-between">
+        <div className="mb-4 rounded-lg border border-[rgba(240,160,48,0.3)] bg-[rgba(240,160,48,0.08)] px-4 py-3 md:px-5 md:py-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1a3a5c] border-t-[#f0a030]" />
               <span className="text-sm font-semibold text-[#f0a030]">
                 Gerando relatório
               </span>
             </div>
-            <span className="font-mono text-xs text-[#5a7fa0]">
+            <span className="flex-shrink-0 font-mono text-xs text-[#5a7fa0]">
               {elapsedStr}
             </span>
           </div>
@@ -422,7 +422,7 @@ export function ReportPreviewComponent({
                 <div
                   key={i}
                   className={cn(
-                    'rounded-lg px-6 py-5 text-[0.9375rem] leading-[1.8] text-[#b0c8de]',
+                    'rounded-lg px-4 py-4 text-[0.9375rem] leading-[1.8] text-[#b0c8de] md:px-6 md:py-5',
                     isIntro
                       ? 'border-l-[3px] border-l-[#00c9b1] bg-[#0f2240]'
                       : isEven

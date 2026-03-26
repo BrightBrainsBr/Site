@@ -396,11 +396,11 @@ export function AssessmentPage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-xl backdrop-blur-sm md:p-8">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 shadow-xl backdrop-blur-sm sm:p-6 md:p-8">
         {renderStep()}
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-xs text-zinc-600">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-600">
         <span>Etapa: {currentStep.label}</span>
         <div className="flex items-center gap-3">
           {IS_DEV && (

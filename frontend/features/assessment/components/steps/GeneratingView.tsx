@@ -119,8 +119,8 @@ export function GeneratingView({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/30 p-5">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/30 p-4 md:p-5">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 animate-pulse rounded-full bg-lime-400" />
             <span className="text-sm font-medium text-zinc-200">

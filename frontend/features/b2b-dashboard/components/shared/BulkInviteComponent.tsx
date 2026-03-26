@@ -194,7 +194,7 @@ export function BulkInviteComponent({
           <button
             onClick={handleInvite}
             disabled={loading || emailCount === 0}
-            className="ml-auto rounded-lg bg-[#0D9488] px-4 py-2 text-[12px] font-semibold text-white disabled:opacity-40"
+            className="w-full rounded-lg bg-[#0D9488] px-4 py-2 text-[12px] font-semibold text-white disabled:opacity-40 sm:ml-auto sm:w-auto"
           >
             {loading
               ? 'Enviando...'

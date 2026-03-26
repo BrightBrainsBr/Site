@@ -289,10 +289,10 @@ export function B2BComplianceTab({
             {LEGAL_DOCS.map((doc) => (
               <div
                 key={doc.name}
-                className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] py-2 text-[12px] last:border-0"
+                className="flex flex-col gap-0.5 border-b border-[rgba(255,255,255,0.08)] py-2 text-[12px] last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-2"
               >
                 <span className="text-[#E2E8F0]">📄 {doc.name}</span>
-                <span className="text-[11px] text-[#64748B]">{doc.info}</span>
+                <span className="shrink-0 text-[11px] text-[#64748B]">{doc.info}</span>
               </div>
             ))}
           </div>

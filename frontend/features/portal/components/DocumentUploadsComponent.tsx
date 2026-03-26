@@ -184,21 +184,21 @@ export function DocumentUploadsComponent({
           {doctorUploads.map((doc) => (
             <div
               key={doc.path}
-              className="flex items-center justify-between rounded-lg bg-[#0f2240] px-4 py-3"
+              className="flex items-center justify-between gap-2 rounded-lg bg-[#0f2240] px-3 py-3 md:px-4"
             >
               <a
                 href={doc.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex min-w-0 items-center gap-2.5 transition-colors hover:text-[#00c9b1]"
+                className="flex min-w-0 flex-1 items-center gap-2 transition-colors hover:text-[#00c9b1]"
               >
-                <span className="text-base">
+                <span className="flex-shrink-0 text-base">
                   {/\.pdf$/i.test(doc.name) ? '📄' : '🖼️'}
                 </span>
                 <span className="truncate text-sm font-medium text-[#cce6f7]">
                   {doc.name}
                 </span>
-                <span className="flex-none text-xs text-[#3a5a75]">
+                <span className="hidden flex-none text-xs text-[#3a5a75] sm:inline">
                   {formatDate(doc.uploaded_at)}
                 </span>
               </a>

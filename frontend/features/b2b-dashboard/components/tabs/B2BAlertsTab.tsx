@@ -111,7 +111,7 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
   return (
     <div className="space-y-4">
       {/* LGPD disclaimer */}
-      <div className="rounded-xl border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.06)] px-4 py-3 text-[13px]">
+      <div className="rounded-xl border border-[rgba(239,68,68,0.2)] bg-[rgba(239,68,68,0.06)] px-3 py-2.5 text-[12px] md:px-4 md:py-3 md:text-[13px]">
         <span className="font-semibold text-[#F87171]">⚠ Importante:</span>{' '}
         <span className="text-[#94A3B8]">
           Todos os identificadores são anonimizados. Laudos clínicos individuais
@@ -319,7 +319,7 @@ function AlertCard({ alert }: { alert: B2BAlertData }) {
         background: style.bg,
       }}
     >
-      <div className="mb-1.5 flex items-center gap-2">
+      <div className="mb-1.5 flex flex-wrap items-center gap-1.5 md:gap-2">
         <span
           className="rounded-xl px-2 py-[2px] text-[10px] font-semibold uppercase tracking-[0.5px]"
           style={{ background: style.badgeBg, color: style.badge }}
@@ -327,7 +327,7 @@ function AlertCard({ alert }: { alert: B2BAlertData }) {
           {style.label}
         </span>
         <span className="text-[12px] font-semibold text-[#E2E8F0]">
-          ID Anônimo: {alert.id}
+          ID: {alert.id}
         </span>
         <span className="ml-auto text-[11px] text-[#64748B]">
           {alert.department ?? '–'}

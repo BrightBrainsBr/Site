@@ -353,21 +353,21 @@ function SupplementsEditor({
           {value.map((sup, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 rounded-lg bg-[#0a1628] p-3"
+              className="flex flex-wrap items-center gap-2 rounded-lg bg-[#0a1628] p-3 sm:flex-nowrap"
             >
               <input
                 type="text"
                 value={sup.nome}
                 onChange={(e) => update(i, 'nome', e.target.value)}
                 placeholder="Nome do suplemento"
-                className={cn(miniInputClass, 'flex-1')}
+                className={cn(miniInputClass, 'min-w-0 flex-1')}
               />
               <input
                 type="text"
                 value={sup.dose}
                 onChange={(e) => update(i, 'dose', e.target.value)}
                 placeholder="Dose"
-                className={cn(miniInputClass, 'w-32')}
+                className={cn(miniInputClass, 'w-full sm:w-32')}
               />
               <button
                 type="button"
@@ -622,19 +622,19 @@ export function EvaluationEditFormComponent({
       </div>
 
       {/* Sticky action bar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-[#1a3a5c] bg-[#0c1a2e] p-4">
-        <div className="mx-auto flex max-w-4xl justify-end gap-3">
+      <div className="fixed bottom-0 left-0 right-0 border-t border-[#1a3a5c] bg-[#0c1a2e] px-4 pb-[env(safe-area-inset-bottom,0px)] pt-4">
+        <div className="mx-auto flex max-w-4xl justify-end gap-3 pb-4">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-[#1a3a5c] bg-transparent px-4 py-2.5 text-base font-medium text-[#cce6f7] transition-colors hover:bg-[#0f2240]"
+            className="rounded-lg border border-[#1a3a5c] bg-transparent px-3 py-2 text-sm font-medium text-[#cce6f7] transition-colors hover:bg-[#0f2240] md:px-4 md:py-2.5 md:text-base"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={!isDirty || updateMutation.isPending}
-            className="rounded-lg border border-[#00c9b1] bg-[#00c9b1] px-4 py-2.5 text-base font-medium text-[#060e1a] transition-colors hover:bg-[#00e0c4] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-[#00c9b1] bg-[#00c9b1] px-3 py-2 text-sm font-medium text-[#060e1a] transition-colors hover:bg-[#00e0c4] disabled:cursor-not-allowed disabled:opacity-50 md:px-4 md:py-2.5 md:text-base"
           >
             {updateMutation.isPending ? 'Salvando...' : 'Salvar alterações'}
           </button>

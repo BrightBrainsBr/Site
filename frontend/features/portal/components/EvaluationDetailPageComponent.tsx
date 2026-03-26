@@ -263,9 +263,9 @@ export function EvaluationDetailPageComponent({
   const status = evaluation.reviewer_status ?? 'pending_review'
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-4 md:px-6 md:py-8">
       {/* Top bar */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 md:mb-6">
         <Link
           href={`/${locale}/portal`}
           className="flex items-center gap-2 text-sm text-[#5a7fa0] transition-colors hover:text-[#00c9b1]"
@@ -274,7 +274,7 @@ export function EvaluationDetailPageComponent({
           <span>Voltar</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Delete button */}
           <button
             type="button"
@@ -460,14 +460,14 @@ export function EvaluationDetailPageComponent({
       </div>
 
       {/* Patient header */}
-      <div className="mb-6 rounded-xl border border-[#1a3a5c] bg-[#0c1a2e] p-6">
+      <div className="mb-4 rounded-xl border border-[#1a3a5c] bg-[#0c1a2e] p-4 md:mb-6 md:p-6">
         <h1
-          className="font-heading text-2xl font-bold text-[#cce6f7]"
+          className="font-heading text-xl font-bold text-[#cce6f7] md:text-2xl"
           style={{ fontFamily: 'var(--font-heading), sans-serif' }}
         >
           {evaluation.patient_name || 'Paciente sem nome'}
         </h1>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-[#5a7fa0]">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#5a7fa0] md:gap-3">
           {evaluation.patient_profile && (
             <ProfileBadgeComponent profile={evaluation.patient_profile} />
           )}
@@ -587,7 +587,7 @@ export function EvaluationDetailPageComponent({
       )}
 
       {/* Tab bar */}
-      <div className="mb-6 flex gap-1 rounded-lg bg-[#0a1628] p-1">
+      <div className="mb-4 flex gap-1 rounded-lg bg-[#0a1628] p-1 md:mb-6">
         {TABS.map((tab) => (
           <button
             key={tab.id}

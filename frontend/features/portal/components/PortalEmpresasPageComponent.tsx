@@ -47,9 +47,9 @@ export function PortalEmpresasPageComponent() {
   return (
     <>
       <PortalTopNav />
-      <div className="p-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[#cce6f7]">Empresas</h1>
+      <div className="p-4 md:p-8">
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <h1 className="text-xl font-bold text-[#cce6f7] md:text-2xl">Empresas</h1>
           <button
             onClick={() => setShowCreate(!showCreate)}
             className="rounded-lg bg-[#00c9b1] px-4 py-2 text-sm font-bold text-black hover:opacity-90"

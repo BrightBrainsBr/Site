@@ -102,7 +102,7 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
     <div className="space-y-4">
       {/* Department table */}
       <div className="overflow-x-auto rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33]">
-        <div className="mb-0 flex items-center justify-between px-4 pt-3">
+        <div className="mb-0 flex flex-col gap-1 px-4 pt-3 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
             Mapa de Risco por Departamento
           </h3>
@@ -252,7 +252,7 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
 
         {/* Fatores de Risco Mais Frequentes */}
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
               Fatores de Risco Mais Frequentes
             </h3>
@@ -264,9 +264,9 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
             {RISK_FACTORS.map((f) => (
               <div
                 key={f.label}
-                className="flex items-center gap-2.5 text-[12px]"
+                className="flex items-center gap-2 text-[12px] md:gap-2.5"
               >
-                <span className="w-[100px] shrink-0 text-[11px] text-[#94A3B8]">
+                <span className="w-[90px] shrink-0 text-[10px] text-[#94A3B8] md:w-[100px] md:text-[11px]">
                   {f.label}
                 </span>
                 <div className="h-2 flex-1 overflow-hidden rounded bg-[rgba(255,255,255,0.05)]">

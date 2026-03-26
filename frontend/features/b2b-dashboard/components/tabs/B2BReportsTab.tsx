@@ -204,11 +204,11 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
       {/* Left column */}
       <div className="space-y-6">
         {/* Regulatory Reports */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-6">
+        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4 md:p-6">
           <h3 className="mb-1 text-[14px] font-semibold text-[#E2E8F0]">
             Relatórios Regulatórios
           </h3>
@@ -219,11 +219,11 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
             {REGULATORY_REPORTS.map((r) => (
               <div
                 key={r.title}
-                className="flex items-center justify-between rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#0A1628] px-4 py-3"
+                className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#0A1628] px-3 py-3 md:px-4"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">{r.icon}</span>
-                  <div>
+                <div className="flex items-start gap-3">
+                  <span className="shrink-0 text-lg">{r.icon}</span>
+                  <div className="min-w-0 flex-1">
                     <p className="text-[13px] font-medium text-[#E2E8F0]">
                       {r.title}
                     </p>
@@ -232,19 +232,21 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleGeneratePdf(r.title)}
-                  className="shrink-0 rounded-lg bg-[rgba(20,184,166,0.15)] px-3 py-1.5 text-[11px] font-semibold text-[#14B8A6] transition-colors hover:bg-[rgba(20,184,166,0.25)]"
-                >
-                  Gerar PDF
-                </button>
+                <div className="mt-2 flex justify-end md:mt-0">
+                  <button
+                    onClick={() => handleGeneratePdf(r.title)}
+                    className="shrink-0 rounded-lg bg-[rgba(20,184,166,0.15)] px-3 py-1.5 text-[11px] font-semibold text-[#14B8A6] transition-colors hover:bg-[rgba(20,184,166,0.25)]"
+                  >
+                    Gerar PDF
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Data Exports */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-6">
+        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4 md:p-6">
           <h3 className="mb-1 text-[14px] font-semibold text-[#E2E8F0]">
             Exportação de Dados
           </h3>
@@ -255,7 +257,7 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
             {DATA_EXPORTS.map((exp) => (
               <div
                 key={exp.title}
-                className="flex items-center justify-between rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#0A1628] px-4 py-3"
+                className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#0A1628] px-3 py-3 md:px-4"
               >
                 <div>
                   <p className="text-[13px] font-medium text-[#E2E8F0]">
@@ -265,12 +267,14 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
                     {exp.description}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleExport(exp)}
-                  className="shrink-0 rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[11px] font-semibold text-[#94A3B8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#E2E8F0]"
-                >
-                  Download {exp.format}
-                </button>
+                <div className="mt-2 flex justify-end">
+                  <button
+                    onClick={() => handleExport(exp)}
+                    className="shrink-0 rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[11px] font-semibold text-[#94A3B8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#E2E8F0]"
+                  >
+                    Download {exp.format}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -280,7 +284,7 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
       {/* Right column */}
       <div className="space-y-6">
         {/* JSON Import */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-6">
+        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4 md:p-6">
           <h3 className="mb-1 text-[14px] font-semibold text-[#E2E8F0]">
             Importar Dados
           </h3>
@@ -343,66 +347,68 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
         </div>
 
         {/* eSocial Status */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-6">
+        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4 md:p-6">
           <h3 className="mb-1 text-[14px] font-semibold text-[#E2E8F0]">
             eSocial — Status de Eventos
           </h3>
           <p className="mb-4 text-[11px] text-[#64748B]">
             Acompanhamento dos eventos enviados ao sistema eSocial.
           </p>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[rgba(255,255,255,0.08)]">
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
-                  Evento
-                </th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
-                  Descrição
-                </th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
-                  Status
-                </th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
-                  Data
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {ESOCIAL_EVENTS.map((ev) => (
-                <tr
-                  key={ev.event}
-                  className="border-b border-[rgba(255,255,255,0.04)]"
-                >
-                  <td className="py-2.5 text-[12px] font-medium text-[#E2E8F0]">
-                    {ev.event}
-                  </td>
-                  <td className="py-2.5 text-[12px] text-[#94A3B8]">
-                    {ev.description}
-                  </td>
-                  <td className="py-2.5">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                        ev.status === 'Enviado'
-                          ? 'bg-[rgba(16,185,129,0.15)] text-[#34D399]'
-                          : ev.status === 'Pendente'
-                            ? 'bg-[rgba(245,158,11,0.15)] text-[#F59E0B]'
-                            : 'bg-[rgba(100,116,139,0.15)] text-[#64748B]'
-                      }`}
-                    >
-                      {ev.status}
-                    </span>
-                  </td>
-                  <td className="py-2.5 text-[12px] text-[#64748B]">
-                    {ev.date}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[400px]">
+              <thead>
+                <tr className="border-b border-[rgba(255,255,255,0.08)]">
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                    Evento
+                  </th>
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                    Descrição
+                  </th>
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                    Status
+                  </th>
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                    Data
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {ESOCIAL_EVENTS.map((ev) => (
+                  <tr
+                    key={ev.event}
+                    className="border-b border-[rgba(255,255,255,0.04)]"
+                  >
+                    <td className="py-2.5 text-[12px] font-medium text-[#E2E8F0]">
+                      {ev.event}
+                    </td>
+                    <td className="py-2.5 text-[12px] text-[#94A3B8]">
+                      {ev.description}
+                    </td>
+                    <td className="py-2.5">
+                      <span
+                        className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          ev.status === 'Enviado'
+                            ? 'bg-[rgba(16,185,129,0.15)] text-[#34D399]'
+                            : ev.status === 'Pendente'
+                              ? 'bg-[rgba(245,158,11,0.15)] text-[#F59E0B]'
+                              : 'bg-[rgba(100,116,139,0.15)] text-[#64748B]'
+                        }`}
+                      >
+                        {ev.status}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-[12px] text-[#64748B]">
+                      {ev.date}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* NR-1 Review Periodicity */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-6">
+        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4 md:p-6">
           <h3 className="mb-1 text-[14px] font-semibold text-[#E2E8F0]">
             Periodicidade de Revisão NR-1
           </h3>
@@ -410,53 +416,55 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
             Calendário de revisões obrigatórias conforme a norma
             regulamentadora.
           </p>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[rgba(255,255,255,0.08)]">
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
-                  Item
-                </th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
-                  Frequência
-                </th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
-                  Próxima
-                </th>
-                <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {NR1_REVIEW.map((r) => (
-                <tr
-                  key={r.item}
-                  className="border-b border-[rgba(255,255,255,0.04)]"
-                >
-                  <td className="py-2.5 text-[12px] font-medium text-[#E2E8F0]">
-                    {r.item}
-                  </td>
-                  <td className="py-2.5 text-[12px] text-[#94A3B8]">
-                    {r.frequency}
-                  </td>
-                  <td className="py-2.5 text-[12px] text-[#94A3B8]">
-                    {r.nextDate}
-                  </td>
-                  <td className="py-2.5">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                        r.status === 'Em dia'
-                          ? 'bg-[rgba(16,185,129,0.15)] text-[#34D399]'
-                          : 'bg-[rgba(245,158,11,0.15)] text-[#F59E0B]'
-                      }`}
-                    >
-                      {r.status}
-                    </span>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[400px]">
+              <thead>
+                <tr className="border-b border-[rgba(255,255,255,0.08)]">
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                    Item
+                  </th>
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                    Frequência
+                  </th>
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                    Próxima
+                  </th>
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                    Status
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {NR1_REVIEW.map((r) => (
+                  <tr
+                    key={r.item}
+                    className="border-b border-[rgba(255,255,255,0.04)]"
+                  >
+                    <td className="whitespace-nowrap py-2.5 text-[12px] font-medium text-[#E2E8F0]">
+                      {r.item}
+                    </td>
+                    <td className="py-2.5 text-[12px] text-[#94A3B8]">
+                      {r.frequency}
+                    </td>
+                    <td className="py-2.5 text-[12px] text-[#94A3B8]">
+                      {r.nextDate}
+                    </td>
+                    <td className="py-2.5">
+                      <span
+                        className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          r.status === 'Em dia'
+                            ? 'bg-[rgba(16,185,129,0.15)] text-[#34D399]'
+                            : 'bg-[rgba(245,158,11,0.15)] text-[#F59E0B]'
+                        }`}
+                      >
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

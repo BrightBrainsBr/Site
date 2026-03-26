@@ -193,7 +193,7 @@ export function CompanyManagerComponent({
   return (
     <div className="space-y-6">
       {showCreate && (
-        <div className="rounded-xl border border-[#1a3a5c] bg-[#0c1a2e]/80 p-6">
+        <div className="rounded-xl border border-[#1a3a5c] bg-[#0c1a2e]/80 p-4 md:p-6">
           <h3 className="mb-4 text-sm font-medium text-[#cce6f7]">
             Criar empresa
           </h3>
@@ -264,7 +264,7 @@ export function CompanyManagerComponent({
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-[#1a3a5c]">
-        <table className="w-full">
+        <table className="w-full min-w-[600px]">
           <thead>
             <tr className="border-b border-[#1a3a5c]">
               <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[#5a7fa0]">

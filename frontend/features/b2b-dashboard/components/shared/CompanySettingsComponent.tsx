@@ -127,8 +127,8 @@ export function CompanySettingsComponent({
       {/* Tab container */}
       <div className="overflow-hidden rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33]">
         {/* Tab header bar */}
-        <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] px-1 pt-1">
-          <div className="flex gap-0.5">
+        <div className="flex flex-col gap-2 border-b border-[rgba(255,255,255,0.08)] px-1 pt-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-0.5 overflow-x-auto">
             <button
               onClick={() => {
                 setSubTab('admins')
@@ -186,7 +186,7 @@ export function CompanySettingsComponent({
 
           <button
             onClick={() => setShowInvite((v) => !v)}
-            className={`mr-3 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            className={`mb-1 mr-3 flex shrink-0 items-center gap-1.5 self-end rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors sm:mb-0 sm:self-auto ${
               showInvite
                 ? 'bg-[#14B8A6]/15 text-[#14B8A6]'
                 : 'text-[#94A3B8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E2E8F0]'
@@ -198,7 +198,7 @@ export function CompanySettingsComponent({
         </div>
 
         {/* Tab content panel */}
-        <div className="p-5">
+        <div className="p-3 md:p-5">
           {showInvite && (
             <div className="mb-5">
               <BulkInviteComponent

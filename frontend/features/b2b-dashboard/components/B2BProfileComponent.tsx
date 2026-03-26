@@ -92,7 +92,7 @@ export function B2BProfileComponent() {
 
   return (
     <div className="min-h-screen bg-[#07111F]">
-      <div className="border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-6 py-4">
+      <div className="border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-4 py-3 md:px-6 md:py-4">
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           <Link
             href={localePath('/empresa/dashboard')}
@@ -106,7 +106,7 @@ export function B2BProfileComponent() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-2xl space-y-6 px-6 py-8">
+      <div className="mx-auto max-w-2xl space-y-6 px-4 py-6 md:px-6 md:py-8">
         {/* Email (read-only) */}
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
           <div className="mb-3 flex items-center gap-2">
@@ -127,13 +127,13 @@ export function B2BProfileComponent() {
           </div>
           <form
             onSubmit={nameForm.handleSubmit(handleNameSave)}
-            className="flex items-start gap-2"
+            className="flex flex-col items-start gap-2 sm:flex-row"
           >
             <BBInputComponent
               control={nameForm.control}
               name="display_name"
               placeholder="Seu nome completo"
-              inputClassName="w-72 !py-2 text-[13px]"
+              inputClassName="w-full sm:w-72 !py-2 text-[13px]"
               rules={{ required: 'Nome é obrigatório' }}
             />
             <BBButtonComponent
@@ -173,7 +173,7 @@ export function B2BProfileComponent() {
               type="password"
               placeholder="Mínimo 6 caracteres"
               autoComplete="new-password"
-              inputClassName="w-72 !py-2 text-[13px]"
+              inputClassName="w-full sm:w-72 !py-2 text-[13px]"
               rules={{
                 required: 'Senha é obrigatória',
                 minLength: {
@@ -189,7 +189,7 @@ export function B2BProfileComponent() {
               type="password"
               placeholder="Repita a senha"
               autoComplete="new-password"
-              inputClassName="w-72 !py-2 text-[13px]"
+              inputClassName="w-full sm:w-72 !py-2 text-[13px]"
               rules={{
                 required: 'Confirmação é obrigatória',
                 validate: (value: string) =>

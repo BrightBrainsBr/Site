@@ -219,6 +219,7 @@ export function EvaluationListViewComponent() {
     'sort',
     parseAsString.withDefault('date_desc')
   )
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const {
     data: evaluations = [],
@@ -234,75 +235,121 @@ export function EvaluationListViewComponent() {
   const profileCounts = countByProfile(evaluations)
   const statusCounts = countByStatus(evaluations)
 
-  return (
-    <div className="flex">
-      {/* Sidebar */}
-      <aside className="sticky top-[73px] h-[calc(100vh-73px)] w-64 overflow-y-auto border-r border-[#1a3a5c] bg-[#0c1a2e] p-6">
-        <section className="mb-6">
-          <h2 className="mb-2.5 text-[10px] font-semibold uppercase tracking-[2px] text-[#3a5a75]">
-            Perfil Clínico
-          </h2>
-          <div className="space-y-0.5">
-            {PROFILES.map((p) => (
-              <button
-                key={p.value || 'all'}
-                type="button"
-                onClick={() => setProfile(p.value || null)}
-                className={cn(
-                  'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  (profile ?? '') === p.value
-                    ? 'bg-[rgba(0,201,177,0.12)] text-[#00c9b1]'
-                    : 'text-[#5a7fa0] hover:bg-[#0f2240] hover:text-[#cce6f7]'
-                )}
-              >
-                <span
-                  className="h-2 w-2 shrink-0 rounded-full"
-                  style={{ backgroundColor: p.dot }}
-                />
-                <span>{p.label}</span>
-                <span className="ml-auto font-mono text-[11px] font-normal">
-                  <span className="rounded-full bg-[#0f2240] px-1.5 py-0.5">
-                    {profileCounts[p.value] ?? 0}
-                  </span>
+  const filterSidebar = (
+    <>
+      <section className="mb-6">
+        <h2 className="mb-2.5 text-[10px] font-semibold uppercase tracking-[2px] text-[#3a5a75]">
+          Perfil Clínico
+        </h2>
+        <div className="space-y-0.5">
+          {PROFILES.map((p) => (
+            <button
+              key={p.value || 'all'}
+              type="button"
+              onClick={() => {
+                setProfile(p.value || null)
+                setFiltersOpen(false)
+              }}
+              className={cn(
+                'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                (profile ?? '') === p.value
+                  ? 'bg-[rgba(0,201,177,0.12)] text-[#00c9b1]'
+                  : 'text-[#5a7fa0] hover:bg-[#0f2240] hover:text-[#cce6f7]'
+              )}
+            >
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: p.dot }}
+              />
+              <span>{p.label}</span>
+              <span className="ml-auto font-mono text-[11px] font-normal">
+                <span className="rounded-full bg-[#0f2240] px-1.5 py-0.5">
+                  {profileCounts[p.value] ?? 0}
                 </span>
-              </button>
-            ))}
-          </div>
-        </section>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
 
-        <section>
-          <h2 className="mb-2.5 text-[10px] font-semibold uppercase tracking-[2px] text-[#3a5a75]">
-            Status
-          </h2>
-          <div className="space-y-0.5">
-            {STATUSES.map((s) => (
-              <button
-                key={s.value || 'all'}
-                type="button"
-                onClick={() => setStatus(s.value || null)}
-                className={cn(
-                  'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  (status ?? '') === s.value
-                    ? 'bg-[rgba(0,201,177,0.12)] text-[#00c9b1]'
-                    : 'text-[#5a7fa0] hover:bg-[#0f2240] hover:text-[#cce6f7]'
-                )}
-              >
-                <span>{s.label}</span>
-                <span className="ml-auto font-mono text-[11px] font-normal">
-                  <span className="rounded-full bg-[#0f2240] px-1.5 py-0.5">
-                    {statusCounts[s.value] ?? 0}
-                  </span>
+      <section>
+        <h2 className="mb-2.5 text-[10px] font-semibold uppercase tracking-[2px] text-[#3a5a75]">
+          Status
+        </h2>
+        <div className="space-y-0.5">
+          {STATUSES.map((s) => (
+            <button
+              key={s.value || 'all'}
+              type="button"
+              onClick={() => {
+                setStatus(s.value || null)
+                setFiltersOpen(false)
+              }}
+              className={cn(
+                'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                (status ?? '') === s.value
+                  ? 'bg-[rgba(0,201,177,0.12)] text-[#00c9b1]'
+                  : 'text-[#5a7fa0] hover:bg-[#0f2240] hover:text-[#cce6f7]'
+              )}
+            >
+              <span>{s.label}</span>
+              <span className="ml-auto font-mono text-[11px] font-normal">
+                <span className="rounded-full bg-[#0f2240] px-1.5 py-0.5">
+                  {statusCounts[s.value] ?? 0}
                 </span>
-              </button>
-            ))}
-          </div>
-        </section>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </>
+  )
+
+  return (
+    <div className="flex flex-col lg:flex-row">
+      {/* Desktop Sidebar */}
+      <aside className="sticky top-[73px] hidden h-[calc(100vh-73px)] w-64 shrink-0 overflow-y-auto border-r border-[#1a3a5c] bg-[#0c1a2e] p-6 lg:block">
+        {filterSidebar}
       </aside>
 
+      {/* Mobile filter toggle + slide-down panel */}
+      <div className="border-b border-[#1a3a5c] bg-[#0c1a2e] lg:hidden">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(!filtersOpen)}
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-[#5a7fa0]"
+        >
+          <span className="flex items-center gap-2">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Filtros
+            {((profile ?? '') !== '' || (status ?? '') !== '') && (
+              <span className="rounded-full bg-[#00c9b1] px-1.5 py-0.5 text-[10px] font-bold text-black">
+                Ativo
+              </span>
+            )}
+          </span>
+          <svg
+            className={cn('h-4 w-4 transition-transform', filtersOpen && 'rotate-180')}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {filtersOpen && (
+          <div className="border-t border-[#1a3a5c] px-4 py-4">
+            {filterSidebar}
+          </div>
+        )}
+      </div>
+
       {/* Content */}
-      <div className="flex-1 p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="relative min-w-[200px] flex-1">
+      <div className="min-w-0 flex-1 p-4 md:p-6">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
             <svg
               className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5a7fa0]"
               fill="none"
@@ -352,6 +399,7 @@ export function EvaluationListViewComponent() {
           </div>
         </div>
 
+        {/* Mobile: card layout / Desktop: table layout */}
         <div className="overflow-hidden rounded-lg border border-[#1a3a5c]">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
@@ -362,70 +410,57 @@ export function EvaluationListViewComponent() {
               Nenhuma avaliação encontrada
             </div>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="bg-[#0f2240] text-[11px] font-semibold uppercase tracking-[1.5px] text-[#3a5a75]">
-                  <th className="px-4 py-3 text-left">Paciente</th>
-                  <th className="px-4 py-3 text-left">Perfil</th>
-                  <th className="px-4 py-3 text-left">Data de Entrada</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">PDF</th>
-                  <th className="px-4 py-3 text-left">Ação</th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* Mobile cards */}
+              <div className="divide-y divide-[#1a3a5c] md:hidden">
                 {evaluations.map((evaluation) => (
-                  <tr
+                  <div
                     key={evaluation.id}
-                    className="cursor-pointer border-b border-[#1a3a5c] transition-colors hover:bg-[rgba(0,201,177,0.05)]"
+                    className="cursor-pointer p-4 transition-colors hover:bg-[rgba(0,201,177,0.05)]"
                     onClick={() =>
                       router.push(`/${locale}/portal/${evaluation.id}`)
                     }
                   >
-                    <td className="px-4 py-3 font-medium text-[#e8f4ff]">
-                      {evaluation.patient_name || '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      {evaluation.patient_profile ? (
-                        <ProfileBadgeComponent
-                          profile={evaluation.patient_profile}
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-[#e8f4ff]">
+                          {evaluation.patient_name || '—'}
+                        </p>
+                        <div className="mt-1 flex items-center gap-2">
+                          {evaluation.patient_profile && (
+                            <ProfileBadgeComponent
+                              profile={evaluation.patient_profile}
+                            />
+                          )}
+                          <span
+                            className="font-mono text-[11px] text-[#5a7fa0]"
+                            style={{
+                              fontFamily: 'var(--font-mono-portal), monospace',
+                            }}
+                          >
+                            {formatDate(evaluation.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                      <KebabMenu
+                        evaluationId={evaluation.id}
+                        patientName={evaluation.patient_name ?? ''}
+                        onDeleted={() => void refetch()}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {evaluation.reviewer_status && (
+                        <StatusBadgeComponent
+                          status={evaluation.reviewer_status}
                         />
-                      ) : (
-                        '—'
                       )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div
-                        className="font-mono text-xs text-[#5a7fa0]"
-                        style={{
-                          fontFamily: 'var(--font-mono-portal), monospace',
-                        }}
-                      >
-                        {formatDate(evaluation.created_at)}
-                      </div>
-                      <div className="text-[11px] text-[#3a5a75]">
-                        {daysAgoShort(evaluation.created_at)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-1">
-                        {evaluation.reviewer_status ? (
-                          <StatusBadgeComponent
-                            status={evaluation.reviewer_status}
-                          />
-                        ) : (
-                          '—'
-                        )}
-                        <ProcessingStatusBadge status={evaluation.status} />
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {evaluation.report_pdf_url ? (
+                      <ProcessingStatusBadge status={evaluation.status} />
+                      {evaluation.report_pdf_url && (
                         <a
                           href={evaluation.report_pdf_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#00c9b1] hover:text-[#00e0c4]"
+                          className="ml-auto text-[#00c9b1] hover:text-[#00e0c4]"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <svg
@@ -442,33 +477,121 @@ export function EvaluationListViewComponent() {
                             />
                           </svg>
                         </a>
-                      ) : (
-                        '—'
                       )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          className="rounded-md border border-[rgba(0,201,177,0.3)] bg-[rgba(0,201,177,0.1)] px-3 py-1.5 text-xs font-medium text-[#00c9b1] transition-colors hover:bg-[rgba(0,201,177,0.15)]"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            router.push(`/${locale}/portal/${evaluation.id}`)
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table */}
+              <table className="hidden w-full md:table">
+                <thead>
+                  <tr className="bg-[#0f2240] text-[11px] font-semibold uppercase tracking-[1.5px] text-[#3a5a75]">
+                    <th className="px-4 py-3 text-left">Paciente</th>
+                    <th className="px-4 py-3 text-left">Perfil</th>
+                    <th className="px-4 py-3 text-left">Data de Entrada</th>
+                    <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-left">PDF</th>
+                    <th className="px-4 py-3 text-left">Ação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evaluations.map((evaluation) => (
+                    <tr
+                      key={evaluation.id}
+                      className="cursor-pointer border-b border-[#1a3a5c] transition-colors hover:bg-[rgba(0,201,177,0.05)]"
+                      onClick={() =>
+                        router.push(`/${locale}/portal/${evaluation.id}`)
+                      }
+                    >
+                      <td className="px-4 py-3 font-medium text-[#e8f4ff]">
+                        {evaluation.patient_name || '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        {evaluation.patient_profile ? (
+                          <ProfileBadgeComponent
+                            profile={evaluation.patient_profile}
+                          />
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div
+                          className="font-mono text-xs text-[#5a7fa0]"
+                          style={{
+                            fontFamily: 'var(--font-mono-portal), monospace',
                           }}
                         >
-                          Ver
-                        </button>
-                        <KebabMenu
-                          evaluationId={evaluation.id}
-                          patientName={evaluation.patient_name ?? ''}
-                          onDeleted={() => void refetch()}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          {formatDate(evaluation.created_at)}
+                        </div>
+                        <div className="text-[11px] text-[#3a5a75]">
+                          {daysAgoShort(evaluation.created_at)}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-1">
+                          {evaluation.reviewer_status ? (
+                            <StatusBadgeComponent
+                              status={evaluation.reviewer_status}
+                            />
+                          ) : (
+                            '—'
+                          )}
+                          <ProcessingStatusBadge status={evaluation.status} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {evaluation.report_pdf_url ? (
+                          <a
+                            href={evaluation.report_pdf_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#00c9b1] hover:text-[#00e0c4]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </a>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            className="rounded-md border border-[rgba(0,201,177,0.3)] bg-[rgba(0,201,177,0.1)] px-3 py-1.5 text-xs font-medium text-[#00c9b1] transition-colors hover:bg-[rgba(0,201,177,0.15)]"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              router.push(`/${locale}/portal/${evaluation.id}`)
+                            }}
+                          >
+                            Ver
+                          </button>
+                          <KebabMenu
+                            evaluationId={evaluation.id}
+                            patientName={evaluation.patient_name ?? ''}
+                            onDeleted={() => void refetch()}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
         </div>
       </div>

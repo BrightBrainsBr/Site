@@ -188,7 +188,7 @@ export function SummaryStep({
 
       {phase === 'submitted' && (
         <div className="space-y-4 py-6">
-          <div className="rounded-xl border border-lime-400/30 bg-lime-400/5 p-8 text-center">
+          <div className="rounded-xl border border-lime-400/30 bg-lime-400/5 p-5 text-center sm:p-8">
             <div className="mb-4 text-4xl">✅</div>
             <h3 className="mb-2 text-lg font-bold text-lime-400">
               Avaliação Enviada com Sucesso

@@ -83,7 +83,7 @@ export function B2BOverviewTab({
       <div className="grid gap-4 lg:grid-cols-[65fr_35fr]">
         {/* Evolução do Score Cognitivo Médio */}
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
               Evolução do Score Cognitivo Médio
             </h3>
@@ -216,7 +216,7 @@ export function B2BOverviewTab({
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Score por Departamento — horizontal bar chart */}
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
               Score por Departamento
             </h3>

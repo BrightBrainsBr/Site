@@ -41,7 +41,7 @@ export function PortalCodeGateComponent({
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-xl border border-[#1a3a5c] bg-[#0c1a2e] p-8 shadow-xl">
+      <div className="w-full max-w-md rounded-xl border border-[#1a3a5c] bg-[#0c1a2e] p-5 shadow-xl sm:p-8">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#00c9b1] to-[#0090ff]">
             <svg

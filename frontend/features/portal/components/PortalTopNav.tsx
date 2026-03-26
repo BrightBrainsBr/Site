@@ -27,10 +27,10 @@ export function PortalTopNav({ companyName }: PortalTopNavProps) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#1a3a5c] bg-[#0c1a2e]">
-      <div className="flex items-center justify-between px-8 py-3">
-        <div className="flex items-center gap-5">
-          <Link href={`/${locale}/portal`} className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#00c9b1] to-[#0090ff]">
+      <div className="flex items-center justify-between px-4 py-3 md:px-8">
+        <div className="flex items-center gap-3 md:gap-5">
+          <Link href={`/${locale}/portal`} className="flex items-center gap-2 md:gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#00c9b1] to-[#0090ff]">
               <svg
                 className="h-4 w-4 text-white"
                 fill="none"
@@ -47,25 +47,25 @@ export function PortalTopNav({ companyName }: PortalTopNavProps) {
             </div>
             <div>
               <span
-                className="text-[15px] font-bold text-[#cce6f7]"
+                className="text-[14px] font-bold text-[#cce6f7] md:text-[15px]"
                 style={{ fontFamily: 'var(--font-heading), sans-serif' }}
               >
                 Bright Brains
               </span>
-              <span className="ml-2 text-[10px] uppercase tracking-[1.5px] text-[#3a5a75]">
+              <span className="ml-1.5 text-[10px] uppercase tracking-[1.5px] text-[#3a5a75] md:ml-2">
                 Portal
               </span>
             </div>
           </Link>
 
-          <div className="mx-2 h-5 w-px bg-[#1a3a5c]" />
+          <div className="mx-1 hidden h-5 w-px bg-[#1a3a5c] sm:block md:mx-2" />
 
           <nav className="flex items-center gap-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium transition-colors md:px-3 md:text-[13px] ${
                   item.active
                     ? 'bg-[#0E1E33] text-[#cce6f7]'
                     : 'text-[#5a7fa0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#cce6f7]'
@@ -78,8 +78,8 @@ export function PortalTopNav({ companyName }: PortalTopNavProps) {
 
           {companyName && (
             <>
-              <div className="mx-1 h-5 w-px bg-[#1a3a5c]" />
-              <span className="rounded-md bg-[#14B8A6]/10 px-2.5 py-1 text-[12px] font-medium text-[#14B8A6]">
+              <div className="mx-1 hidden h-5 w-px bg-[#1a3a5c] sm:block" />
+              <span className="hidden truncate rounded-md bg-[#14B8A6]/10 px-2.5 py-1 text-[12px] font-medium text-[#14B8A6] sm:inline">
                 {companyName}
               </span>
             </>

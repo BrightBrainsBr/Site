@@ -96,7 +96,7 @@ export function B2BDashboardComponent({
 
       {/* KPI row — hide when on settings */}
       {activeTab !== 'settings' && (
-        <div className="px-6 py-4">
+        <div className="px-4 py-4 md:px-6">
           <B2BKpiRowComponent
             data={overview}
             complianceData={compliance}
@@ -106,25 +106,27 @@ export function B2BDashboardComponent({
       )}
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-6">
-        {visibleTabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-[13px] font-medium transition-colors ${
-              activeTab === t.id
-                ? 'border-[#0D9488] text-[#14B8A6]'
-                : 'border-transparent text-[#64748B] hover:text-[#E2E8F0]'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-        {extraTabs}
+      <div className="overflow-x-auto border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33]">
+        <div className="flex gap-1 px-4 md:px-6">
+          {visibleTabs.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={`whitespace-nowrap border-b-2 px-3 py-2.5 text-[12px] font-medium transition-colors md:px-4 md:text-[13px] ${
+                activeTab === t.id
+                  ? 'border-[#0D9488] text-[#14B8A6]'
+                  : 'border-transparent text-[#64748B] hover:text-[#E2E8F0]'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+          {extraTabs}
+        </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto px-6 py-5">
+      <div className="flex-1 overflow-auto px-4 py-5 md:px-6">
         {activeTab === 'overview' && (
           <B2BOverviewTab
             companyId={companyId}

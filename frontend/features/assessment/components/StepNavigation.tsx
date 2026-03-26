@@ -34,7 +34,7 @@ export function StepNavigation({
           <button
             type="button"
             onClick={onPrev}
-            className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+            className="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white sm:px-6"
           >
             {prevLabel}
           </button>
@@ -47,7 +47,7 @@ export function StepNavigation({
             onClick={nextDisabled ? undefined : onNext}
             disabled={nextDisabled}
             className={twMerge(
-              'rounded-lg px-6 py-2.5 text-sm font-medium transition-colors',
+              'rounded-lg px-4 py-2.5 text-sm font-medium transition-colors sm:px-6',
               nextDisabled
                 ? 'cursor-not-allowed bg-zinc-700 text-zinc-400'
                 : isLastStep

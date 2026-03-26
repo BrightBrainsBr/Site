@@ -116,7 +116,7 @@ export function B2BDomainsTab({ companyId, cycleId }: B2BDomainsTabProps) {
     <div className="grid gap-4 lg:grid-cols-[65fr_35fr]">
       {/* Left: Perfil Cognitivo da Organização */}
       <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
             Perfil Cognitivo da Organização
           </h3>
@@ -142,9 +142,9 @@ export function B2BDomainsTab({ companyId, cycleId }: B2BDomainsTabProps) {
               const delta = Math.round(score - BENCHMARK)
               const aboveBench = delta >= 0
               return (
-                <div key={r.key} className="flex items-center gap-2">
+                <div key={r.key} className="flex items-center gap-1.5 md:gap-2">
                   <span
-                    className="w-[145px] shrink-0 truncate text-[11px] text-[#94A3B8]"
+                    className="w-[100px] shrink-0 truncate text-[10px] text-[#94A3B8] md:w-[145px] md:text-[11px]"
                     title={r.displayName}
                   >
                     {r.displayName}
