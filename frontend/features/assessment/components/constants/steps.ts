@@ -2,6 +2,16 @@
 
 import type { StepDefinition } from '../assessment.interface'
 
+export const B2B_STEPS: StepDefinition[] = [
+  { id: 'welcome', label: 'Início', show: () => true },
+  { id: 'dados', label: 'Dados Pessoais', show: () => true },
+  { id: 'srq20', label: 'SRQ-20', show: () => true },
+  { id: 'aep', label: 'AEP', show: () => true },
+  { id: 'canal_percepcao', label: 'Canal de Percepção', show: () => true },
+  { id: 'b2b_consents', label: 'Consentimentos', show: () => true },
+  { id: 'resumo', label: 'Resumo & Envio', show: () => true },
+]
+
 export const ALL_STEPS: StepDefinition[] = [
   { id: 'welcome', label: 'Início', show: () => true },
   { id: 'dados', label: 'Dados Pessoais', show: () => true },

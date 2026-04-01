@@ -191,7 +191,7 @@ export function B2BDomainsTab({ companyId, cycleId }: B2BDomainsTabProps) {
         <h3 className="mb-3 text-[13px] font-semibold text-[#E2E8F0]">
           Distribuição de Scores
         </h3>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={220} minWidth={0}>
           <BarChart
             data={distData}
             margin={{ top: 5, right: 5, left: -10, bottom: 5 }}

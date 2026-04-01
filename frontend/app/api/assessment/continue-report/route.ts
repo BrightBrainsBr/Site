@@ -35,7 +35,7 @@ function getProductionUrl(): string {
 interface RequestBody {
   evaluationId: string
   mode: 'submit' | 'regenerate'
-  phase: 'stage1' | 'stage2'
+  phase: 'stage1' | 'stage2' | 'b2b-laudo'
   callerRequestId?: string
 }
 
@@ -75,13 +75,67 @@ export async function POST(request: NextRequest) {
     `[continue-report:${rid}] Claimed | id=${evaluationId} | phase=${phase} | mode=${mode}`
   )
 
-  if (phase === 'stage1') {
+  if (phase === 'b2b-laudo') {
+    handleB2BLaudo(sb, evaluationId, rid)
+  } else if (phase === 'stage1') {
     handleStage1(sb, row, evaluationId, mode, rid)
   } else {
     handleStage2(sb, row, evaluationId, mode, rid)
   }
 
   return NextResponse.json({ success: true, phase })
+}
+
+function handleB2BLaudo(
+  sb: ReturnType<typeof createSb>,
+  evaluationId: string,
+  rid: string
+) {
+  after(async () => {
+    const p = (msg: string) =>
+      console.warn(`[continue-report:${rid}] [b2b-laudo] ${msg}`)
+    const bgStart = Date.now()
+
+    try {
+      p(`▶ B2B Laudo | id=${evaluationId}`)
+
+      const { b2bLaudoGraph } = await import(
+        '~/agents/b2b-laudo/services/b2b-laudo.graph'
+      )
+      const { ensureTracingFlushed } = await import(
+        '~/agents/shared/tracing'
+      )
+
+      const result = await b2bLaudoGraph.invoke({ evaluationId })
+
+      await ensureTracingFlushed()
+
+      const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
+
+      if (result.status === 'error') {
+        const errorMsg = result.errors?.join('; ') || 'Unknown agent error'
+        console.error(
+          `[continue-report:${rid}] [b2b-laudo] ❌ FAIL | ${elapsed}s | ${errorMsg}`
+        )
+        await sb
+          .from('mental_health_evaluations')
+          .update({ status: 'error', processing_error: errorMsg })
+          .eq('id', evaluationId)
+      } else {
+        p(`✅ DONE | ${elapsed}s | pdfUrl=${result.pdfUrl}`)
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Erro desconhecido'
+      const elapsed = ((Date.now() - bgStart) / 1000).toFixed(1)
+      console.error(
+        `[continue-report:${rid}] [b2b-laudo] ❌ FAIL | ${elapsed}s | ${errorMsg}`
+      )
+      await sb
+        .from('mental_health_evaluations')
+        .update({ status: 'error', processing_error: errorMsg })
+        .eq('id', evaluationId)
+    }
+  })
 }
 
 function handleStage1(

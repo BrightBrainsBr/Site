@@ -102,4 +102,13 @@ export const INITIAL_FORM_DATA: AssessmentFormData = {
   familiaCondicoes: [],
   familiaDetalhes: '',
   infoAdicional: '',
+
+  // B2B NR-1 fields
+  srq20_answers: [],
+  aep_answers: [],
+  aep_percepcao_livre: '',
+  canal_percepcao: null,
+  b2b_anonymized_consent: false,
+  b2c_consent: false,
+  b2c_contact_consent: false,
 }

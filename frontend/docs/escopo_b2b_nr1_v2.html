@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escopo V2 — BrightMonitor NR-1 | Bright Brains</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+           --navy: #0f2d5e;
+           --navy-light: #163a7a;
+           --lime: #C8D868;
+           --lime-dark: #A8BA48;
+           --teal: #0d9488;
+           --teal-dark: #0f766e;
+           --blue: #1a56db;
+           --violet: #A78BFA;
+           --amber: #F59E0B;
+           --red: #EF4444;
+           --green: #22c55e;
+           --surface: #f0f4f8;
+           --surface-light: #f8fafc;
+           --black: #0E1B2E;
+           --text: #1e293b;
+           --text-sec: #64748b;
+           --border: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            line-height: 1.55;
+            color: var(--text);
+            background: #fff;
+            font-size: 10pt;
+        }
+
+        .cover {
+            background: var(--black);
+            color: #fff;
+            min-height: 100vh;
+            padding: 60px 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--lime) 0%, var(--teal) 50%, var(--violet) 100%);
+        }
+        .cover-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .cover-logo {
+            width: 40px; height: 40px;
+            border-radius: 9px;
+            background: rgba(255,255,255,0.1);
+            display: grid; place-items: center;
+            font-size: 1.25rem;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .cover-brand {
+            font-size: 18pt;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+        .cover-brand span { opacity: 0.5; font-weight: 400; font-size: 11pt; display: block; margin-top: 2px; }
+        .cover-main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .cover-main .tag {
+            display: inline-block;
+            background: var(--lime);
+            color: var(--black);
+            padding: 5px 14px;
+            border-radius: 5px;
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 28px;
+            width: fit-content;
+        }
+        .cover-main h1 {
+            font-size: 34pt;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 18px;
+            letter-spacing: -0.8px;
+            color: #fff;
+        }
+        .cover-main h1 em { font-style: normal; color: var(--lime); }
+        .cover-main h2 {
+            font-size: 14pt;
+            font-weight: 400;
+            color: rgba(255,255,255,0.6);
+            max-width: 560px;
+            line-height: 1.55;
+        }
+        .cover-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 28px;
+        }
+        .cover-bottom .meta p {
+            font-size: 9pt;
+            color: rgba(255,255,255,0.5);
+            margin: 4px 0;
+        }
+        .cover-bottom .meta strong { color: #fff; font-weight: 600; }
+        .cover-bottom .conf {
+            font-size: 8pt;
+            color: rgba(255,255,255,0.35);
+            text-align: right;
+        }
+
+        .content { padding: 40px 60px; max-width: 940px; margin: 0 auto; }
+
+        .sh {
+            border-top: 3px solid var(--teal);
+            padding-top: 12px;
+            margin-top: 48px;
+            margin-bottom: 16px;
+        }
+        .sh.violet { border-top-color: var(--violet); }
+        .sh.lime { border-top-color: var(--lime-dark); }
+        .sh.navy { border-top-color: var(--navy); }
+        .sh.red { border-top-color: var(--red); }
+        .sh.amber { border-top-color: var(--amber); }
+        .sh h1 {
+            font-size: 18pt;
+            font-weight: 800;
+            color: var(--black);
+            line-height: 1.2;
+        }
+        .sh:first-child { margin-top: 0; }
+
+        h2 { font-size: 12pt; font-weight: 700; color: var(--black); margin: 22px 0 10px; }
+        h3 { font-size: 10.5pt; font-weight: 700; color: var(--black); margin: 16px 0 8px; }
+        p { margin: 8px 0; line-height: 1.65; }
+        strong { font-weight: 600; color: var(--black); }
+        em { color: var(--text-sec); }
+        ul, ol { margin: 10px 0 10px 22px; }
+        li { margin: 5px 0; line-height: 1.55; }
+
+        .box {
+            background: var(--surface);
+            border-left: 4px solid var(--teal);
+            padding: 14px 18px;
+            margin: 16px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .box.violet { border-left-color: var(--violet); }
+        .box.amber { border-left-color: var(--amber); }
+        .box.navy { border-left-color: var(--navy); }
+        .box.lime { border-left-color: var(--lime-dark); }
+        .box.red { border-left-color: var(--red); }
+        .box h3 { margin-top: 0; font-size: 10pt; }
+        .box p { margin: 4px 0; }
+
+        table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 9.5pt; }
+        thead { background: var(--black); color: white; }
+        th { padding: 9px 12px; text-align: left; font-weight: 700; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.3px; }
+        td { padding: 9px 12px; border-bottom: 1px solid var(--border); line-height: 1.5; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tbody tr:nth-child(even) { background: var(--surface-light); }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-green { background: rgba(34,197,94,0.12); color: #16a34a; }
+        .badge-amber { background: rgba(245,158,11,0.12); color: #b45309; }
+        .badge-red { background: rgba(239,68,68,0.12); color: #dc2626; }
+        .badge-violet { background: rgba(167,139,250,0.12); color: #7c3aed; }
+        .badge-blue { background: rgba(59,130,246,0.12); color: #2563eb; }
+        .badge-gray { background: rgba(100,116,139,0.12); color: #475569; }
+
+        .doc-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+            font-size: 9pt;
+            color: var(--text-sec);
+        }
+        .doc-footer strong { color: var(--black); font-size: 10pt; }
+
+        @media print {
+            @page { margin: 12mm 15mm; size: A4; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { font-size: 9.5pt; }
+            .cover { min-height: auto; height: 100vh; padding: 50px; }
+            .content { padding: 0; }
+            h1, h2, h3 { page-break-after: avoid; }
+            table, .box { page-break-inside: avoid; }
+            p, ul, ol { orphans: 3; widows: 3; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cover">
+        <div class="cover-top">
+            <div class="cover-logo">🧠</div>
+            <div class="cover-brand">
+                Bright Brains
+                <span>Instituto da Mente</span>
+            </div>
+        </div>
+        <div class="cover-main">
+            <span class="tag">Escopo Técnico V3 — BrightMonitor NR-1</span>
+            <h1>Dashboard <em>NR-1</em>:<br>O Que Existe, O Que Falta,<br>E O Que Precisamos de Vocês</h1>
+            <h2>Documento para alinhamento antes de orçar e construir. Estruturado para ser revisado em call.</h2>
+        </div>
+        <div class="cover-bottom">
+            <div class="meta">
+                <p><strong>Data:</strong> 30 de Março de 2026</p>
+                <p><strong>Versão:</strong> 3.0</p>
+                <p><strong>Referência:</strong> Dashboard HTML NR-1 (27/03/2026)</p>
+            </div>
+            <div class="conf">
+                Documento para alinhamento<br>
+                cliente + equipe técnica
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- SECTION 1: O QUE FUNCIONA HOJE                        -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="sh"><h1>1. O Que Funciona Hoje</h1></div>
+        <p>Antes de falar do que precisa ser construído, é importante ser honesto sobre o que já existe e funciona em produção versus o que é aparência sem funcionalidade real.</p>
+
+        <table>
+            <thead><tr><th>Funcionalidade</th><th>Status</th><th>Observação</th></tr></thead>
+            <tbody>
+                <tr><td>Formulário de avaliação completo (27 etapas, 16 escalas clínicas)</td><td><span class="badge badge-green">FUNCIONA</span></td><td>Em produção, usado tanto para B2C quanto B2B</td></tr>
+                <tr><td>Geração de relatório clínico por IA (15 páginas)</td><td><span class="badge badge-green">FUNCIONA</span></td><td>Pipeline de 2 estágios, ~2 min por avaliação</td></tr>
+                <tr><td>PDF com branding personalizado</td><td><span class="badge badge-green">FUNCIONA</span></td><td>A4, fontes customizadas, cabeçalho/rodapé</td></tr>
+                <tr><td>Login da empresa (email + senha por convite)</td><td><span class="badge badge-green">FUNCIONA</span></td><td>Autenticação segura</td></tr>
+                <tr><td>Criação de empresas, códigos de acesso, ciclos de avaliação</td><td><span class="badge badge-green">FUNCIONA</span></td><td>Portal interno</td></tr>
+                <tr><td>Vinculação funcionário → empresa → departamento → ciclo</td><td><span class="badge badge-green">FUNCIONA</span></td><td>Na avaliação</td></tr>
+                <tr><td>Dashboard — KPIs, distribuição de risco, gráficos por departamento</td><td><span class="badge badge-green">FUNCIONA</span></td><td>Dados reais das avaliações</td></tr>
+                <tr><td>Dashboard — Domínios cognitivos (scores por instrumento)</td><td><span class="badge badge-green">FUNCIONA</span></td><td>Dados reais</td></tr>
+                <tr><td>Dashboard — Alertas (funcionários em risco, anônimo)</td><td><span class="badge badge-green">FUNCIONA</span></td><td>Dados reais</td></tr>
+
+                <tr><td colspan="3" style="background: #fef3c7; font-weight: 700; padding: 8px 12px; color: #92400e;">⚠️ Abaixo: tela existe, mas os dados não são reais — estas funcionalidades não faziam parte do escopo V1</td></tr>
+
+                <tr><td>Dashboard — Mapa de Risco (gráfico de hierarquia + fatores de risco)</td><td><span class="badge badge-amber">PARCIAL</span></td><td>Tabela de departamentos puxa dados reais. Gráficos de hierarquia e fatores de risco foram preenchidos com dados de exemplo porque essa informação ainda não é coletada nas avaliações.</td></tr>
+                <tr><td>Dashboard — Conformidade NR-1 (checklist de 9 itens)</td><td><span class="badge badge-amber">PLACEHOLDER</span></td><td>Tela montada com dados de exemplo. Os itens de compliance dependem de módulos que ainda não existem (Plano de Ação, Canal Anônimo, etc.) — não havia como computar o status real.</td></tr>
+                <tr><td>Dashboard — Relatórios (5 PDFs, 4 exportações, importação JSON)</td><td><span class="badge badge-amber">PLACEHOLDER</span></td><td>Botões e layout criados, mas a geração de PDFs e exportações não foi implementada porque o formato e conteúdo dos relatórios ainda não foram validados pela Bright Brains.</td></tr>
+            </tbody>
+        </table>
+
+        <div class="box red">
+            <h3>Descoberta importante: o formulário B2B e B2C são o mesmo</h3>
+            <p>Hoje, o funcionário B2B preenche <strong>o mesmo formulário de 25 etapas</strong> que um paciente B2C. Depois de submeter, o sistema gera o <strong>mesmo relatório clínico de 15 páginas</strong> (destinado ao comitê médico, não ao funcionário). Não existe um formulário reduzido para NR-1, nem um relatório preliminar curto. Isso precisa ser decidido (ver Seção 3).</p>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- SECTION 2: O QUE PRECISA SER CONSTRUÍDO               -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="sh violet"><h1>2. O Que Precisa Ser Construído</h1></div>
+        <p>O novo dashboard (enviado em 27/03/2026) é uma <strong>evolução do painel atual</strong>, não um painel separado. Abas existentes são estendidas; abas novas são adicionadas. A tabela abaixo lista <strong>tudo</strong> que precisa ser construído, organizado por tipo de trabalho.</p>
+
+        <h2>2a. Itens no formulário de avaliação</h2>
+        <table>
+            <thead><tr><th>Item</th><th>O Que É</th><th>Quem Fornece o Conteúdo</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>SRQ-20</strong></td>
+                    <td>20 perguntas Sim/Não da OMS para rastreamento de transtornos mentais. Aparece apenas para funcionários B2B.</td>
+                    <td><span class="badge badge-red">BRIGHT BRAINS</span> — validar versão portuguesa</td>
+                </tr>
+                <tr>
+                    <td><strong>AEP</strong></td>
+                    <td>15 perguntas em 6 dimensões (Pressão, Autonomia, Pausas, Relações, Demandas Cognitivas, Ambiente). Aparece apenas para funcionários B2B.</td>
+                    <td><span class="badge badge-red">BRIGHT BRAINS</span> — fornecer texto das perguntas e escala</td>
+                </tr>
+                <tr>
+                    <td><strong>Consentimento B2C</strong></td>
+                    <td>Checkbox no final: "Autorizo o uso dos meus dados para consulta individual na Bright Brains"</td>
+                    <td><span class="badge badge-green">EQUIPE DEV</span> — texto legal LGPD</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>2b. Relatório para o funcionário B2B</h2>
+        <table>
+            <thead><tr><th>Item</th><th>O Que É</th><th>Quem Fornece o Conteúdo</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>Relatório preliminar</strong></td>
+                    <td>1-2 páginas em linguagem acessível (sem jargão médico). Gerado por IA após a avaliação. Com link para agendar consulta B2C.</td>
+                    <td><span class="badge badge-green">EQUIPE DEV</span> — prompt de IA + template PDF</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>2c. Abas do dashboard que precisam ser construídas ou reescritas</h2>
+        <table>
+            <thead><tr><th>Aba</th><th>Situação Hoje</th><th>O Que Falta</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>Visão Geral</strong></td>
+                    <td>Funciona com dados reais</td>
+                    <td>Adicionar KPIs de SRQ-20/AEP + seção de alertas integrada</td>
+                </tr>
+                <tr>
+                    <td><strong>Setores</strong> (ex Mapa de Risco)</td>
+                    <td>Tabela real, gráficos fictícios</td>
+                    <td>Remover gráficos fictícios. Adicionar colunas por instrumento (PHQ-9, GAD-7, SRQ-20, AEP) e ações pendentes</td>
+                </tr>
+                <tr>
+                    <td><strong>GRO Psicossocial</strong> (absorve Domínios)</td>
+                    <td>Domínios existem</td>
+                    <td>Radar de escalas clínicas, gráfico de dimensões AEP, distribuição SRQ-20, matriz probabilidade × severidade</td>
+                </tr>
+                <tr>
+                    <td><strong>Plano de Ação</strong></td>
+                    <td><span class="badge badge-red">NÃO EXISTE</span></td>
+                    <td>Formulário de cadastro de ações + tabela com filtros + contadores de status. Ver Seção 3 para decisões.</td>
+                </tr>
+                <tr>
+                    <td><strong>Eventos &amp; Nexo</strong></td>
+                    <td><span class="badge badge-red">NÃO EXISTE</span></td>
+                    <td>Formulário para RH registrar afastamentos (data, CID, setor, dias). Relatos do canal anônimo aparecem aqui automaticamente.</td>
+                </tr>
+                <tr>
+                    <td><strong>Canal Anônimo</strong></td>
+                    <td><span class="badge badge-red">NÃO EXISTE</span></td>
+                    <td>Formulário público para funcionários (sem login). Visualização agregada para o RH (por tipo, urgência, setor).</td>
+                </tr>
+                <tr>
+                    <td><strong>Compliance NR-1</strong></td>
+                    <td>90% dados fictícios</td>
+                    <td>Reescrever: status computado real baseado nos dados do sistema, não fixo</td>
+                </tr>
+                <tr>
+                    <td><strong>Relatórios</strong></td>
+                    <td>Botões não funcionam</td>
+                    <td>Implementar geração de PDFs e exportações reais. Ver Seção 3 para priorização.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>2d. Tela de onboarding (empresa nova sem dados)</h2>
+        <table>
+            <thead><tr><th>Item</th><th>O Que É</th><th>Quem Fornece o Conteúdo</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>Tela de acompanhamento</strong></td>
+                    <td>Quando uma empresa nova começa, o dashboard está vazio. Em vez de gráficos sem dados, mostramos: barra de progresso (% de funcionários que completaram), tabela por departamento, lista de quem preencheu e quem não preencheu.</td>
+                    <td><span class="badge badge-green">EQUIPE DEV</span> — dados já existem no sistema</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>2e. Inventário de Riscos NR-1 (PDF obrigatório)</h2>
+        <p>A NR-1 exige um Inventário de Riscos com 9 campos. 6 deles são calculados automaticamente a partir das avaliações dos funcionários. Os outros 3 precisam ser fornecidos pela empresa:</p>
+
+        <table>
+            <thead><tr><th>Campo</th><th>Fonte</th><th>Exemplo</th></tr></thead>
+            <tbody>
+                <tr><td>1. Perigos identificados</td><td><span class="badge badge-green">AUTOMÁTICO</span> — dos scores</td><td>"Risco psicossocial elevado: ansiedade (GAD-7), burnout (MBI)"</td></tr>
+                <tr><td>2. Possíveis agravos</td><td><span class="badge badge-green">AUTOMÁTICO</span> — dos scores</td><td>"Transtorno de ansiedade, síndrome de burnout"</td></tr>
+                <tr><td>3. Grupos de exposição</td><td><span class="badge badge-green">AUTOMÁTICO</span> — dos departamentos</td><td>"Marketing Digital (68 colaboradores), Atendimento (89)"</td></tr>
+                <tr><td>4. Fontes de exposição</td><td><span class="badge badge-green">AUTOMÁTICO</span> — das dimensões AEP</td><td>"Pressão por metas, demandas cognitivas elevadas"</td></tr>
+                <tr><td>5. Análise preliminar</td><td><span class="badge badge-green">AUTOMÁTICO</span> — da matriz</td><td>"Probabilidade alta × severidade moderada em 3 setores"</td></tr>
+                <tr><td>6. Classificação de risco</td><td><span class="badge badge-green">AUTOMÁTICO</span> — do scoring</td><td>"Crítico: 38 | Elevado: 108 | Moderado: 289 | Baixo: 412"</td></tr>
+                <tr><td>7. <strong>Descrição dos processos de trabalho</strong></td><td><span class="badge badge-red">EMPRESA</span></td><td>"Atendimento ao cliente por telefone e chat, metas mensais..."</td></tr>
+                <tr><td>8. <strong>Descrição das atividades</strong></td><td><span class="badge badge-red">EMPRESA</span></td><td>"Operação de sistemas CRM, resolução de reclamações..."</td></tr>
+                <tr><td>9. <strong>Medidas preventivas existentes</strong></td><td><span class="badge badge-red">EMPRESA</span></td><td>"Programa de pausas, acompanhamento psicológico trimestral..."</td></tr>
+            </tbody>
+        </table>
+
+        <div class="box amber">
+            <h3>Questão em aberto: como a empresa fornece os campos 7, 8 e 9?</h3>
+            <p>Esses 3 campos podem ser desde <strong>3 parágrafos curtos</strong> até <strong>documentos internos de centenas de páginas</strong> (procedimentos operacionais, manuais de função, etc.). Precisamos definir:</p>
+            <ul>
+                <li><strong>Opção simples:</strong> 3 campos de texto no dashboard — o admin (RH) digita ou cola o resumo de cada item. Rápido de construir.</li>
+                <li><strong>Opção avançada:</strong> A empresa faz upload de PDFs com seus procedimentos internos e o sistema extrai as informações relevantes com IA. Mais complexo, custo por processamento.</li>
+            </ul>
+            <p>A opção simples é a recomendação inicial. Se a empresa não conseguir resumir em texto, podemos evoluir para extração por IA depois.</p>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- SECTION 3: O QUE PRECISAMOS DE VOCÊS                  -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="sh red"><h1>3. O Que Precisamos da Bright Brains</h1></div>
+        <p>Esta é a seção mais importante do documento. Está dividida em duas partes: <strong>conteúdo que vocês precisam nos entregar</strong> e <strong>decisões que vocês precisam tomar</strong>. Sem esses itens, não conseguimos avançar com o orçamento.</p>
+
+        <h2>3a. Conteúdo que precisamos receber</h2>
+        <p>Estes são arquivos, textos ou informações que a equipe da Bright Brains precisa nos entregar antes de construirmos.</p>
+
+        <table>
+            <thead><tr><th>#</th><th>O Quê</th><th>Quem Fornece</th><th>Bloqueia</th><th>Urgência</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>C1</td>
+                    <td><strong>Texto das 15 perguntas do AEP</strong> com as 6 dimensões e escala de resposta</td>
+                    <td>Dra. Soraya / equipe clínica</td>
+                    <td>Formulário AEP + aba GRO + aba Setores</td>
+                    <td><span class="badge badge-red">BLOCKER</span></td>
+                </tr>
+                <tr>
+                    <td>C2</td>
+                    <td><strong>Validação do SRQ-20</strong> — confirmar se usamos a versão padrão da OMS em português ou texto customizado</td>
+                    <td>Dra. Soraya / equipe clínica</td>
+                    <td>Formulário SRQ-20 + aba GRO</td>
+                    <td><span class="badge badge-red">BLOCKER</span></td>
+                </tr>
+                <tr>
+                    <td>C3</td>
+                    <td><strong>Lógica para a matriz de probabilidade e severidade</strong> — como classificar os scores de cada funcionário nas 12 células da matriz (3 níveis de probabilidade × 4 níveis de severidade) mostrada no GRO. Quais faixas de score correspondem a cada nível?</td>
+                    <td>Dra. Soraya (validação clínica)</td>
+                    <td>Aba GRO Psicossocial</td>
+                    <td><span class="badge badge-amber">ALTA</span></td>
+                </tr>
+                <tr>
+                    <td>C4</td>
+                    <td><strong>4 SOPs do Kit de Emergência Psicossocial</strong> em PDF para upload na plataforma</td>
+                    <td>Bright Brains</td>
+                    <td>Compliance (item 1.5.6)</td>
+                    <td><span class="badge badge-amber">ALTA</span></td>
+                </tr>
+                <tr>
+                    <td>C5</td>
+                    <td><strong>Formato do relatório GRO Consolidado</strong> — é o dashboard em PDF, ou tem formato legal próprio com campos obrigatórios e assinatura?</td>
+                    <td>Bright Brains / SST</td>
+                    <td>Aba Relatórios</td>
+                    <td><span class="badge badge-amber">ALTA</span></td>
+                </tr>
+                <tr>
+                    <td>C6</td>
+                    <td><strong>10-15 modelos de ações recomendadas</strong> por nível de risco. Ex: "Para setor com GAD-7 > 10 → Programa de manejo de ansiedade, 8 sessões". Cada modelo: descrição, prioridade, prazo típico.</td>
+                    <td>Dra. Soraya + equipe clínica</td>
+                    <td>Plano de Ação (se quiserem sugestões automáticas)</td>
+                    <td><span class="badge badge-blue">FASE 2</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>3b. Decisões que precisamos que tomem</h2>
+        <p>Cada decisão abaixo afeta diretamente o que construímos, quanto tempo leva e quanto custa. Ideal responder com A, B ou C.</p>
+
+        <table>
+            <thead><tr><th>#</th><th>Decisão</th><th>Opções</th><th>Impacto</th><th>Urgência</th><th style="min-width: 100px;">Resposta</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>D1</td>
+                    <td><strong>O formulário B2B deve ser o mesmo que o B2C?</strong></td>
+                    <td><strong>A)</strong> Mesmo formulário (~25 etapas + SRQ-20 + AEP = ~30 etapas)<br><strong>B)</strong> Formulário reduzido NR-1 (~15 etapas: dados pessoais + SRQ-20 + AEP + PHQ-9, GAD-7, MBI, PSS-10)</td>
+                    <td>A) Mais dados, taxa de conclusão menor, melhor lead B2C<br>B) Menos dados, conclusão mais rápida, lead B2C limitado</td>
+                    <td><span class="badge badge-red">BLOCKER</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>D2</td>
+                    <td><strong>Qual relatório o funcionário B2B recebe?</strong></td>
+                    <td><strong>A)</strong> Só relatório preliminar (1-2 páginas, linguagem simples) — custo ~R$ 0,35/avaliação<br><strong>B)</strong> Só relatório clínico completo (15 páginas, comitê médico) — custo ~R$ 1,50/avaliação<br><strong>C)</strong> Ambos — custo ~R$ 1,85/avaliação</td>
+                    <td>Para 500 funcionários: A) R$ 175 | B) R$ 750 | C) R$ 925 por ciclo</td>
+                    <td><span class="badge badge-red">BLOCKER</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>D3</td>
+                    <td><strong>Plano de Ação: qual nível?</strong><br><em>O dashboard mostra 8 itens de ação com prioridade, responsável, prazo e status. Cada nível adiciona funcionalidade.</em></td>
+                    <td><strong>A)</strong> Cadastro manual — formulário simples para criar/editar/excluir ações. Tabela com filtros.<br><strong>B)</strong> Manual + sugestões automáticas — o sistema sugere ações baseadas nos scores (ex: "Setor X com GAD-7 alto → sugerir programa de ansiedade"). Admin aprova/rejeita.<br><strong>C)</strong> Manual + IA — IA analisa dados e gera plano personalizado.</td>
+                    <td>A) Incluso no escopo base<br>B) Requer que a Bright Brains forneça C6 (modelos de ações)<br>C) Pipeline de IA adicional + custo por geração</td>
+                    <td><span class="badge badge-red">BLOCKER</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>D4</td>
+                    <td><strong>O RH insere afastamentos manualmente?</strong></td>
+                    <td><strong>A)</strong> Sim, formulário simples (data, CID, descrição, setor, dias perdidos)<br><strong>B)</strong> Não, esperam integração com sistema de RH (Totvs, SAP, eSocial)</td>
+                    <td>A) Incluso no escopo<br>B) Projeto separado, significativamente mais complexo</td>
+                    <td><span class="badge badge-red">BLOCKER</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>D5</td>
+                    <td><strong>O sistema precisa enviar notificações?</strong><br><em>Ex: "Prazo da ação X venceu", "Novo relato no canal anônimo", "Funcionário completou avaliação"</em></td>
+                    <td><strong>A)</strong> Não — tudo é consultado no dashboard<br><strong>B)</strong> Apenas por email<br><strong>C)</strong> Email + notificações dentro da plataforma (sino, badge)</td>
+                    <td>A) Zero custo<br>B) Custo moderado<br>C) Componente novo significativo (hoje não existe sistema de notificações)</td>
+                    <td><span class="badge badge-amber">ALTA</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>D6</td>
+                    <td><strong>Quais relatórios são prioridade?</strong><br><em>A aba Relatórios tem 5 tipos de PDF e 4 exportações — o layout existe mas nenhum gera conteúdo real porque os formatos ainda não foram validados.</em></td>
+                    <td><strong>GRO Consolidado</strong> — essencial para NR-1?<br><strong>Executivo</strong> — resumo para diretoria?<br><strong>Por Departamento</strong> — detalhamento setorial?<br><strong>Laudo CFM</strong> / <strong>CIAT</strong> — necessários agora?<br><strong>Exportações CSV/Excel</strong> — prioridade?</td>
+                    <td>Cada relatório = template PDF diferente para construir</td>
+                    <td><span class="badge badge-amber">ALTA</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>D7</td>
+                    <td><strong>eSocial está no escopo?</strong></td>
+                    <td><strong>A)</strong> Não — compliance mostra "Futuro"<br><strong>B)</strong> Sim — projeto separado</td>
+                    <td>A) Sem custo<br>B) Meses de desenvolvimento, integração com governo</td>
+                    <td><span class="badge badge-amber">ALTA</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>D8</td>
+                    <td><strong>Benchmarks por indústria no radar?</strong></td>
+                    <td><strong>A)</strong> Mostrar "—" até ter amostragem<br><strong>B)</strong> Bright Brains fornece dados</td>
+                    <td>A) Zero custo<br>B) Requer dataset de benchmarks</td>
+                    <td><span class="badge badge-gray">MÉDIA</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>D9</td>
+                    <td><strong>Como a empresa fornece processos, atividades e medidas preventivas para o Inventário NR-1?</strong><br><em>São 3 campos obrigatórios que só a empresa conhece.</em></td>
+                    <td><strong>A)</strong> Campos de texto no dashboard — admin digita ou cola o resumo<br><strong>B)</strong> Upload de PDFs com procedimentos internos + extração automática por IA</td>
+                    <td>A) Incluso no escopo — simples<br>B) Pipeline de IA para leitura de PDF, custo por processamento, documentos podem ter centenas de páginas</td>
+                    <td><span class="badge badge-amber">ALTA</span></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- SECTION 4: ESTIMATIVA DE TEMPO                        -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="sh lime"><h1>4. Estimativa de Tempo</h1></div>
+        <p>Estimativa realista de horas de desenvolvimento, com uso intensivo de IA para codificação. Não inclui tempo de espera por respostas da Bright Brains.</p>
+
+        <h2>Opção 1: MVP (Mínimo para Compliance NR-1)</h2>
+        <p><em>A empresa consegue passar uma auditoria trabalhista.</em></p>
+        <table>
+            <thead><tr><th>Item</th><th>Horas</th><th>Depende de</th></tr></thead>
+            <tbody>
+                <tr><td>SRQ-20 + AEP no formulário + scoring</td><td>4h</td><td>C1, C2</td></tr>
+                <tr><td>Relatório preliminar (prompt IA + PDF)</td><td>2h</td><td>D2</td></tr>
+                <tr><td>Consentimento B2C (checkbox + LGPD)</td><td>1h</td><td>—</td></tr>
+                <tr><td>Reescrever aba Compliance (status real)</td><td>3h</td><td>—</td></tr>
+                <tr><td>Inventário de Riscos NR-1 (PDF 9 campos)</td><td>4h</td><td>—</td></tr>
+                <tr><td>Tela de tracking / onboarding empresa nova</td><td>3h</td><td>—</td></tr>
+                <tr><td>Estender APIs existentes (SRQ-20/AEP nos agregados)</td><td>3h</td><td>C1, C2</td></tr>
+                <tr><td>Migrações de banco de dados</td><td>1h</td><td>—</td></tr>
+                <tr><td style="font-weight: 700;">Total MVP</td><td style="font-weight: 700;">~21h</td><td></td></tr>
+            </tbody>
+        </table>
+
+        <h2>Opção 2: Standard (Dashboard completo como no HTML enviado)</h2>
+        <p><em>Tudo do MVP + todas as abas novas funcionando.</em></p>
+        <table>
+            <thead><tr><th>Item</th><th>Horas</th><th>Depende de</th></tr></thead>
+            <tbody>
+                <tr><td><em>Tudo do MVP</em></td><td>21h</td><td></td></tr>
+                <tr><td>Aba Setores (reescrita com instrumentos por coluna)</td><td>3h</td><td>—</td></tr>
+                <tr><td>Aba GRO Psicossocial (radar, AEP, SRQ-20, matriz)</td><td>5h</td><td>C3</td></tr>
+                <tr><td>Aba Plano de Ação — Nível 1 (cadastro manual + tabela + filtros)</td><td>4h</td><td>D3</td></tr>
+                <tr><td>Aba Eventos &amp; Nexo (formulário afastamentos + visualização)</td><td>4h</td><td>D4</td></tr>
+                <tr><td>Canal Anônimo — formulário público para funcionários</td><td>3h</td><td>—</td></tr>
+                <tr><td>Canal Anônimo — visualização para o RH (gráficos + lista)</td><td>3h</td><td>—</td></tr>
+                <tr><td>Aba Relatórios — GRO Consolidado PDF + 1-2 exportações CSV</td><td>4h</td><td>C5, D6</td></tr>
+                <tr><td>APIs novas (plano ação, eventos, canal anônimo, GRO, tracking)</td><td>6h</td><td>—</td></tr>
+                <tr><td style="font-weight: 700;">Total Standard</td><td style="font-weight: 700;">~53h</td><td></td></tr>
+            </tbody>
+        </table>
+
+        <h2>Opção 3: Premium (Standard + automação + notificações)</h2>
+        <p><em>Tudo do Standard + sugestões automáticas no plano de ação + sistema de notificações.</em></p>
+        <table>
+            <thead><tr><th>Item</th><th>Horas</th><th>Depende de</th></tr></thead>
+            <tbody>
+                <tr><td><em>Tudo do Standard</em></td><td>53h</td><td></td></tr>
+                <tr><td>Plano de Ação — Nível 2 (sugestões baseadas em regras + lembretes)</td><td>6h</td><td>C6</td></tr>
+                <tr><td>Sistema de notificações (email + dentro da plataforma)</td><td>8h</td><td>D5</td></tr>
+                <tr><td>Todos os 5 relatórios regulatórios em PDF</td><td>8h</td><td>C5, D6</td></tr>
+                <tr><td>Todas as exportações CSV/Excel</td><td>3h</td><td>—</td></tr>
+                <tr><td>Correlações automáticas (relatos × inventário)</td><td>3h</td><td>—</td></tr>
+                <tr><td style="font-weight: 700;">Total Premium</td><td style="font-weight: 700;">~81h</td><td></td></tr>
+            </tbody>
+        </table>
+
+        <div class="box">
+            <h3>Notas sobre as estimativas</h3>
+            <p>• Horas = tempo real de desenvolvimento com IA, não horas de calendário. 21h de dev ≈ 3 dias úteis de trabalho concentrado.</p>
+            <p>• <strong>Não inclui</strong>: tempo de espera por respostas (C1-C6), reuniões de alinhamento, testes com dados reais da empresa, ou deploy final.</p>
+            <p>• O maior risco de atraso é a espera pelo conteúdo C1 (perguntas AEP) e C2 (validação SRQ-20). Sem eles, ~60% do trabalho está bloqueado.</p>
+            <p>• Geração de plano de ação por IA (Nível 3 / Opção C de D3) <strong>não está incluída</strong> em nenhuma opção. Seria um orçamento separado.</p>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- SECTION 5: USUÁRIOS DO SISTEMA                        -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="sh navy"><h1>5. Os 4 Tipos de Usuário</h1></div>
+
+        <table>
+            <thead><tr><th>Tipo</th><th>Como Acessa</th><th>O Que Faz</th><th>O Que Não Vê</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><strong>Funcionário B2B</strong></td>
+                    <td>Link do RH com código — sem login</td>
+                    <td>Preenche avaliação → recebe relatório preliminar → pode usar canal anônimo → pode consentir para B2C</td>
+                    <td>Dashboard, dados de outros, relatório clínico completo</td>
+                </tr>
+                <tr>
+                    <td><strong>Lead B2C</strong> (convertido)</td>
+                    <td>Após consentir no formulário B2B</td>
+                    <td>A Bright Brains gera o relatório clínico completo a partir dos mesmos dados — sem refazer nada. O funcionário agenda consulta.</td>
+                    <td>—</td>
+                </tr>
+                <tr>
+                    <td><strong>Admin Empresa (RH)</strong></td>
+                    <td>Login com email + senha (convite)</td>
+                    <td>Dashboard NR-1 (todos os módulos) · Plano de ação · Eventos · Canal anônimo · Tracking de aderência · Inventário PDF</td>
+                    <td>Dados individuais — tudo é anônimo/agregado</td>
+                </tr>
+                <tr>
+                    <td><strong>Admin Bright Brains</strong></td>
+                    <td>Portal interno (código de acesso)</td>
+                    <td>Tudo do admin empresa + criar empresas + gerar códigos + planos de ação em nome da empresa</td>
+                    <td>—</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ══════════════════════════════════════════════════════ -->
+        <!-- SECTION 6: O QUE NÃO ESTÁ INCLUÍDO                   -->
+        <!-- ══════════════════════════════════════════════════════ -->
+        <div class="sh"><h1>6. O Que Não Está Incluído (Futuro)</h1></div>
+        <ul>
+            <li>Integração com eSocial (envio real de eventos S-2240, S-2220)</li>
+            <li>AWS S3 + Glacier para retenção de dados por 20 anos (projeto de infraestrutura separado)</li>
+            <li>Geração de plano de ação por IA (Nível 3)</li>
+            <li>Benchmarks por indústria (requer massa crítica de dados)</li>
+            <li>Assinatura digital ICP-Brasil no Inventário de Riscos</li>
+            <li>Portal permanente do funcionário (histórico de resultados)</li>
+            <li>Chatbot no canal anônimo (começa como formulário simples)</li>
+            <li>Envio automático de lembretes por email aos funcionários</li>
+            <li>Relatório executivo para diretoria (PDF consolidado)</li>
+        </ul>
+
+        <div class="doc-footer">
+            <p><strong>Bright Brains — Instituto da Mente</strong></p>
+            <p>brightbrains.com.br</p>
+            <p style="margin-top: 8px; font-size: 8pt;">Próximo passo: responder C1-C6 e D1-D9 para que possamos finalizar o orçamento.</p>
+        </div>
+    </div>
+
+</body>
+</html>

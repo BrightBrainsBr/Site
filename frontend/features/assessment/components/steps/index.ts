@@ -1,5 +1,8 @@
 // frontend/features/assessment/components/steps/index.ts
 
+export { AEPStep } from './AEPStep'
+export { B2BConsentsStep } from './B2BConsentsStep'
+export { CanalPercepcaoStep } from './CanalPercepcaoStep'
 export { ClinicalProfileStep } from './ClinicalProfileStep'
 export { FamilyHistoryStep } from './FamilyHistoryStep'
 export { GenericScaleStep } from './GenericScaleStep'
@@ -10,6 +13,7 @@ export { MedicationsStep } from './MedicationsStep'
 export { PersonalDataStep } from './PersonalDataStep'
 export { PriorReportsStep } from './PriorReportsStep'
 export { SCALE_STEP_CONFIGS } from './scaleStepConfigs'
+export { SRQ20Step } from './SRQ20Step'
 export { SummaryStep } from './SummaryStep'
 export { SupplementsStep } from './SupplementsStep'
 export { SymptomsStep } from './SymptomsStep'

@@ -19,9 +19,12 @@ import type {
   StepComponentProps,
 } from './assessment.interface'
 import { INITIAL_FORM_DATA } from './assessment.interface'
-import { ALL_STEPS } from './constants/steps'
+import { ALL_STEPS, B2B_STEPS } from './constants/steps'
 import { ProgressBar } from './ProgressBar'
 import {
+  AEPStep,
+  B2BConsentsStep,
+  CanalPercepcaoStep,
   ClinicalProfileStep,
   FamilyHistoryStep,
   GenericScaleStep,
@@ -32,6 +35,7 @@ import {
   PersonalDataStep,
   PriorReportsStep,
   SCALE_STEP_CONFIGS,
+  SRQ20Step,
   SummaryStep,
   SupplementsStep,
   SymptomsStep,
@@ -223,9 +227,12 @@ export function AssessmentPage() {
     saveCurrentStep(currentStepIndex)
   }, [currentStepIndex, isLoaded])
 
+  const isB2B = !!companyContext.company_id
+  const stepSource = isB2B ? B2B_STEPS : ALL_STEPS
+
   const visibleSteps = useMemo(
-    () => ALL_STEPS.filter((step) => step.show(data)),
-    [data]
+    () => stepSource.filter((step) => step.show(data)),
+    [data, stepSource]
   )
 
   useEffect(() => {
@@ -272,13 +279,13 @@ export function AssessmentPage() {
   const handleTestFill = useCallback(() => {
     const testData = generateTestFormData()
     setData(testData)
-    const stepsForData = ALL_STEPS.filter((s) => s.show(testData))
+    const stepsForData = stepSource.filter((s) => s.show(testData))
     const uploadsIdx = stepsForData.findIndex((s) => s.id === 'uploads')
     if (uploadsIdx >= 0) {
       setCurrentStepIndex(uploadsIdx)
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+  }, [stepSource])
 
   if (!authorized) {
     if (!sessionChecked) {
@@ -364,6 +371,14 @@ export function AssessmentPage() {
         return <PriorReportsStep {...stepProps} />
       case 'wearables':
         return <WearablesStep {...stepProps} />
+      case 'srq20':
+        return <SRQ20Step {...stepProps} />
+      case 'aep':
+        return <AEPStep {...stepProps} />
+      case 'canal_percepcao':
+        return <CanalPercepcaoStep {...stepProps} />
+      case 'b2b_consents':
+        return <B2BConsentsStep {...stepProps} />
       case 'resumo':
         return <SummaryStep {...stepProps} />
       default: {

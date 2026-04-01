@@ -84,6 +84,29 @@ export async function sendReportEmail(opts: {
   )
 }
 
+export async function sendB2BLaudoEmail(opts: {
+  patientName: string
+  pdfUrl: string
+  evaluationId: string
+  companyName: string
+}): Promise<boolean> {
+  const date = formatDate()
+  const subject = `[BrightMonitor] Laudo Individual — ${opts.patientName} — ${opts.companyName} — ${date}`
+  return postWebhook(
+    REPORT_WEBHOOK_URL,
+    {
+      event: 'b2b_laudo_ready',
+      subject,
+      generated_at: new Date().toISOString(),
+      evaluation_id: opts.evaluationId,
+      patient_name: opts.patientName,
+      company_name: opts.companyName,
+      report_pdf_url: opts.pdfUrl,
+    },
+    'b2b-laudo'
+  )
+}
+
 export async function sendErrorEmail(opts: {
   patientName: string
   evaluationId: string

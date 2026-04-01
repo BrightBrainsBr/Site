@@ -206,7 +206,7 @@ export function B2BRiskMapTab({ companyId, cycleId }: B2BRiskMapTabProps) {
           <h3 className="mb-4 text-[13px] font-semibold text-[#E2E8F0]">
             Risco por Nível Hierárquico
           </h3>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={200} minWidth={0}>
             <BarChart
               data={HIERARCHY_DATA}
               margin={{ top: 5, right: 5, left: -10, bottom: 5 }}

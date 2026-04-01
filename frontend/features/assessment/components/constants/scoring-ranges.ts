@@ -92,4 +92,22 @@ export const SCALE_RANGES: Record<string, ScaleConfig> = {
       { min: 6, max: 12, label: 'Uso nocivo', color: '#ef4444' },
     ],
   },
+  srq20: {
+    label: 'SRQ-20 — Saúde Mental',
+    ranges: [
+      { min: 0, max: 7, label: 'Sem indicação de transtorno', color: '#22c55e' },
+      { min: 8, max: 11, label: 'Risco moderado', color: '#eab308' },
+      { min: 12, max: 16, label: 'Risco elevado', color: '#f97316' },
+      { min: 17, max: 20, label: 'Risco crítico', color: '#ef4444' },
+    ],
+  },
+  aep: {
+    label: 'AEP — Avaliação Ergonômica Preliminar',
+    ranges: [
+      { min: 0, max: 14, label: 'Baixo risco ergonômico', color: '#22c55e' },
+      { min: 15, max: 28, label: 'Risco moderado', color: '#eab308' },
+      { min: 29, max: 42, label: 'Risco elevado', color: '#f97316' },
+      { min: 43, max: 56, label: 'Risco crítico', color: '#ef4444' },
+    ],
+  },
 }

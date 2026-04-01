@@ -92,7 +92,7 @@ export function B2BOverviewTab({
             </span>
           </div>
           {lineData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={200} minWidth={0}>
               <AreaChart
                 data={lineData}
                 margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
@@ -152,7 +152,7 @@ export function B2BOverviewTab({
           {pieData.length > 0 ? (
             <div className="flex flex-col items-center">
               <div className="relative" style={{ width: 180, height: 180 }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie
                       data={pieData}
@@ -228,6 +228,7 @@ export function B2BOverviewTab({
             <ResponsiveContainer
               width="100%"
               height={Math.max(200, barData.length * 44 + 20)}
+              minWidth={0}
             >
               <BarChart
                 data={barData}

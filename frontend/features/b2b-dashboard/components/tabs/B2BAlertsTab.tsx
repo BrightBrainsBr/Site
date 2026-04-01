@@ -211,7 +211,7 @@ export function B2BAlertsTab({ companyId, cycleId }: B2BAlertsTabProps) {
               Estatísticas de Risco
             </h3>
             {statsPieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={180}>
+              <ResponsiveContainer width="100%" height={180} minWidth={0}>
                 <PieChart>
                   <Pie
                     data={statsPieData}

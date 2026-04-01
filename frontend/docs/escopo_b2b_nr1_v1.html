@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escopo — Evolução BrightMonitor B2B + Conformidade NR-1 | Bright Brains</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+           --navy: #0f2d5e;
+           --navy-light: #163a7a;
+           --lime: #C8D868;
+           --lime-dark: #A8BA48;
+           --teal: #0d9488;
+           --teal-dark: #0f766e;
+           --blue: #1a56db;
+           --violet: #A78BFA;
+           --amber: #F59E0B;
+           --red: #EF4444;
+           --surface: #f0f4f8;
+           --surface-light: #f8fafc;
+           --black: #0E1B2E;
+           --text: #1e293b;
+           --text-sec: #64748b;
+           --border: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            line-height: 1.55;
+            color: var(--text);
+            background: #fff;
+            font-size: 10pt;
+        }
+
+        .cover {
+            background: var(--black);
+            color: #fff;
+            min-height: 100vh;
+            padding: 60px 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--lime) 0%, var(--teal) 50%, var(--violet) 100%);
+        }
+        .cover-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .cover-logo {
+            width: 40px; height: 40px;
+            border-radius: 9px;
+            background: rgba(255,255,255,0.1);
+            display: grid; place-items: center;
+            font-size: 1.25rem;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .cover-brand {
+            font-size: 18pt;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+        .cover-brand span { opacity: 0.5; font-weight: 400; font-size: 11pt; display: block; margin-top: 2px; }
+        .cover-main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .cover-main .tag {
+            display: inline-block;
+            background: var(--lime);
+            color: var(--black);
+            padding: 5px 14px;
+            border-radius: 5px;
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 28px;
+            width: fit-content;
+        }
+        .cover-main h1 {
+            font-size: 34pt;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 18px;
+            letter-spacing: -0.8px;
+            color: #fff;
+        }
+        .cover-main h1 em { font-style: normal; color: var(--lime); }
+        .cover-main h2 {
+            font-size: 14pt;
+            font-weight: 400;
+            color: rgba(255,255,255,0.6);
+            max-width: 520px;
+            line-height: 1.55;
+        }
+        .cover-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 28px;
+        }
+        .cover-bottom .meta p {
+            font-size: 9pt;
+            color: rgba(255,255,255,0.5);
+            margin: 4px 0;
+        }
+        .cover-bottom .meta strong { color: #fff; font-weight: 600; }
+        .cover-bottom .conf {
+            font-size: 8pt;
+            color: rgba(255,255,255,0.35);
+            text-align: right;
+        }
+
+        .content { padding: 40px 60px; max-width: 900px; margin: 0 auto; }
+
+        .sh {
+            border-top: 3px solid var(--teal);
+            padding-top: 12px;
+            margin-top: 48px;
+            margin-bottom: 16px;
+        }
+        .sh.violet { border-top-color: var(--violet); }
+        .sh.lime { border-top-color: var(--lime-dark); }
+        .sh.navy { border-top-color: var(--navy); }
+        .sh h1 {
+            font-size: 18pt;
+            font-weight: 800;
+            color: var(--black);
+            line-height: 1.2;
+        }
+        .sh:first-child { margin-top: 0; }
+
+        h2 { font-size: 12pt; font-weight: 700; color: var(--black); margin: 22px 0 10px; }
+        h3 { font-size: 10.5pt; font-weight: 700; color: var(--black); margin: 16px 0 8px; }
+        h4 { font-size: 11pt; font-weight: 700; color: var(--teal-dark); margin: 16px 0 8px; }
+        h4.violet { color: var(--violet); }
+        h4.navy { color: var(--navy); }
+        p { margin: 8px 0; line-height: 1.65; }
+        strong { font-weight: 600; color: var(--black); }
+        em { color: var(--text-sec); }
+        ul, ol { margin: 10px 0 10px 22px; }
+        li { margin: 5px 0; line-height: 1.55; }
+
+        .box {
+            background: var(--surface);
+            border-left: 4px solid var(--teal);
+            padding: 14px 18px;
+            margin: 16px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .box.violet { border-left-color: var(--violet); }
+        .box.amber { border-left-color: var(--amber); }
+        .box.navy { border-left-color: var(--navy); }
+        .box.lime { border-left-color: var(--lime-dark); }
+        .box h3 { margin-top: 0; font-size: 10pt; }
+        .box p { margin: 4px 0; }
+
+        table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 9.5pt; }
+        thead { background: var(--black); color: white; }
+        th { padding: 9px 12px; text-align: left; font-weight: 700; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.3px; }
+        td { padding: 9px 12px; border-bottom: 1px solid var(--border); line-height: 1.5; }
+        tr:last-child td { border-bottom: none; }
+        tbody tr:nth-child(even) { background: var(--surface-light); }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-teal { background: rgba(13,148,136,0.12); color: var(--teal-dark); }
+        .badge-violet { background: rgba(167,139,250,0.12); color: #7c3aed; }
+        .badge-amber { background: rgba(245,158,11,0.12); color: #b45309; }
+
+        .doc-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+            font-size: 9pt;
+            color: var(--text-sec);
+        }
+        .doc-footer strong { color: var(--black); font-size: 10pt; }
+
+        @media print {
+            @page { margin: 12mm 15mm; size: A4; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { font-size: 9.5pt; }
+            .cover { min-height: auto; height: 100vh; padding: 50px; }
+            .content { padding: 0; }
+            h1, h2, h3, h4 { page-break-after: avoid; }
+            table, .box { page-break-inside: avoid; }
+            p, ul, ol { orphans: 3; widows: 3; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cover">
+        <div class="cover-top">
+            <div class="cover-logo">🧠</div>
+            <div class="cover-brand">
+                Bright Brains
+                <span>Instituto da Mente</span>
+            </div>
+        </div>
+        <div class="cover-main">
+            <span class="tag">Escopo Técnico — BrightMonitor</span>
+            <h1>Evolução <em>B2B</em>:<br>Relatório Preliminar +<br>Conformidade NR-1</h1>
+            <h2>O que precisa ser feito para que o BrightMonitor gere valor real para as empresas e cumpra as exigências da NR-1.</h2>
+        </div>
+        <div class="cover-bottom">
+            <div class="meta">
+                <p><strong>Data:</strong> 26 de Março de 2026</p>
+                <p><strong>Versão:</strong> 1.0</p>
+            </div>
+            <div class="conf">
+                Documento interno<br>
+                Uso restrito
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- ===== CONTEXTO ===== -->
+        <div class="sh"><h1>1. Contexto</h1></div>
+        <p>Hoje o BrightMonitor (versão B2B do BrightPrecision) utiliza o mesmo fluxo de avaliação e geração de relatório que o produto B2C. Isso cria dois problemas:</p>
+        <ul>
+            <li><strong>Custo desnecessário:</strong> Para cada funcionário que responde a avaliação, o sistema gera um relatório clínico completo de 10 seções (hipóteses diagnósticas, farmacoterapia, neuromodulação, etc.) — algo que a empresa não pode ver e que na maioria dos casos não será usado.</li>
+            <li><strong>Dashboard incompleto:</strong> O painel da empresa exibe dados reais de risco e scores, mas toda a área de conformidade NR-1 — checklist, timeline, documentação legal, inventário de riscos — contém dados de demonstração. A empresa não consegue usar o sistema para cumprir a legislação.</li>
+        </ul>
+        <div class="box">
+            <p><strong>Prioridade #1 do cliente:</strong> Ter as informações necessárias para gerar o <strong>Inventário de Riscos Ocupacionais</strong> — documento obrigatório da NR-1 com 9 campos, exigido para fiscalização a partir de 26/05/2026.</p>
+        </div>
+
+        <!-- ===== O QUE MUDA ===== -->
+        <div class="sh violet"><h1>2. O Que Precisa Ser Feito</h1></div>
+        <p>O trabalho se divide em duas frentes complementares:</p>
+
+        <table>
+            <thead><tr><th>Frente</th><th>Descrição</th><th>Benefício</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge badge-teal">A</span> <strong>Relatório Preliminar</strong></td>
+                    <td>Quando o funcionário termina a avaliação, recebe um relatório simplificado e acessível — não o relatório clínico completo.</td>
+                    <td>Reduz custo de IA em ~90%. Gera leads B2C (CTA para agendar consulta).</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-violet">B</span> <strong>Dashboard NR-1 Real</strong></td>
+                    <td>Substituir dados fictícios do painel por informações reais derivadas das avaliações. Incluir o Inventário de Riscos Ocupacionais.</td>
+                    <td>Empresa pode usar o sistema para conformidade regulatória real.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ===== FRENTE A ===== -->
+        <div class="sh"><h1>3. Frente A — Relatório Preliminar ao Funcionário</h1></div>
+
+        <h2>Situação Atual</h2>
+        <p>Quando um funcionário B2B completa a avaliação, o sistema gera o mesmo relatório clínico completo do B2C — 10 seções, duas etapas de IA, ~2 minutos de processamento. Esse relatório:</p>
+        <ul>
+            <li>Contém hipóteses diagnósticas com CID-10, sugestões de farmacoterapia e neuromodulação</li>
+            <li>É destinado ao comitê médico — não ao funcionário</li>
+            <li>A empresa não pode acessá-lo (LGPD)</li>
+            <li>Custa tokens de IA proporcionais ao número de funcionários (200+ avaliações = custo significativo)</li>
+        </ul>
+
+        <h2>O Que Será Feito</h2>
+        <p>Criar um <strong>Relatório Preliminar</strong> — documento curto, em linguagem acessível, que o funcionário recebe imediatamente após completar a avaliação. Baseado no modelo enviado pelo Bernardo.</p>
+
+        <h4>O relatório preliminar inclui:</h4>
+        <ul>
+            <li>Nome do paciente, data, nível de atenção (Baixo / Moderado / Alto)</li>
+            <li>Mensagem personalizada de acolhimento</li>
+            <li>Resumo do que foi avaliado</li>
+            <li>Pontos de atenção identificados (com ícones e descrições acessíveis)</li>
+            <li>Orientações de bem-estar</li>
+            <li>Informação sobre saúde ocupacional (NR-1)</li>
+            <li>CTA: "Agende sua Consulta Devolutiva na Bright Brains"</li>
+            <li>Declarações de conformidade (CFM, LGPD, NR-1)</li>
+        </ul>
+
+        <h4>Entrega ao funcionário:</h4>
+        <ul>
+            <li>Exibido na tela imediatamente após finalizar a avaliação</li>
+            <li>Botão para download em PDF</li>
+            <li>Enviado por e-mail automaticamente</li>
+        </ul>
+
+        <div class="box lime">
+            <h3>Impacto no modelo de negócio</h3>
+            <p>Cada funcionário que recebe o relatório preliminar é um <strong>lead potencial para o B2C</strong>. O relatório termina com um convite para agendar consulta devolutiva na Bright Brains — transformando a avaliação corporativa em canal de aquisição de pacientes individuais.</p>
+        </div>
+
+        <h4>Mudanças técnicas:</h4>
+        <table>
+            <thead><tr><th>Item</th><th>Descrição</th></tr></thead>
+            <tbody>
+                <tr><td>Fluxo de submissão</td><td>Quando a avaliação é B2B, gerar relatório preliminar (1 chamada de IA curta) em vez do relatório clínico completo (2 etapas de IA longas)</td></tr>
+                <tr><td>Prompt de IA</td><td>Prompt novo e curto, focado em linguagem acessível, sem jargão médico</td></tr>
+                <tr><td>PDF</td><td>Template de PDF novo, mais leve, seguindo o modelo fornecido</td></tr>
+                <tr><td>Tela de sucesso</td><td>Tela de confirmação B2B redesenhada — mostra o relatório inline com loading enquanto gera</td></tr>
+                <tr><td>E-mail</td><td>Envio automático do PDF ao funcionário</td></tr>
+                <tr><td>Banco de dados</td><td>Novos campos para armazenar o relatório preliminar (JSON + URL do PDF)</td></tr>
+            </tbody>
+        </table>
+
+        <div class="box amber">
+            <h3>Importante</h3>
+            <p>Os dados completos da avaliação (formulário + scores) continuam armazenados. Caso um funcionário queira evoluir para uma consulta B2C no futuro, é possível gerar o relatório clínico completo sob demanda — sem que ele precise refazer a avaliação.</p>
+        </div>
+
+        <!-- ===== FRENTE B ===== -->
+        <div class="sh violet"><h1>4. Frente B — Dashboard NR-1 com Dados Reais</h1></div>
+
+        <h2>Situação Atual</h2>
+        <p>O painel da empresa tem 7 abas (Visão Geral, Mapa de Risco, Domínios, Conformidade NR-1, Alertas, Relatórios, Configurações). Parte dos dados é real (scores, distribuição de risco, alertas por departamento), mas a maioria da área regulatória é demonstrativa:</p>
+
+        <table>
+            <thead><tr><th>Área</th><th>Situação</th></tr></thead>
+            <tbody>
+                <tr><td>Visão Geral — KPIs e distribuição</td><td><strong style="color:var(--teal)">Real</strong> — dados de avaliações</td></tr>
+                <tr><td>Mapa de Risco — tabela por departamento</td><td><strong style="color:var(--teal)">Real</strong> — dados de avaliações</td></tr>
+                <tr><td>Mapa de Risco — hierarquia e fatores</td><td><strong style="color:var(--red)">Fictício</strong> — dados fixos no código</td></tr>
+                <tr><td>Conformidade NR-1 — status GRO/CFM</td><td><strong style="color:var(--red)">Fictício</strong> — sempre "concluído"</td></tr>
+                <tr><td>Conformidade NR-1 — checklist</td><td><strong style="color:var(--red)">Fictício</strong> — 9 itens fixos (devem ser 17)</td></tr>
+                <tr><td>Conformidade NR-1 — timeline</td><td><strong style="color:var(--red)">Fictício</strong> — datas fixas</td></tr>
+                <tr><td>Relatórios — geração de PDF</td><td><strong style="color:var(--red)">Não funcional</strong> — todos os botões "em construção"</td></tr>
+                <tr><td>Relatórios — eSocial e periodicidade</td><td><strong style="color:var(--red)">Fictício</strong> — dados fixos</td></tr>
+                <tr><td>Alertas — cards de risco</td><td><strong style="color:var(--teal)">Real</strong> — dados anonimizados</td></tr>
+                <tr><td>Alertas — plano de ação</td><td><strong style="color:var(--red)">Fictício</strong> — texto fixo</td></tr>
+            </tbody>
+        </table>
+
+        <h2>O que o relatório B2C (BrightPrecision) gera hoje</h2>
+        <p>Para contexto: o relatório clínico completo que já existe no produto B2C gera as seguintes informações para cada paciente individual (10 seções, ~15 páginas, 2 etapas de IA):</p>
+
+        <table>
+            <thead><tr><th>Seção</th><th>Conteúdo</th><th>Público-alvo</th></tr></thead>
+            <tbody>
+                <tr><td>1. Sumário Executivo</td><td>Perfil do paciente, queixa principal, escalas mais significativas, nível de urgência</td><td>Comitê Médico</td></tr>
+                <tr><td>2. Integração dos Dados</td><td>Correlação entre escalas clínicas, dados biométricos, histórico médico/familiar, estilo de vida</td><td>Comitê Médico</td></tr>
+                <tr><td>3. Hipóteses Diagnósticas (CID-10)</td><td>Códigos CID-10, nível de confiança, evidências, diagnósticos diferenciais</td><td>Comitê Médico</td></tr>
+                <tr><td>4. Estratificação de Risco</td><td>Risco individual (baixo/moderado/alto/crítico), fatores de risco e proteção, bandeiras vermelhas</td><td>Comitê Médico</td></tr>
+                <tr><td>5. Fundamentação Científica</td><td>Referências (APA, CANMAT, NICE, ABP) que sustentam as hipóteses</td><td>Comitê Médico</td></tr>
+                <tr><td>6. Sugestões Terapêuticas</td><td>Farmacoterapia, psicoterapia, neuromodulação, estilo de vida, suplementação, encaminhamentos, metas</td><td>Comitê Médico</td></tr>
+                <tr><td>7. Plano de Monitoramento</td><td>Escalas de follow-up, frequência de reavaliação, métricas de wearable</td><td>Comitê Médico</td></tr>
+                <tr><td>8. Referências Bibliográficas</td><td>Lista completa de referências citadas</td><td>Comitê Médico</td></tr>
+                <tr><td>9. Conformidade CFM</td><td>Declaração formal de conformidade com CFM nº 2.454/2026</td><td>Regulatório</td></tr>
+                <tr><td>10. Observações Finais</td><td>Limitações da análise, dados adicionais desejáveis</td><td>Comitê Médico</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Por que o relatório B2C não alimenta o dashboard NR-1</h2>
+        <p>Existe <strong>sobreposição praticamente zero</strong> entre o que o relatório clínico produz e o que o dashboard NR-1 precisa. São conjuntos de dados fundamentalmente diferentes:</p>
+
+        <table>
+            <thead><tr><th>Dimensão</th><th>Relatório B2C (BrightPrecision)</th><th>Dashboard NR-1 (BrightMonitor)</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Escopo</strong></td><td>Individual — 1 paciente por relatório</td><td>Agregado — empresa inteira, por departamento</td></tr>
+                <tr><td><strong>Linguagem</strong></td><td>Clínica — CID-10, farmacoterapia, neuromodulação</td><td>Regulatória — NR-1, GRO, eSocial, PGR</td></tr>
+                <tr><td><strong>Público</strong></td><td>Comitê Médico Interdisciplinar</td><td>RH / SST da empresa</td></tr>
+                <tr><td><strong>Dados de risco</strong></td><td>Estratificação individual com bandeiras vermelhas</td><td>Distribuição % por departamento e nível (baixo/moderado/alto/crítico)</td></tr>
+                <tr><td><strong>Diagnóstico</strong></td><td>Hipóteses CID-10 com confiança e diferenciais</td><td>Não aplicável — empresa não pode ver diagnósticos (LGPD)</td></tr>
+                <tr><td><strong>Tratamento</strong></td><td>Farmacoterapia, psicoterapia, metas terapêuticas</td><td>Não aplicável — empresa não pode prescrever</td></tr>
+                <tr><td><strong>Conformidade</strong></td><td>CFM nº 2.454/2026 (uso de IA na medicina)</td><td>NR-1 (riscos psicossociais ocupacionais) — checklist 17 itens, Inventário 9 campos</td></tr>
+                <tr><td><strong>Documento de saída</strong></td><td>Relatório clínico PDF (~15 páginas)</td><td>Inventário de Riscos Ocupacionais, GRO, relatórios de conformidade</td></tr>
+            </tbody>
+        </table>
+
+        <div class="box amber">
+            <h3>O que isso significa na prática</h3>
+            <p>Os dados brutos das avaliações (scores PHQ-9, GAD-7, burnout, sono, etc.) <strong>já existem no sistema</strong> — são coletados quando cada funcionário completa a avaliação. As APIs do dashboard já fazem parte dessa agregação (distribuição de risco, médias por departamento, alertas).</p>
+            <p>O que <strong>não existe</strong> é a camada que transforma esses scores no formato exigido pela NR-1: os 9 campos do Inventário de Riscos, o checklist de 17 itens, e a geração do documento PDF oficial. É uma camada de processamento e formatação sobre dados existentes — não uma coleta de dados nova.</p>
+            <p>O relatório clínico B2C (tabela acima) não participa desse processo — ele gera informação clínica individual, enquanto o dashboard NR-1 precisa de dados agregados e regulatórios.</p>
+        </div>
+
+        <h2>O Que Será Feito</h2>
+
+        <h4 class="violet">4.1 Inventário de Riscos Ocupacionais (9 campos NR-1)</h4>
+        <p>Este é o documento obrigatório que a empresa precisa para conformidade. A NR-1 exige que o inventário contenha 9 campos específicos. A maioria desses campos (6 de 9) pode ser computada diretamente a partir dos scores de avaliação que já coletamos — os 3 restantes são descritivos e dependem de input da empresa:</p>
+
+        <table>
+            <thead><tr><th>Campo NR-1</th><th>O que é</th><th>Fonte dos dados</th></tr></thead>
+            <tbody>
+                <tr><td><strong>a)</strong> Processos e ambientes</td><td>Onde e como o trabalho acontece</td><td>Departamentos cadastrados pela empresa</td></tr>
+                <tr><td><strong>b)</strong> Atividades</td><td>O que cada grupo faz</td><td>Descrições por departamento (input da empresa)</td></tr>
+                <tr><td><strong>c)</strong> Perigos e fontes</td><td>Fatores psicossociais identificados</td><td><strong>Scores das avaliações</strong> (PHQ-9, GAD-7, burnout, etc.) agregados por setor</td></tr>
+                <tr><td><strong>d)</strong> Possíveis agravos</td><td>O que pode acontecer</td><td><strong>Mapeamento automático:</strong> scores de risco → agravos (ex: burnout → CID F43.8)</td></tr>
+                <tr><td><strong>e)</strong> Grupos expostos</td><td>Quem está exposto</td><td><strong>Departamentos com risco elevado/crítico</strong>, com contagem de funcionários</td></tr>
+                <tr><td><strong>f)</strong> Medidas de prevenção</td><td>O que a empresa já faz</td><td>Input da empresa (campo editável no sistema)</td></tr>
+                <tr><td><strong>g)</strong> Exposição</td><td>Como e quanto estão expostos</td><td><strong>Distribuição de risco por departamento</strong> (% em cada nível)</td></tr>
+                <tr><td><strong>h)</strong> Análise preliminar</td><td>Dados da avaliação + NR-17</td><td><strong>Resumo da metodologia + resultados agregados</strong> das avaliações</td></tr>
+                <tr><td><strong>i)</strong> Classificação de riscos</td><td>Severidade × probabilidade</td><td><strong>Matriz de risco por departamento</strong> calculada dos scores</td></tr>
+            </tbody>
+        </table>
+
+        <div class="box violet">
+            <p>Os campos <strong>a, b, f</strong> dependem de input da empresa (descrição de processos, atividades e medidas existentes). O sistema fornece a estrutura e campos editáveis. Os campos <strong>c, d, e, g, h, i</strong> são computados automaticamente a partir dos dados de avaliação que já coletamos.</p>
+        </div>
+
+        <h4 class="violet">4.2 Aba de Conformidade com dados reais</h4>
+        <ul>
+            <li>Checklist NR-1 com os <strong>17 itens obrigatórios</strong> (conforme guia NR-1, página 10), cada um com status derivado de dados reais</li>
+            <li>Status de GRO e CFM baseados em datas reais do sistema (não fixos)</li>
+            <li>Timeline do ciclo com datas reais (início do ciclo, período de avaliações, emissão de documentos)</li>
+            <li>Documentação legal com links reais para PDFs gerados</li>
+        </ul>
+
+        <h4 class="violet">4.3 Mapa de Risco com dados reais</h4>
+        <ul>
+            <li>Substituir gráfico de "Risco por Nível Hierárquico" (dados fictícios) por dados reais ou remover</li>
+            <li>"Fatores de Risco Mais Frequentes" calculados a partir dos scores reais — para cada domínio (depressão, ansiedade, burnout, sono, etc.), calcular % de funcionários acima do limiar de risco</li>
+        </ul>
+
+        <h4 class="violet">4.4 Geração do Inventário em PDF</h4>
+        <ul>
+            <li>O botão "GRO Consolidado" na aba de Relatórios passa a gerar o PDF real do Inventário de Riscos Ocupacionais</li>
+            <li>PDF formatado com os 9 campos obrigatórios preenchidos com dados reais</li>
+            <li>Documento pronto para ser anexado ao PGR da empresa</li>
+        </ul>
+
+        <!-- ===== REQUISITOS DA EMPRESA ===== -->
+        <div class="sh lime"><h1>5. O Que Precisamos da Empresa</h1></div>
+        <p>Para que o Inventário de Riscos fique completo, a empresa precisa fornecer algumas informações que não são coletáveis via avaliação dos funcionários:</p>
+
+        <table>
+            <thead><tr><th>Informação</th><th>Para quê</th><th>Como</th></tr></thead>
+            <tbody>
+                <tr><td>Descrição dos processos e ambientes de trabalho</td><td>Campo (a) do Inventário</td><td>Campo editável no painel — texto por departamento</td></tr>
+                <tr><td>Descrição das atividades por setor</td><td>Campo (b) do Inventário</td><td>Campo editável no painel — texto por departamento</td></tr>
+                <tr><td>Medidas de prevenção já implementadas</td><td>Campo (f) do Inventário</td><td>Campo editável no painel — lista de ações existentes</td></tr>
+                <tr><td>Responsável técnico (SST)</td><td>Assinatura do documento</td><td>Cadastro no painel de configurações</td></tr>
+            </tbody>
+        </table>
+
+        <div class="box">
+            <p>O sistema já fornece campos editáveis para departamentos. Precisamos expandir para incluir descrições de processos, atividades e medidas preventivas. A empresa preenche uma vez e o inventário é gerado automaticamente.</p>
+        </div>
+
+        <!-- ===== ENTREGÁVEIS ===== -->
+        <div class="sh navy"><h1>6. Resumo dos Entregáveis</h1></div>
+
+        <table>
+            <thead><tr><th>#</th><th>Entregável</th><th>Frente</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>Relatório Preliminar ao funcionário B2B (geração por IA + PDF + exibição na tela)</td><td><span class="badge badge-teal">A</span></td></tr>
+                <tr><td>2</td><td>Envio automático do relatório preliminar por e-mail</td><td><span class="badge badge-teal">A</span></td></tr>
+                <tr><td>3</td><td>Separação do fluxo B2B vs B2C (B2B não gera mais relatório clínico completo)</td><td><span class="badge badge-teal">A</span></td></tr>
+                <tr><td>4</td><td>API do Inventário de Riscos Ocupacionais (9 campos NR-1 computados dos dados)</td><td><span class="badge badge-violet">B</span></td></tr>
+                <tr><td>5</td><td>Visualização do Inventário no painel da empresa</td><td><span class="badge badge-violet">B</span></td></tr>
+                <tr><td>6</td><td>Geração do Inventário em PDF (documento pronto para PGR)</td><td><span class="badge badge-violet">B</span></td></tr>
+                <tr><td>7</td><td>Aba de Conformidade NR-1 com dados reais (checklist 17 itens, timeline, documentos)</td><td><span class="badge badge-violet">B</span></td></tr>
+                <tr><td>8</td><td>Mapa de Risco com fatores calculados de dados reais</td><td><span class="badge badge-violet">B</span></td></tr>
+                <tr><td>9</td><td>Campos editáveis para input da empresa (processos, atividades, medidas preventivas)</td><td><span class="badge badge-violet">B</span></td></tr>
+            </tbody>
+        </table>
+
+        <!-- ===== O QUE NÃO INCLUI ===== -->
+        <div class="sh"><h1>7. O Que Não Está Incluído (Futuro)</h1></div>
+        <ul>
+            <li>Geração do relatório clínico completo sob demanda para casos críticos (via painel da empresa)</li>
+            <li>Fluxo de consentimento B2B → B2C (funcionário autoriza uso dos dados para consulta individual)</li>
+            <li>Integração com eSocial (envio real de eventos S-2240, S-2220)</li>
+            <li>Plano de Ação gerado por IA a partir dos dados agregados de risco</li>
+            <li>Comparação temporal entre ciclos (gráficos de evolução)</li>
+            <li>Relatório Executivo para diretoria</li>
+            <li>Relatório por Departamento (PDF detalhado)</li>
+        </ul>
+        <p>Esses itens podem ser adicionados em fases subsequentes conforme necessidade.</p>
+
+        <div class="doc-footer">
+            <p><strong>Bright Brains — Instituto da Mente</strong></p>
+            <p>brightbrains.com.br</p>
+        </div>
+    </div>
+
+</body>
+</html>

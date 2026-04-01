@@ -48,6 +48,9 @@ export async function POST(request: NextRequest) {
       employee_department,
       cycle_id,
       code_id,
+      b2c_consent,
+      b2c_contact_consent,
+      b2b_anonymized_consent,
     } = body as {
       formData: AssessmentFormData
       scores: Record<string, number>
@@ -56,6 +59,9 @@ export async function POST(request: NextRequest) {
       employee_department?: string
       cycle_id?: string
       code_id?: string
+      b2c_consent?: boolean
+      b2c_contact_consent?: boolean
+      b2b_anonymized_consent?: boolean
     }
 
     const nome = formData?.nome || ''
@@ -96,10 +102,26 @@ export async function POST(request: NextRequest) {
       status: `processing_dispatching_${Date.now()}`,
       doctor_uploads: doctorUploads,
     }
-    if (company_id) insertPayload.company_id = company_id
+    if (company_id) {
+      insertPayload.company_id = company_id
+      insertPayload.report_type = 'b2b-laudo'
+    }
     if (employee_department)
       insertPayload.employee_department = employee_department
     if (cycle_id) insertPayload.cycle_id = cycle_id
+
+    const now = new Date().toISOString()
+    if (b2c_consent != null) {
+      insertPayload.b2c_consent = b2c_consent
+      insertPayload.b2c_consent_at = b2c_consent ? now : null
+    }
+    if (b2c_contact_consent != null) {
+      insertPayload.b2c_contact_consent = b2c_contact_consent
+      insertPayload.b2c_contact_consent_at = b2c_contact_consent ? now : null
+    }
+    if (b2b_anonymized_consent != null) {
+      insertPayload.b2b_anonymized_consent = b2b_anonymized_consent
+    }
 
     const { data: row, error } = await sb
       .from('mental_health_evaluations')
@@ -127,6 +149,33 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', code_id)
     }
+
+    // Save percepcao reports for B2B evaluations
+    if (company_id) {
+      const canalPercepcao = formData.canal_percepcao as string | undefined
+      if (canalPercepcao?.trim()) {
+        await sb.from('b2b_percepcao_reports').insert({
+          evaluation_id: evaluationId,
+          company_id,
+          cycle_id: cycle_id || null,
+          source: 'canal_percepcao',
+          content: canalPercepcao.trim(),
+        })
+      }
+
+      const aepPercepcao = formData.aep_percepcao_livre as string | undefined
+      if (aepPercepcao?.trim()) {
+        await sb.from('b2b_percepcao_reports').insert({
+          evaluation_id: evaluationId,
+          company_id,
+          cycle_id: cycle_id || null,
+          source: 'aep_q15',
+          content: aepPercepcao.trim(),
+        })
+      }
+    }
+
+    const isB2B = !!company_id
 
     after(async () => {
       const p = (msg: string) => console.warn(`[submit:${requestId}] ${msg}`)
@@ -212,7 +261,7 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             evaluationId,
             mode: 'submit',
-            phase: 'stage1',
+            phase: isB2B ? 'b2b-laudo' : 'stage1',
             callerRequestId: requestId,
           }),
         })
