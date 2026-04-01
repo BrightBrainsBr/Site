@@ -2,6 +2,7 @@
 
 import {
   ClipboardList,
+  FileText,
   Mail,
   Search,
   Settings,
@@ -12,6 +13,8 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import type { B2BNR1Data } from '../../b2b-dashboard.interface'
+import { B2BNR1FieldsComponent } from './B2BNR1FieldsComponent'
 import { BulkInviteComponent } from './BulkInviteComponent'
 import { DepartmentsSection } from './DepartmentsSection'
 
@@ -52,6 +55,7 @@ interface SettingsData {
     evaluations: EvaluationEntry[]
     pending_invites: PendingInvite[]
   }
+  nr1?: B2BNR1Data
 }
 
 type SubTab = 'admins' | 'collaborators'
@@ -231,6 +235,51 @@ export function CompanySettingsComponent({
           )}
         </div>
       </div>
+
+      {/* NR-1 Section */}
+      {mode === 'b2b' && (
+        <>
+          <div className="flex items-center gap-3 pt-2">
+            <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-[#14B8A6]" />
+              <span className="text-[13px] font-semibold text-[#E2E8F0]">
+                Dados NR-1 da Empresa
+              </span>
+            </div>
+            <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
+          </div>
+          <B2BNR1FieldsComponent
+            companyId={companyId}
+            companyData={data?.nr1 ?? {
+              nr1_process_descriptions: null,
+              nr1_activities: null,
+              nr1_preventive_measures: null,
+              sst_responsible_name: null,
+              sst_responsible_role: null,
+              sst_signature_url: null,
+              cnae: null,
+              risk_grade: null,
+              emergency_sop_urls: null,
+            }}
+            onSave={async (nr1Data) => {
+              const res = await fetch(`${apiBase}/${companyId}/settings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'update_nr1_fields',
+                  ...nr1Data,
+                }),
+              })
+              if (!res.ok) {
+                const err = await res.json().catch(() => ({}))
+                throw new Error((err as { error?: string }).error || 'Failed to save')
+              }
+              await fetchSettings()
+            }}
+          />
+        </>
+      )}
     </div>
   )
 }

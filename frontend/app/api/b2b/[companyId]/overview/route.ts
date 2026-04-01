@@ -41,7 +41,7 @@ export async function GET(
 
   const { data: rows, error } = await sb
     .from('mental_health_evaluations')
-    .select('id, scores')
+    .select('id, scores, created_at')
     .eq('company_id', companyId)
     .eq('cycle_id', cycleRes.cycleId)
 
@@ -64,6 +64,16 @@ export async function GET(
   let countScore = 0
   let sumMbi = 0
   let countMbi = 0
+  let sumSrq20 = 0
+  let countSrq20 = 0
+  let sumAep = 0
+  let countAep = 0
+  let alertCount = 0
+
+  const monthlyBuckets = new Map<
+    string,
+    { baixo: number; moderado: number; elevado: number; critico: number }
+  >()
 
   for (const row of evaluations) {
     const scores = row.scores as Record<string, number> | null
@@ -71,11 +81,36 @@ export async function GET(
     if (norm != null) {
       sumScore += norm
       countScore++
-      riskDistribution[getRiskLevel(norm)]++
+      const level = getRiskLevel(norm)
+      riskDistribution[level]++
+      if (norm < 60) alertCount++
+
+      const month = (row.created_at as string)?.slice(0, 7) ?? 'unknown'
+      if (!monthlyBuckets.has(month)) {
+        monthlyBuckets.set(month, {
+          baixo: 0,
+          moderado: 0,
+          elevado: 0,
+          critico: 0,
+        })
+      }
+      const bucket = monthlyBuckets.get(month)!
+      if (level === 'low') bucket.baixo++
+      else if (level === 'moderate') bucket.moderado++
+      else if (level === 'elevated') bucket.elevado++
+      else bucket.critico++
     }
     if (scores && typeof scores.mbi === 'number') {
       sumMbi += scores.mbi
       countMbi++
+    }
+    if (scores && typeof scores.srq20 === 'number') {
+      sumSrq20 += scores.srq20
+      countSrq20++
+    }
+    if (scores && typeof scores.aep_total === 'number') {
+      sumAep += scores.aep_total
+      countAep++
     }
   }
 
@@ -83,12 +118,24 @@ export async function GET(
     countScore > 0 ? Math.round((sumScore / countScore) * 10) / 10 : null
   const burnoutIndex =
     countMbi > 0 ? Math.round((sumMbi / countMbi) * 10) / 10 : null
+  const srq20Avg =
+    countSrq20 > 0 ? Math.round((sumSrq20 / countSrq20) * 10) / 10 : null
+  const aepAvg =
+    countAep > 0 ? Math.round((sumAep / countAep) * 10) / 10 : null
+
+  const timeline = Array.from(monthlyBuckets.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, counts]) => ({ month, ...counts }))
 
   return NextResponse.json({
     total,
     avgScore,
     riskDistribution,
     burnoutIndex,
+    srq20Avg,
+    aepAvg,
+    alertCount,
+    timeline,
     cycleId: cycleRes.cycleId,
   })
 }

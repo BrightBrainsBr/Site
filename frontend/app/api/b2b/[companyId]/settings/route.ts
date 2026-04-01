@@ -1,3 +1,5 @@
+// frontend/app/api/b2b/[companyId]/settings/route.ts
+
 import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
@@ -50,7 +52,9 @@ export async function GET(
 
   const { data: company } = await sb
     .from('companies')
-    .select('id, name, allowed_domains, departments')
+    .select(
+      'id, name, allowed_domains, departments, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, sst_responsible_name, sst_responsible_role, sst_signature_url, cnae, risk_grade, emergency_sop_urls'
+    )
     .eq('id', companyId)
     .single()
 
@@ -92,6 +96,17 @@ export async function GET(
     collaborators: {
       evaluations: evaluations ?? [],
       pending_invites: invitedOnly,
+    },
+    nr1: {
+      nr1_process_descriptions: company?.nr1_process_descriptions ?? null,
+      nr1_activities: company?.nr1_activities ?? null,
+      nr1_preventive_measures: company?.nr1_preventive_measures ?? null,
+      sst_responsible_name: company?.sst_responsible_name ?? null,
+      sst_responsible_role: company?.sst_responsible_role ?? null,
+      sst_signature_url: company?.sst_signature_url ?? null,
+      cnae: company?.cnae ?? null,
+      risk_grade: company?.risk_grade ?? null,
+      emergency_sop_urls: company?.emergency_sop_urls ?? null,
     },
   })
 }
@@ -285,6 +300,87 @@ export async function POST(
       )
 
     await sb.from('companies').update({ departments }).eq('id', companyId)
+    return NextResponse.json({ success: true })
+  }
+
+  if (body.action === 'upload_file') {
+    const { bucket, fileName, contentType } = body as {
+      bucket: string
+      fileName: string
+      contentType: string
+    }
+    const allowedBuckets = ['company-signatures', 'company-documents']
+    if (!allowedBuckets.includes(bucket)) {
+      return NextResponse.json({ error: 'Invalid bucket' }, { status: 400 })
+    }
+    const filePath = `${companyId}/${Date.now()}-${fileName}`
+    const { data: signedData, error: signedError } = await sb.storage
+      .from(bucket)
+      .createSignedUploadUrl(filePath)
+
+    if (signedError) {
+      return NextResponse.json(
+        { error: signedError.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      signedUrl: signedData.signedUrl,
+      path: signedData.path,
+      token: signedData.token,
+      fullPath: `${filePath}`,
+    })
+  }
+
+  if (body.action === 'get_public_url') {
+    const { bucket, path: filePath } = body as {
+      bucket: string
+      path: string
+    }
+    const { data } = sb.storage.from(bucket).getPublicUrl(filePath)
+    return NextResponse.json({ publicUrl: data.publicUrl })
+  }
+
+  if (body.action === 'update_nr1_fields') {
+    const allowedFields = [
+      'nr1_process_descriptions',
+      'nr1_activities',
+      'nr1_preventive_measures',
+      'sst_responsible_name',
+      'sst_responsible_role',
+      'sst_signature_url',
+      'cnae',
+      'risk_grade',
+      'emergency_sop_urls',
+    ] as const
+
+    const update: Record<string, unknown> = {}
+    for (const field of allowedFields) {
+      if (field in body) {
+        update[field] = body[field]
+      }
+    }
+
+    if (Object.keys(update).length === 0) {
+      return NextResponse.json(
+        { error: 'No valid NR-1 fields provided' },
+        { status: 400 }
+      )
+    }
+
+    const { error: updateError } = await sb
+      .from('companies')
+      .update(update)
+      .eq('id', companyId)
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: updateError.message },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json({ success: true })
   }
 

@@ -8,6 +8,35 @@ import { validatePortalSession } from '../../../lib/validatePortalSession'
 
 export const runtime = 'nodejs'
 
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const valid = await validatePortalSession()
+  if (!valid) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id: companyId } = await params
+  const sb = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data, error } = await sb
+    .from('assessment_cycles')
+    .select('id, label, starts_at, ends_at, is_current')
+    .eq('company_id', companyId)
+    .order('starts_at', { ascending: false })
+
+  if (error) {
+    console.error('[portal/cycles GET]', error)
+    return NextResponse.json({ message: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json(data ?? [])
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

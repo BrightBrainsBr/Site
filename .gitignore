@@ -19,6 +19,11 @@ build
 .DS_Store
 *.pem
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
 # debug
 npm-debug.log*
 yarn-debug.log*

@@ -1,23 +1,21 @@
+// frontend/features/b2b-dashboard/components/tabs/B2BOverviewTab.tsx
 'use client'
 
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
   Pie,
   PieChart,
-  ReferenceLine,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
 
-import type { B2BOverviewData } from '../../b2b-dashboard.interface'
-import type { RiskLevel } from '../../b2b-dashboard.interface'
-import { useB2BDepartments } from '../../hooks/useB2BDepartments'
+import type { B2BOverviewData, RiskLevel } from '../../b2b-dashboard.interface'
+import { useB2BAlerts } from '../../hooks/useB2BAlerts'
 
 const RISK_COLORS: Record<RiskLevel, string> = {
   low: '#10B981',
@@ -26,11 +24,18 @@ const RISK_COLORS: Record<RiskLevel, string> = {
   critical: '#EF4444',
 }
 
-const SCORE_COLOR = (score: number) => {
-  if (score >= 70) return '#10B981'
-  if (score >= 65) return '#0D9488'
-  if (score >= 60) return '#F59E0B'
-  return '#F97316'
+const RISK_LABELS: Record<RiskLevel, string> = {
+  low: 'Baixo',
+  moderate: 'Moderado',
+  elevated: 'Elevado',
+  critical: 'Crítico',
+}
+
+const URGENCY_BADGE: Record<string, { bg: string; text: string }> = {
+  critical: { bg: 'rgba(239,68,68,0.15)', text: '#F87171' },
+  elevated: { bg: 'rgba(249,115,22,0.15)', text: '#FB923C' },
+  moderate: { bg: 'rgba(245,158,11,0.15)', text: '#FBBF24' },
+  low: { bg: 'rgba(16,185,129,0.15)', text: '#34D399' },
 }
 
 interface B2BOverviewTabProps {
@@ -44,10 +49,9 @@ export function B2BOverviewTab({
   cycleId,
   overview,
 }: B2BOverviewTabProps) {
-  const { data: deptData } = useB2BDepartments(companyId, cycleId)
+  const { data: alertsData } = useB2BAlerts(companyId, cycleId)
 
   const total = overview?.total ?? 0
-  const avgScore = overview?.avgScore ?? null
   const rd = overview?.riskDistribution ?? {
     critical: 0,
     elevated: 0,
@@ -55,96 +59,93 @@ export function B2BOverviewTab({
     low: 0,
   }
 
-  const pieData = [
-    { name: 'Baixo', value: rd.low, color: RISK_COLORS.low },
-    { name: 'Moderado', value: rd.moderate, color: RISK_COLORS.moderate },
-    { name: 'Elevado', value: rd.elevated, color: RISK_COLORS.elevated },
-    { name: 'Crítico', value: rd.critical, color: RISK_COLORS.critical },
-  ].filter((d) => d.value > 0)
+  const kpis = [
+    {
+      label: 'Total Avaliados',
+      value: total,
+      sub: 'avaliações',
+      borderColor: '#14B8A6',
+      valueColor: '#14B8A6',
+    },
+    {
+      label: 'Baixo',
+      value: rd.low,
+      sub: total > 0 ? `${Math.round((rd.low / total) * 100)}%` : '0%',
+      borderColor: '#10B981',
+      valueColor: '#10B981',
+    },
+    {
+      label: 'Moderado',
+      value: rd.moderate,
+      sub: total > 0 ? `${Math.round((rd.moderate / total) * 100)}%` : '0%',
+      borderColor: '#F59E0B',
+      valueColor: '#F59E0B',
+    },
+    {
+      label: 'Elevado',
+      value: rd.elevated,
+      sub: total > 0 ? `${Math.round((rd.elevated / total) * 100)}%` : '0%',
+      borderColor: '#F97316',
+      valueColor: '#F97316',
+    },
+    {
+      label: 'Crítico',
+      value: rd.critical,
+      sub: total > 0 ? `${Math.round((rd.critical / total) * 100)}%` : '0%',
+      borderColor: '#EF4444',
+      valueColor: '#EF4444',
+    },
+  ]
+
+  const pieData = (
+    ['low', 'moderate', 'elevated', 'critical'] as RiskLevel[]
+  )
+    .map((level) => ({
+      name: RISK_LABELS[level],
+      value: rd[level],
+      color: RISK_COLORS[level],
+    }))
+    .filter((d) => d.value > 0)
 
   const totalRisk = rd.low + rd.moderate + rd.elevated + rd.critical
 
-  const lineData =
-    avgScore != null ? [{ cycle: 'Ciclo atual', score: avgScore }] : []
+  const timeline = overview?.timeline ?? []
+  const TIMELINE_COLORS = {
+    baixo: '#10B981',
+    moderado: '#F59E0B',
+    elevado: '#F97316',
+    critico: '#EF4444',
+  }
 
-  const barData =
-    deptData?.departments.map((d) => ({
-      name: d.name.length > 16 ? d.name.slice(0, 16) : d.name,
-      avg: d.avgScore,
-      n: d.n,
-      color: SCORE_COLOR(d.avgScore),
-    })) ?? []
-
-  const departments = deptData?.departments ?? []
+  const alerts = alertsData?.alerts ?? []
 
   return (
     <div className="space-y-4">
-      {/* Row 1: 65/35 grid — matches HTML .grid-65 */}
-      <div className="grid gap-4 lg:grid-cols-[65fr_35fr]">
-        {/* Evolução do Score Cognitivo Médio */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
-              Evolução do Score Cognitivo Médio
-            </h3>
-            <span className="text-[11px] font-normal text-[#64748B]">
-              últimos 6 ciclos
-            </span>
+      {/* KPI strip */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        {kpis.map((k) => (
+          <div
+            key={k.label}
+            className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] py-3.5 pl-4 pr-4"
+            style={{ borderLeft: `3px solid ${k.borderColor}` }}
+          >
+            <p className="text-[11px] uppercase tracking-[0.5px] text-[#64748B]">
+              {k.label}
+            </p>
+            <p
+              className="mt-1.5 text-[26px] font-bold leading-none"
+              style={{ color: k.valueColor }}
+            >
+              {k.value}
+            </p>
+            <p className="mt-1 text-[11px] text-[#64748B]">{k.sub}</p>
           </div>
-          {lineData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200} minWidth={0}>
-              <AreaChart
-                data={lineData}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-              >
-                <defs>
-                  <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0D9488" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#0D9488" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  stroke="rgba(255,255,255,0.04)"
-                  strokeDasharray="0"
-                />
-                <XAxis
-                  dataKey="cycle"
-                  stroke="rgba(255,255,255,0.04)"
-                  tick={{ fontSize: 11, fill: '#64748B' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  stroke="rgba(255,255,255,0.04)"
-                  tick={{ fontSize: 11, fill: '#64748B' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <ReferenceLine
-                  y={64}
-                  stroke="rgba(245,158,11,0.5)"
-                  strokeDasharray="4 4"
-                  strokeWidth={1.5}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="score"
-                  stroke="#0D9488"
-                  strokeWidth={2.5}
-                  fill="url(#trendFill)"
-                  dot={{ fill: '#14B8A6', r: 4, strokeWidth: 0 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-[200px] items-center justify-center text-[13px] text-[#64748B]">
-              Dados históricos disponíveis após o segundo ciclo
-            </div>
-          )}
-        </div>
+        ))}
+      </div>
 
-        {/* Distribuição de Risco — donut */}
+      {/* Charts row */}
+      <div className="grid gap-4 lg:grid-cols-[45fr_55fr]">
+        {/* Donut chart */}
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
           <h3 className="mb-3 text-[13px] font-semibold text-[#E2E8F0]">
             Distribuição de Risco
@@ -210,161 +211,156 @@ export function B2BOverviewTab({
             </div>
           )}
         </div>
-      </div>
 
-      {/* Row 2: 50/50 grid */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Score por Departamento — horizontal bar chart */}
+        {/* Stacked bar chart — monthly evolution */}
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-3 flex items-center justify-between">
             <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
-              Score por Departamento
+              Evolução Mensal
             </h3>
-            <span className="text-[11px] font-normal text-[#64748B]">
-              média do grupo
+            <span className="text-[11px] text-[#64748B]">
+              distribuição de risco por mês
             </span>
           </div>
-          {barData.length > 0 ? (
-            <ResponsiveContainer
-              width="100%"
-              height={Math.max(200, barData.length * 44 + 20)}
-              minWidth={0}
-            >
-              <BarChart
-                data={barData}
-                layout="vertical"
-                margin={{ left: 0, right: 20, top: 4, bottom: 4 }}
-              >
-                <CartesianGrid
-                  horizontal={false}
-                  stroke="rgba(255,255,255,0.04)"
-                />
-                <XAxis
-                  type="number"
-                  domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: '#64748B' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={110}
-                  tick={{ fontSize: 11, fill: '#94A3B8' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <ReferenceLine
-                  x={64.1}
-                  stroke="rgba(245,158,11,0.4)"
-                  strokeWidth={1}
-                />
-                <Bar dataKey="avg" barSize={20} radius={[0, 4, 4, 0]}>
-                  {barData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-[200px] items-center justify-center text-[13px] text-[#64748B]">
-              Sem dados por departamento
-            </div>
-          )}
-        </div>
-
-        {/* Distribuição de Risco por Departamento (CSS stacked bars) */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <h3 className="mb-3 text-[13px] font-semibold text-[#E2E8F0]">
-            Distribuição de Risco por Departamento
-          </h3>
-          {departments.length > 0 ? (
-            <div className="mt-1">
-              {departments.map((d) => {
-                const totalDept =
-                  d.riskBreakdown.low +
-                  d.riskBreakdown.moderate +
-                  d.riskBreakdown.elevated +
-                  d.riskBreakdown.critical
-                const pL =
-                  totalDept > 0
-                    ? Math.round((d.riskBreakdown.low / totalDept) * 100)
-                    : 0
-                const pM =
-                  totalDept > 0
-                    ? Math.round((d.riskBreakdown.moderate / totalDept) * 100)
-                    : 0
-                const pE =
-                  totalDept > 0
-                    ? Math.round((d.riskBreakdown.elevated / totalDept) * 100)
-                    : 0
-                const pC =
-                  totalDept > 0
-                    ? Math.round((d.riskBreakdown.critical / totalDept) * 100)
-                    : 0
-                return (
-                  <div key={d.name} className="mb-2.5">
-                    <div className="mb-[3px] flex items-center justify-between text-[11px]">
-                      <span className="text-[#94A3B8]">{d.name}</span>
-                      <span className="text-[#64748B]">{totalDept} col.</span>
-                    </div>
-                    <div
-                      className="flex h-2 w-full overflow-hidden rounded"
-                      style={{ gap: '1px' }}
-                    >
-                      {totalDept > 0 ? (
-                        <>
-                          {pL > 0 && (
-                            <div
-                              style={{ width: `${pL}%`, background: '#10B981' }}
-                            />
-                          )}
-                          {pM > 0 && (
-                            <div
-                              style={{ width: `${pM}%`, background: '#F59E0B' }}
-                            />
-                          )}
-                          {pE > 0 && (
-                            <div
-                              style={{ width: `${pE}%`, background: '#F97316' }}
-                            />
-                          )}
-                          {pC > 0 && (
-                            <div
-                              style={{ width: `${pC}%`, background: '#EF4444' }}
-                            />
-                          )}
-                        </>
-                      ) : (
-                        <div className="h-full w-full bg-[#1a3a5c]" />
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-              <div className="mt-1.5 flex gap-3 text-[10px] text-[#64748B]">
-                {[
-                  ['#10B981', 'Baixo'],
-                  ['#F59E0B', 'Moderado'],
-                  ['#F97316', 'Elevado'],
-                  ['#EF4444', 'Crítico'],
-                ].map(([c, l]) => (
-                  <span key={l} className="flex items-center gap-1">
+          {timeline.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={220} minWidth={0}>
+                <BarChart
+                  data={timeline}
+                  margin={{ top: 5, right: 5, left: -10, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    vertical={false}
+                    stroke="rgba(255,255,255,0.04)"
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 10, fill: '#64748B' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: '#64748B' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#132540',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                    itemStyle={{ color: '#E2E8F0' }}
+                  />
+                  <Bar
+                    dataKey="baixo"
+                    name="Baixo"
+                    stackId="risk"
+                    fill={TIMELINE_COLORS.baixo}
+                    barSize={28}
+                  />
+                  <Bar
+                    dataKey="moderado"
+                    name="Moderado"
+                    stackId="risk"
+                    fill={TIMELINE_COLORS.moderado}
+                    barSize={28}
+                  />
+                  <Bar
+                    dataKey="elevado"
+                    name="Elevado"
+                    stackId="risk"
+                    fill={TIMELINE_COLORS.elevado}
+                    barSize={28}
+                  />
+                  <Bar
+                    dataKey="critico"
+                    name="Crítico"
+                    stackId="risk"
+                    fill={TIMELINE_COLORS.critico}
+                    radius={[4, 4, 0, 0]}
+                    barSize={28}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="mt-2 flex justify-center gap-4 text-[10px] text-[#64748B]">
+                {Object.entries(TIMELINE_COLORS).map(([key, color]) => (
+                  <span key={key} className="flex items-center gap-1">
                     <span
                       className="h-2 w-2 rounded-sm"
-                      style={{ background: c }}
+                      style={{ background: color }}
                     />
-                    {l}
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
                   </span>
                 ))}
               </div>
-            </div>
+            </>
           ) : (
-            <div className="flex h-[200px] items-center justify-center text-[13px] text-[#64748B]">
-              Sem dados por departamento
+            <div className="flex h-[220px] items-center justify-center text-[13px] text-[#64748B]">
+              Dados de evolução disponíveis após o segundo ciclo
             </div>
           )}
         </div>
+      </div>
+
+      {/* Alerts section */}
+      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
+            Alertas
+          </h3>
+          {alerts.length > 0 && (
+            <span className="rounded-full bg-[rgba(239,68,68,0.15)] px-2 py-0.5 text-[10px] font-bold text-[#F87171]">
+              {alerts.length}
+            </span>
+          )}
+        </div>
+        {alerts.length > 0 ? (
+          <div className="space-y-2">
+            {alerts.slice(0, 10).map((alert) => {
+              const badge =
+                URGENCY_BADGE[alert.riskLevel] ?? URGENCY_BADGE.low
+              return (
+                <div
+                  key={alert.id}
+                  className="flex items-center gap-3 rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#0A1628] px-3 py-2.5"
+                >
+                  <span
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    style={{
+                      backgroundColor: badge.bg,
+                      color: badge.text,
+                    }}
+                  >
+                    {alert.riskLevel === 'critical'
+                      ? 'Crítico'
+                      : alert.riskLevel === 'elevated'
+                        ? 'Elevado'
+                        : alert.riskLevel === 'moderate'
+                          ? 'Moderado'
+                          : 'Baixo'}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[12px] text-[#E2E8F0]">
+                      Colaborador anônimo
+                      {alert.department ? ` · ${alert.department}` : ''}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+            {alerts.length > 10 && (
+              <p className="pt-1 text-center text-[11px] text-[#64748B]">
+                +{alerts.length - 10} alertas adicionais
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="py-6 text-center text-[13px] text-[#64748B]">
+            Nenhum alerta neste ciclo
+          </p>
+        )}
       </div>
     </div>
   )
