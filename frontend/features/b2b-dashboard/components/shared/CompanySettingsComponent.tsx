@@ -4,12 +4,13 @@ import {
   ClipboardList,
   FileText,
   Mail,
+  RefreshCw,
   Search,
   Settings,
   Shield,
   Trash2,
   UserPlus,
-  Users,
+  XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -231,6 +232,9 @@ export function CompanySettingsComponent({
             <CollaboratorsSection
               evaluations={data?.collaborators?.evaluations ?? []}
               pendingInvites={data?.collaborators?.pending_invites ?? []}
+              companyId={companyId}
+              apiBase={apiBase}
+              onUpdate={fetchSettings}
             />
           )}
         </div>
@@ -493,11 +497,46 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 function CollaboratorsSection({
   evaluations,
   pendingInvites,
+  companyId,
+  apiBase,
+  onUpdate,
 }: {
   evaluations: EvaluationEntry[]
   pendingInvites: PendingInvite[]
+  companyId: string
+  apiBase: string
+  onUpdate: () => void
 }) {
   const [search, setSearch] = useState('')
+  const [resending, setResending] = useState<string | null>(null)
+  const [revoking, setRevoking] = useState<string | null>(null)
+
+  const resendInvite = async (email: string) => {
+    setResending(email)
+    try {
+      await fetch(`${apiBase}/${companyId}/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'resend_invite', email }),
+      })
+    } finally {
+      setResending(null)
+    }
+  }
+
+  const revokeInvite = async (inviteId: string) => {
+    setRevoking(inviteId)
+    try {
+      await fetch(`${apiBase}/${companyId}/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'remove_invite', inviteId }),
+      })
+      onUpdate()
+    } finally {
+      setRevoking(null)
+    }
+  }
 
   const collaborators = useMemo(() => {
     const map = new Map<
@@ -639,6 +678,7 @@ function CollaboratorsSection({
               <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Data
               </th>
+              <th className="px-3 py-2 text-right text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]" />
             </tr>
           </thead>
           <tbody>
@@ -647,6 +687,10 @@ function CollaboratorsSection({
                 label: c.status,
                 color: '#94A3B8',
               }
+              const isPending = c.status === 'invited'
+              const inviteId = isPending
+                ? (pendingInvites.find((p) => p.employee_email === c.email)?.id ?? null)
+                : null
               return (
                 <tr
                   key={c.key}
@@ -679,6 +723,32 @@ function CollaboratorsSection({
                   </td>
                   <td className="px-3 py-2.5 text-[#94A3B8]">
                     {new Date(c.date).toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-3 py-2.5 text-right">
+                    {isPending && c.email && (
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => void resendInvite(c.email!)}
+                          disabled={resending === c.email}
+                          title="Reenviar convite"
+                          className="inline-flex items-center gap-1 text-[11px] text-[#14B8A6] transition-colors hover:text-[#0D9488] disabled:opacity-40"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          {resending === c.email ? '...' : 'Reenviar'}
+                        </button>
+                        {inviteId && (
+                          <button
+                            onClick={() => void revokeInvite(inviteId)}
+                            disabled={revoking === inviteId}
+                            title="Revogar convite"
+                            className="inline-flex items-center gap-1 text-[11px] text-[#F87171] transition-colors hover:text-[#EF4444] disabled:opacity-40"
+                          >
+                            <XCircle className="h-3 w-3" />
+                            {revoking === inviteId ? '...' : 'Revogar'}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               )

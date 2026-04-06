@@ -246,6 +246,45 @@ export async function POST(
     return NextResponse.json({ results })
   }
 
+  if (body.action === 'remove_invite') {
+    const inviteId = body.inviteId
+    if (!inviteId)
+      return NextResponse.json({ error: 'inviteId required' }, { status: 400 })
+
+    const { error } = await sb
+      .from('company_access_codes')
+      .delete()
+      .eq('id', inviteId)
+      .eq('company_id', companyId)
+      .is('used_at', null)
+
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
+  if (body.action === 'resend_invite') {
+    const email: string | undefined = body.email
+    if (!email)
+      return NextResponse.json({ error: 'email required' }, { status: 400 })
+
+    const redirectTo = `${getSiteUrl()}/pt-BR/empresa/auth-callback`
+    const { error: authErr } = await sb.auth.admin.inviteUserByEmail(email, {
+      redirectTo,
+      data: { needs_password_setup: true, invite_role: 'collaborator' },
+    })
+
+    if (
+      authErr &&
+      !authErr.message?.toLowerCase().includes('already') &&
+      !authErr.message?.toLowerCase().includes('registered')
+    ) {
+      return NextResponse.json({ error: authErr.message }, { status: 400 })
+    }
+
+    return NextResponse.json({ success: true })
+  }
+
   if (body.action === 'remove_user') {
     const userId = body.userId
     if (!userId)

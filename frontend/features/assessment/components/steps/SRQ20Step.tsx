@@ -53,7 +53,6 @@ export function SRQ20Step({ data, setData, onPrev, onNext }: StepComponentProps)
 
   const handleAnswer = (index: number, value: number) => {
     const updated = [...answers]
-    while (updated.length < SRQ20_QUESTIONS.length) updated.push(0)
     updated[index] = value
     setData({ ...data, srq20_answers: updated })
   }

@@ -147,6 +147,29 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
     )
   }
 
+  if (departments.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[18px]">🏢</span>
+            <h2 className="text-[18px] font-bold text-[#e2e8f0]">Mapa de Riscos por Setor</h2>
+          </div>
+          <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Ref. NR-1: 1.5.7.3.2 — Inventário consolidado por grupo de exposição</p>
+        </div>
+        <div className="flex flex-col items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-6 py-16 text-center">
+          <span className="text-[32px]">🏢</span>
+          <h3 className="mt-3 text-[14px] font-semibold text-[#e2e8f0]">
+            Nenhum setor com avaliações neste ciclo
+          </h3>
+          <p className="mt-2 max-w-md text-[13px] text-[#94a3b8]">
+            O mapa de riscos por setor é gerado automaticamente a partir das avaliações dos colaboradores. Mínimo de 10 avaliações recomendado.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   const sortButton = (field: SortField, label: string) => (
     <button
       onClick={() => handleSort(field)}

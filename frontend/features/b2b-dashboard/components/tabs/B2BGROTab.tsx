@@ -139,9 +139,14 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
       </div>
 
       {noData ? (
-        <div className="flex h-48 items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[13px] text-[#64748b]">
-          Nenhum dado GRO disponível — execute avaliações para gerar os
-          indicadores.
+        <div className="flex flex-col items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-6 py-16 text-center">
+          <span className="text-[32px]">⚖️</span>
+          <h3 className="mt-3 text-[14px] font-semibold text-[#e2e8f0]">
+            Nenhum dado GRO disponível
+          </h3>
+          <p className="mt-2 max-w-md text-[13px] text-[#94a3b8]">
+            Os indicadores de GRO Psicossocial são gerados automaticamente a partir das avaliações dos colaboradores. Mínimo de 10 avaliações recomendado.
+          </p>
         </div>
       ) : (
         <>

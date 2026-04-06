@@ -143,6 +143,15 @@ export function B2BDashboardComponent({
     tracking != null &&
     tracking.completionPct < 30
 
+  const noInvites =
+    !trackingLoading && tracking != null && tracking.total === 0
+
+  useEffect(() => {
+    if (!isPortalMode && noInvites) {
+      void setActiveTab('settings')
+    }
+  }, [noInvites, isPortalMode, setActiveTab])
+
   const activeCycleId = cycleId ?? currentCycle?.id
   const updatedDate = compliance?.cycle?.ends_at
     ? new Date(compliance.cycle.ends_at).toLocaleDateString('pt-BR')
@@ -344,6 +353,8 @@ export function B2BDashboardComponent({
                   companyId={companyId}
                   cycleId={cycleId}
                   overview={overview}
+                  isPortalMode={isPortalMode}
+                  onNavigateToSettings={() => void setActiveTab('settings')}
                 />
               )}
               {activeTab === 'setores' && (

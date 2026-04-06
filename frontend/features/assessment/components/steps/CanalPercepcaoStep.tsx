@@ -4,7 +4,7 @@
 import { twMerge } from 'tailwind-merge'
 
 import type { StepComponentProps } from '../assessment.interface'
-import { RadioGroup, Select, Textarea, SectionTitle } from '../fields'
+import { Textarea, SectionTitle } from '../fields'
 import { StepNavigation } from '../StepNavigation'
 
 const URGENCIA_OPTIONS = [
@@ -13,19 +13,19 @@ const URGENCIA_OPTIONS = [
 ] as const
 
 const TIPO_OPTIONS = [
-  { id: 'estresse', label: 'Estresse', icon: '😰' },
-  { id: 'sobrecarga', label: 'Sobrecarga', icon: '⚡' },
-  { id: 'assedio_moral', label: 'Assédio Moral', icon: '🚫' },
-  { id: 'assedio_sexual', label: 'Assédio Sexual', icon: '⛔' },
-  { id: 'conflito', label: 'Conflito', icon: '💥' },
-  { id: 'condicoes_fisicas', label: 'Condições Físicas', icon: '🏗️' },
-  { id: 'falta_recursos', label: 'Falta de Recursos', icon: '🔧' },
-  { id: 'discriminacao', label: 'Discriminação', icon: '⚖️' },
-  { id: 'outro', label: 'Outro', icon: '📝' },
+  'Estresse excessivo',
+  'Assédio moral',
+  'Assédio sexual',
+  'Sobrecarga de trabalho',
+  'Conflito interpessoal',
+  'Condições físicas inadequadas',
+  'Falta de recursos/ferramentas',
+  'Discriminação',
+  'Outro',
 ] as const
 
 const FREQUENCIA_OPTIONS = [
-  { label: 'Isolado', value: 'isolado' },
+  { label: 'Episódio isolado', value: 'isolado' },
   { label: 'Recorrente', value: 'recorrente' },
   { label: 'Contínuo', value: 'continuo' },
 ] as const
@@ -35,6 +35,21 @@ const IMPACTO_OPTIONS = [
   { label: 'Moderado', value: 'moderado' },
   { label: 'Alto', value: 'alto' },
   { label: 'Crítico', value: 'critico' },
+] as const
+
+const DEFAULT_SETORES = [
+  'Administrativo',
+  'Comercial',
+  'Financeiro',
+  'Jurídico',
+  'Marketing',
+  'Operações',
+  'RH',
+  'TI',
+  'Produção',
+  'Logística',
+  'Atendimento',
+  'Outro',
 ] as const
 
 interface CanalPercepcao {
@@ -57,6 +72,26 @@ const EMPTY_CANAL: CanalPercepcao = {
   sugestao: '',
 }
 
+function FieldLabel({
+  label,
+  required,
+  hint,
+}: {
+  label: string
+  required?: boolean
+  hint?: string
+}) {
+  return (
+    <div className="mb-2">
+      <label className="text-sm font-medium text-zinc-300">
+        {label}
+        {required && <span className="ml-0.5 text-red-400">*</span>}
+      </label>
+      {hint && <p className="mt-0.5 text-xs text-zinc-500">{hint}</p>}
+    </div>
+  )
+}
+
 export function CanalPercepcaoStep({
   data,
   setData,
@@ -71,10 +106,10 @@ export function CanalPercepcaoStep({
   }
 
   const departments = companyContext?.departments ?? []
-  const setorOptions = [
-    ...departments.map((d) => ({ label: d, value: d })),
-    { label: 'Outro', value: 'outro' },
-  ]
+  const setorList: string[] =
+    departments.length > 0
+      ? [...departments, 'Outro']
+      : [...DEFAULT_SETORES]
 
   const isValid =
     canal.urgencia !== '' &&
@@ -88,107 +123,205 @@ export function CanalPercepcaoStep({
     <div>
       <SectionTitle
         icon="📢"
-        title="Canal de Percepção"
+        title="Canal de Percepção de Riscos"
         subtitle="Registre sua percepção sobre riscos psicossociais no ambiente de trabalho. Todas as respostas são anonimizadas."
         required
       />
 
-      {canal.urgencia === 'urgente' && (
-        <div className="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 p-4">
-          <p className="text-sm font-semibold text-red-400">
-            Se você precisa de ajuda imediata, ligue para o CVV — 188 (24h, gratuito)
-          </p>
-          <p className="mt-1 text-sm text-red-300">
-            Ou acesse{' '}
-            <a
-              href="https://www.cvv.org.br"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-red-200"
-            >
-              cvv.org.br
-            </a>
-          </p>
+      {/* Anonymity notice */}
+      <div className="mb-5 rounded-lg border border-emerald-500/30 bg-emerald-500/8 p-4">
+        <div className="flex items-start gap-3">
+          <span className="text-base">🔒</span>
+          <div>
+            <p className="text-sm font-semibold text-emerald-400">
+              Este relato é 100% anônimo e criptografado
+            </p>
+            <p className="mt-1 text-xs text-zinc-500">
+              Seu nome, e-mail e IP não são registrados. O RH terá acesso apenas ao conteúdo
+              consolidado, sem possibilidade de identificação individual.
+            </p>
+          </div>
         </div>
-      )}
+      </div>
 
       <div className="space-y-6">
-        <RadioGroup
-          label="Urgência"
-          value={canal.urgencia}
-          onChange={(v) => update('urgencia', v)}
-          options={URGENCIA_OPTIONS}
-          required
-          inline
-        />
-
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium text-zinc-300">
-            Tipo de Situação<span className="ml-0.5 text-lime-400">*</span>
-          </legend>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {TIPO_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => update('tipo', opt.id)}
-                className={twMerge(
-                  'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors',
-                  canal.tipo === opt.id
-                    ? 'border-lime-400 bg-lime-400/10 text-lime-400'
-                    : 'border-zinc-700 bg-zinc-800/30 text-zinc-400 hover:border-zinc-600'
-                )}
-              >
-                <span>{opt.icon}</span>
-                {opt.label}
-              </button>
-            ))}
+        {/* Urgência */}
+        <div>
+          <FieldLabel
+            label="Nível de urgência"
+            required
+            hint="Selecione 'Preciso de ajuda agora' para situações que demandam ação imediata do RH."
+          />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {URGENCIA_OPTIONS.map((opt) => {
+              const active = canal.urgencia === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update('urgencia', opt.value)}
+                  className={twMerge(
+                    'flex flex-1 items-center gap-2 rounded-lg border px-4 py-2.5 text-sm transition-colors',
+                    active
+                      ? 'border-lime-400 bg-lime-400/10 font-semibold text-lime-400'
+                      : 'border-zinc-700 bg-zinc-800/30 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
+                  )}
+                >
+                  <span
+                    className={twMerge(
+                      'h-2.5 w-2.5 rounded-full border-2 shrink-0',
+                      active ? 'border-lime-400 bg-lime-400' : 'border-zinc-600'
+                    )}
+                  />
+                  {opt.label}
+                </button>
+              )
+            })}
           </div>
-        </fieldset>
+        </div>
 
-        <RadioGroup
-          label="Frequência"
-          value={canal.frequencia}
-          onChange={(v) => update('frequencia', v)}
-          options={FREQUENCIA_OPTIONS}
-          required
-          inline
-        />
+        {/* Urgência warning */}
+        {canal.urgencia === 'urgente' && (
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4">
+            <p className="text-sm font-semibold text-red-400">
+              ⚠️ Seu relato será encaminhado para triagem prioritária. Se você está em risco
+              imediato, procure também o canal de emergência da empresa ou o CVV (188).
+            </p>
+          </div>
+        )}
 
-        <Select
-          label="Setor / Departamento"
-          value={canal.setor}
-          onChange={(v) => update('setor', v)}
-          options={setorOptions}
-          placeholder="Selecione o setor"
-          required
-        />
+        {/* Tipo de Situação */}
+        <div>
+          <FieldLabel
+            label="Tipo de situação"
+            required
+            hint="Selecione a categoria que melhor descreve o que você está vivenciando."
+          />
+          <div className="flex flex-wrap gap-2">
+            {TIPO_OPTIONS.map((t) => {
+              const active = canal.tipo === t
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => update('tipo', t)}
+                  className={twMerge(
+                    'rounded-lg border px-3 py-2 text-sm transition-colors',
+                    active
+                      ? 'border-lime-400 bg-lime-400/10 font-semibold text-lime-400'
+                      : 'border-zinc-700 bg-zinc-800/20 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
+                  )}
+                >
+                  {t}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-        <RadioGroup
-          label="Impacto percebido"
-          value={canal.impacto}
-          onChange={(v) => update('impacto', v)}
-          options={IMPACTO_OPTIONS}
-          required
-          inline
-        />
+        {/* Frequência */}
+        <div>
+          <FieldLabel
+            label="Frequência"
+            required
+            hint="Com que frequência essa situação acontece?"
+          />
+          <div className="flex gap-2">
+            {FREQUENCIA_OPTIONS.map((opt) => {
+              const active = canal.frequencia === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update('frequencia', opt.value)}
+                  className={twMerge(
+                    'flex-1 rounded-lg border px-3 py-2.5 text-center text-sm transition-colors',
+                    active
+                      ? 'border-lime-400 bg-lime-400/10 font-semibold text-lime-400'
+                      : 'border-zinc-700 bg-zinc-800/30 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
+        {/* Setor / Departamento — column buttons */}
+        <div>
+          <FieldLabel
+            label="Setor / Departamento"
+            hint="Selecionar o setor ajuda o RH a cruzar com o Inventário de Riscos. Não identifica você."
+          />
+          <div className="flex flex-col gap-2">
+            {setorList.map((s) => {
+              const active = canal.setor === s
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => update('setor', s)}
+                  className={twMerge(
+                    'w-full rounded-lg border px-4 py-2.5 text-center text-sm transition-colors',
+                    active
+                      ? 'border-lime-400 bg-lime-400/10 font-semibold text-lime-400'
+                      : 'border-zinc-700 bg-zinc-800/20 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
+                  )}
+                >
+                  {s}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Nível de impacto percebido */}
+        <div>
+          <FieldLabel
+            label="Nível de impacto percebido"
+            required
+            hint="Quanto essa situação afeta seu bem-estar, produtividade ou saúde?"
+          />
+          <div className="flex gap-2">
+            {IMPACTO_OPTIONS.map((opt) => {
+              const active = canal.impacto === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update('impacto', opt.value)}
+                  className={twMerge(
+                    'flex-1 rounded-lg border px-3 py-2.5 text-center text-sm transition-colors',
+                    active
+                      ? 'border-lime-400 bg-lime-400/10 font-semibold text-lime-400'
+                      : 'border-zinc-700 bg-zinc-800/30 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Descrição */}
         <Textarea
-          label="Descrição da situação"
+          label="Descrição"
           value={canal.descricao}
           onChange={(v) => update('descricao', v)}
-          placeholder="Descreva a situação que deseja reportar..."
+          placeholder="Descreva a situação com o máximo de detalhes que se sentir confortável. Lembre-se: este relato é anônimo."
           required
-          rows={4}
+          rows={5}
         />
 
+        {/* Sugestão de melhoria */}
         <Textarea
-          label="Sugestão de melhoria"
+          label="Sugestão de melhoria (opcional)"
           value={canal.sugestao}
           onChange={(v) => update('sugestao', v)}
-          placeholder="Se tiver alguma sugestão, compartilhe aqui..."
+          placeholder="Se tiver uma ideia de como resolver ou melhorar a situação, compartilhe aqui."
           rows={3}
-          hint="Campo opcional."
         />
       </div>
 
@@ -197,9 +330,7 @@ export function CanalPercepcaoStep({
         onNext={onNext}
         nextDisabled={!isValid}
         nextDisabledMessage={
-          !isValid
-            ? 'Preencha todos os campos obrigatórios para continuar.'
-            : undefined
+          !isValid ? 'Preencha todos os campos obrigatórios para continuar.' : undefined
         }
       />
     </div>

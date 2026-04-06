@@ -15,11 +15,11 @@ import { SectionTitle, Textarea } from '../fields'
 import { StepNavigation } from '../StepNavigation'
 
 const DIMENSION_COLOR_MAP: Record<string, string> = {
-  'Pressão por Metas': 'text-red-400',
+  'Pressão por Metas e Carga de Trabalho': 'text-red-400',
   'Autonomia e Controle': 'text-blue-400',
   'Pausas e Jornada': 'text-amber-400',
-  'Relações Interpessoais': 'text-emerald-400',
-  'Demandas Cognitivas': 'text-purple-400',
+  'Relações Interpessoais e Suporte': 'text-emerald-400',
+  'Demandas Cognitivas e Emocionais': 'text-purple-400',
   'Ambiente e Organização': 'text-cyan-400',
 }
 
@@ -31,7 +31,6 @@ export function AEPStep({ data, setData, onPrev, onNext }: StepComponentProps) {
 
   const handleAnswer = (index: number, value: number) => {
     const updated = [...answers]
-    while (updated.length < AEP_QUESTIONS.length) updated.push(0)
     updated[index] = value
     setData({ ...data, aep_answers: updated })
   }

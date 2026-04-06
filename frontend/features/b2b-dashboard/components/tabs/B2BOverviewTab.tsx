@@ -38,16 +38,22 @@ const RISK_ICONS: Record<RiskLevel, string> = {
   critical: '🔴',
 }
 
+const MIN_EVALUATIONS = 10
+
 interface B2BOverviewTabProps {
   companyId: string | null
   cycleId: string | null
   overview: B2BOverviewData | undefined
+  isPortalMode?: boolean
+  onNavigateToSettings?: () => void
 }
 
 export function B2BOverviewTab({
   companyId,
   cycleId,
   overview,
+  isPortalMode = false,
+  onNavigateToSettings,
 }: B2BOverviewTabProps) {
   const { data: alertsData } = useB2BAlerts(companyId, cycleId)
 
@@ -129,6 +135,38 @@ export function B2BOverviewTab({
 
   const alerts = alertsData?.alerts ?? []
 
+  if (total === 0) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[18px]">📊</span>
+            <h2 className="text-[18px] font-bold text-[#e2e8f0]">Visão Geral</h2>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-6 py-16 text-center">
+          <span className="text-[40px]">🧠</span>
+          <h3 className="mt-4 text-[16px] font-semibold text-[#e2e8f0]">
+            Nenhuma avaliação realizada neste ciclo
+          </h3>
+          <p className="mt-2 max-w-md text-[13px] leading-relaxed text-[#94a3b8]">
+            {isPortalMode
+              ? `Os painéis serão exibidos quando houver pelo menos ${MIN_EVALUATIONS} avaliações completas neste ciclo.`
+              : `Configure os colaboradores em Configurações e convide-os para preencher o formulário. Os painéis são exibidos a partir de ${MIN_EVALUATIONS} avaliações completas.`}
+          </p>
+          {!isPortalMode && onNavigateToSettings && (
+            <button
+              onClick={onNavigateToSettings}
+              className="mt-5 rounded-lg bg-[rgba(197,225,85,0.15)] px-5 py-2 text-[13px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)]"
+            >
+              → Ir para Configurações
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -138,6 +176,15 @@ export function B2BOverviewTab({
           <h2 className="text-[18px] font-bold text-[#e2e8f0]">Visão Geral</h2>
         </div>
       </div>
+
+      {/* Sub-threshold banner */}
+      {total > 0 && total < MIN_EVALUATIONS && (
+        <div className="rounded-[10px] border border-[rgba(234,179,8,0.2)] bg-[rgba(234,179,8,0.06)] px-4 py-3">
+          <p className="text-[12px] text-[#eab308]">
+            ⚠️ Dados preliminares ({total}/{MIN_EVALUATIONS}) — Os gráficos ficam mais precisos a partir de {MIN_EVALUATIONS} avaliações completas.
+          </p>
+        </div>
+      )}
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-5">
