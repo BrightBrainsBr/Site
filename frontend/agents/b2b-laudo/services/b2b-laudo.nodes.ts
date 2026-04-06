@@ -480,12 +480,9 @@ function pdcaTable(doc: jsPDF, rows: PdcaRow[], y: number, ens: (y: number, n: n
     fr(doc, MX, y, CW, rowH, i % 2 === 0 ? ROW1 : WHITE); sr(doc, MX, y, CW, rowH, RULE)
 
     cx = MX + 3
-    // Prioridade badge — dark text on colored bg for legibility
-    const badgeW = priorCol - 4; const badgeH = rowH - 4
-    fr(doc, cx, y + 2, badgeW, badgeH, riskBg(priorLvl))
-    sd(doc, riskFg(priorLvl)); doc.setLineWidth(0.4); doc.rect(cx, y + 2, badgeW, badgeH, 'S')
-    doc.setFontSize(7); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
-    doc.text(row.prior, cx + badgeW / 2, y + rowH / 2 + 2, { align: 'center' })
+    // Prioridade — just colored text, no box
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(doc, riskFg(priorLvl))
+    doc.text(row.prior, cx + priorCol / 2, y + rowH / 2 + 2, { align: 'center' })
     cx += priorCol
 
     // Ação (multiline)
