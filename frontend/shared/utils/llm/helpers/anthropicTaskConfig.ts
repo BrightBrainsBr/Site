@@ -10,7 +10,8 @@ const COMPLEX_TASKS = new Set([
   'pipeline_strategy',
   'learning_synthesis',
   'copy_analysis',
-  'b2b_laudo_generation',
+  // b2b_laudo_generation intentionally excluded: extended thinking + 16k tokens
+  // causes Vercel 5-min function timeout. Uses MODERATE path instead (no thinking, 8k tokens).
 ])
 
 const MODERATE_TASKS = new Set([
@@ -21,6 +22,9 @@ const MODERATE_TASKS = new Set([
   'pdf_extraction',
   'action_plan_generation',
 ])
+
+// Tasks that need high output token limits but not extended thinking
+const HIGH_OUTPUT_TASKS = new Set(['b2b_laudo_generation'])
 
 /**
  * Get optimized Anthropic config based on task complexity.
@@ -47,6 +51,9 @@ export function getAnthropicConfigForTask(
     config.enable_thinking = true
     config.thinking_budget_tokens = 10000
     config.max_tokens = 16000
+  } else if (HIGH_OUTPUT_TASKS.has(taskType)) {
+    config.enable_thinking = false
+    config.max_tokens = 8192
   } else if (MODERATE_TASKS.has(taskType)) {
     config.enable_thinking = false
     config.max_tokens = 4096

@@ -46,6 +46,24 @@ function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
   return laudo
 }
 
+const PROFILE_LABELS: Record<string, string> = {
+  adulto: 'Adulto (Psiquiatria Geral)',
+  infantil: 'Infantil / Adolescente',
+  neuro: 'Neurológico',
+  executivo: 'Executivo',
+  longevidade: 'Longevidade',
+}
+
+const B2B_SCALE_LABELS: { key: string; label: string; max?: number }[] = [
+  { key: 'srq20', label: 'SRQ-20 — Saúde Mental Geral', max: 20 },
+  { key: 'phq9', label: 'PHQ-9 — Depressão', max: 27 },
+  { key: 'gad7', label: 'GAD-7 — Ansiedade', max: 21 },
+  { key: 'pss10', label: 'PSS-10 — Estresse', max: 40 },
+  { key: 'mbi', label: 'MBI — Burnout', max: 132 },
+  { key: 'isi', label: 'ISI — Qualidade do Sono', max: 28 },
+  { key: 'aep_total', label: 'AEP — Fatores Psicossociais', max: 56 },
+]
+
 export function SummaryStep({
   data,
   onPrev,
@@ -179,24 +197,67 @@ export function SummaryStep({
       {phase === 'review' && (
         <>
           <div className="mb-6 space-y-3">
+            {/* Personal data — always shown */}
             <SummaryCard
-              title="Paciente"
+              title="Dados Pessoais"
               items={[
                 `Nome: ${data.nome || '—'}`,
                 `Nascimento: ${data.nascimento || '—'}`,
-                `Perfil: ${data.publico || '—'}`,
-              ]}
+                data.email ? `E-mail: ${data.email}` : null,
+                data.sexo ? `Sexo: ${data.sexo}` : null,
+              ].filter(Boolean) as string[]}
             />
-            <SummaryCard
-              title="Queixa Principal"
-              items={[data.queixaPrincipal || '(não informado)']}
-            />
+
+            {isCorporate ? (
+              /* B2B: show scale scores */
+              <B2BScalesSummary scores={scores} />
+            ) : (
+              /* B2C: show clinical profile data */
+              <>
+                {(data.publico || data.queixaPrincipal) && (
+                  <SummaryCard
+                    title="Perfil Clínico"
+                    items={[
+                      data.publico
+                        ? `Perfil: ${PROFILE_LABELS[data.publico] ?? data.publico}`
+                        : null,
+                      data.queixaPrincipal
+                        ? `Queixa: ${data.queixaPrincipal}`
+                        : null,
+                      data.tempoSintomas
+                        ? `Tempo dos sintomas: ${data.tempoSintomas}`
+                        : null,
+                    ].filter(Boolean) as string[]}
+                  />
+                )}
+                {data.sintomasAtuais.length > 0 && (
+                  <SummaryCard
+                    title="Sintomas Relatados"
+                    items={[`${data.sintomasAtuais.length} sintoma(s) selecionado(s)`, ...data.sintomasAtuais.slice(0, 4)]}
+                  />
+                )}
+                <B2CScalesSummary scores={scores} />
+              </>
+            )}
+
             {data.medicamentos.length > 0 && (
               <SummaryCard
                 title="Medicamentos"
                 items={data.medicamentos.map(
                   (m) => `${m.nome} ${m.dose} — ${m.tempo}`
                 )}
+              />
+            )}
+
+            {isCorporate && data.canal_percepcao?.descricao?.trim() && (
+              <SummaryCard
+                title="Canal de Percepção"
+                items={[
+                  data.canal_percepcao.urgencia
+                    ? `Urgência: ${data.canal_percepcao.urgencia}`
+                    : null,
+                  `Relato: ${data.canal_percepcao.descricao.slice(0, 100)}${data.canal_percepcao.descricao.length > 100 ? '…' : ''}`,
+                ].filter(Boolean) as string[]}
               />
             )}
           </div>
@@ -390,6 +451,63 @@ function SummaryCard({ title, items }: { title: string; items: string[] }) {
           {item}
         </p>
       ))}
+    </div>
+  )
+}
+
+function B2BScalesSummary({ scores }: { scores: Record<string, number> }) {
+  const filled = B2B_SCALE_LABELS.filter(({ key }) => scores[key] !== undefined)
+  if (filled.length === 0) return null
+
+  return (
+    <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 px-4 py-3">
+      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        Escalas Preenchidas ({filled.length}/{B2B_SCALE_LABELS.length})
+      </h4>
+      <div className="space-y-1.5">
+        {filled.map(({ key, label, max }) => {
+          const score = scores[key]!
+          const pct = max ? Math.round((score / max) * 100) : null
+          return (
+            <div key={key} className="flex items-center justify-between gap-2">
+              <span className="text-xs text-zinc-400">{label}</span>
+              <span className="shrink-0 font-mono text-xs font-medium text-zinc-200">
+                {score}{max ? `/${max}` : ''}{pct !== null ? ` (${pct}%)` : ''}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function B2CScalesSummary({ scores }: { scores: Record<string, number> }) {
+  const b2cKeys = [
+    { key: 'phq9', label: 'PHQ-9 (Depressão)', max: 27 },
+    { key: 'gad7', label: 'GAD-7 (Ansiedade)', max: 21 },
+    { key: 'isi', label: 'ISI (Sono)', max: 28 },
+    { key: 'mbi', label: 'MBI (Burnout)', max: 132 },
+    { key: 'pss10', label: 'PSS-10 (Estresse)', max: 40 },
+  ]
+  const filled = b2cKeys.filter(({ key }) => scores[key] !== undefined)
+  if (filled.length === 0) return null
+
+  return (
+    <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 px-4 py-3">
+      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        Escalas Clínicas ({filled.length} respondida{filled.length !== 1 ? 's' : ''})
+      </h4>
+      <div className="space-y-1.5">
+        {filled.map(({ key, label, max }) => (
+          <div key={key} className="flex items-center justify-between gap-2">
+            <span className="text-xs text-zinc-400">{label}</span>
+            <span className="shrink-0 font-mono text-xs font-medium text-zinc-200">
+              {scores[key]}/{max}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
