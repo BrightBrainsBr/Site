@@ -43,6 +43,13 @@ export function generateB2BTestFormData(): AssessmentFormData {
     // SRQ-20: 20 binary answers (0 = Não, 1 = Sim)
     srq20_answers: Array.from({ length: 20 }, () => randInt(0, 1)),
 
+    // Clinical scales required for NR-1 GRO dashboard
+    phq9: randScale(9, 3),   // PHQ-9: depression (0-27)
+    gad7: randScale(7, 3),   // GAD-7: anxiety (0-21)
+    pss10: randScale(10, 4), // PSS-10: perceived stress (0-40)
+    mbi: randScale(16, 6),   // MBI-EE: burnout (0-96)
+    isi: randScale(7, 4),    // ISI: insomnia severity (0-28)
+
     // AEP: exactly 14 questions, Likert 0-4
     aep_answers: Array.from({ length: 14 }, () => randInt(1, 4)),
     aep_percepcao_livre: pick([

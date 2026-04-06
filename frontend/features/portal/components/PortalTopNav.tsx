@@ -26,13 +26,13 @@ export function PortalTopNav({ companyName }: PortalTopNavProps) {
   ]
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#1a3a5c] bg-[#0c1a2e]">
-      <div className="flex items-center justify-between px-4 py-3 md:px-8">
-        <div className="flex items-center gap-3 md:gap-5">
-          <Link href={`/${locale}/portal`} className="flex items-center gap-2 md:gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#00c9b1] to-[#0090ff]">
+    <header className="sticky top-0 z-50 border-b border-[rgba(255,255,255,0.06)] bg-[#060d1a]" style={{ height: '57px' }}>
+      <div className="flex h-full items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link href={`/${locale}/portal`} className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#00c9b1] to-[#0090ff]">
               <svg
-                className="h-4 w-4 text-white"
+                className="h-3.5 w-3.5 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -45,30 +45,30 @@ export function PortalTopNav({ companyName }: PortalTopNavProps) {
                 />
               </svg>
             </div>
-            <div>
+            <div className="flex items-baseline gap-1.5">
               <span
-                className="text-[14px] font-bold text-[#cce6f7] md:text-[15px]"
+                className="text-[13px] font-bold text-[#e2e8f0]"
                 style={{ fontFamily: 'var(--font-heading), sans-serif' }}
               >
                 Bright Brains
               </span>
-              <span className="ml-1.5 text-[10px] uppercase tracking-[1.5px] text-[#3a5a75] md:ml-2">
+              <span className="text-[9px] uppercase tracking-[1.8px] text-[#334e68]">
                 Portal
               </span>
             </div>
           </Link>
 
-          <div className="mx-1 hidden h-5 w-px bg-[#1a3a5c] sm:block md:mx-2" />
+          <div className="mx-0.5 hidden h-4 w-px bg-[rgba(255,255,255,0.08)] sm:block" />
 
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-0.5">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium transition-colors md:px-3 md:text-[13px] ${
+                className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium transition-colors md:text-[13px] ${
                   item.active
-                    ? 'bg-[#0E1E33] text-[#cce6f7]'
-                    : 'text-[#5a7fa0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#cce6f7]'
+                    ? 'bg-[rgba(255,255,255,0.06)] text-[#e2e8f0]'
+                    : 'text-[#4a6a85] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#94a3b8]'
                 }`}
               >
                 {item.label}
@@ -78,8 +78,8 @@ export function PortalTopNav({ companyName }: PortalTopNavProps) {
 
           {companyName && (
             <>
-              <div className="mx-1 hidden h-5 w-px bg-[#1a3a5c] sm:block" />
-              <span className="hidden truncate rounded-md bg-[#14B8A6]/10 px-2.5 py-1 text-[12px] font-medium text-[#14B8A6] sm:inline">
+              <div className="mx-0.5 hidden h-4 w-px bg-[rgba(255,255,255,0.08)] sm:block" />
+              <span className="hidden truncate rounded-md border border-[rgba(0,201,177,0.2)] bg-[rgba(0,201,177,0.08)] px-2.5 py-1 text-[11px] font-medium text-[#00c9b1] sm:inline">
                 {companyName}
               </span>
             </>

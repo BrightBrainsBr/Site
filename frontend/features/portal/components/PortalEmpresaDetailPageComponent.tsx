@@ -7,7 +7,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { B2BDashboardComponent } from '~/features/b2b-dashboard/components/B2BDashboardComponent'
 import { apiGet } from '~/shared/utils/api-helpers'
 
-import { PortalAdminTab } from './PortalAdminTab'
 import { PortalCodeGateComponent } from './PortalCodeGateComponent'
 import { PortalTopNav } from './PortalTopNav'
 
@@ -23,8 +22,6 @@ interface CompanyDetail {
   created_at: string
 }
 
-type ActiveView = 'dashboard' | 'admin'
-
 export function PortalEmpresaDetailPageComponent({
   params,
 }: {
@@ -37,7 +34,6 @@ export function PortalEmpresaDetailPageComponent({
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [company, setCompany] = useState<CompanyDetail | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeView, setActiveView] = useState<ActiveView>('dashboard')
 
   const resolveParams = useCallback(async () => {
     const p = await params
@@ -127,45 +123,11 @@ export function PortalEmpresaDetailPageComponent({
   return (
     <div className="min-h-screen bg-[#07111F]">
       <PortalTopNav companyName={company.name} />
-      <div className="flex items-center gap-1 border-b border-[rgba(255,255,255,0.08)] bg-[#0a1628] px-4 py-1.5 md:px-8">
-        <button
-          onClick={() => setActiveView('dashboard')}
-          className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
-            activeView === 'dashboard'
-              ? 'bg-[#0E1E33] text-[#cce6f7]'
-              : 'text-[#5a7fa0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#cce6f7]'
-          }`}
-        >
-          Dashboard
-        </button>
-        <button
-          onClick={() => setActiveView('admin')}
-          className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
-            activeView === 'admin'
-              ? 'bg-[#0E1E33] text-[#cce6f7]'
-              : 'text-[#5a7fa0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#cce6f7]'
-          }`}
-        >
-          Configurações
-        </button>
-      </div>
-
-      {activeView === 'dashboard' && (
-        <B2BDashboardComponent
-          companyId={company.id}
-          companyName={company.name}
-          isPortalMode
-        />
-      )}
-
-      {activeView === 'admin' && (
-        <PortalAdminTab
-          company={company}
-          onCompanyUpdate={(updated) =>
-            setCompany((prev) => (prev ? { ...prev, ...updated } : prev))
-          }
-        />
-      )}
+      <B2BDashboardComponent
+        companyId={company.id}
+        companyName={company.name}
+        isPortalMode
+      />
     </div>
   )
 }

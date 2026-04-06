@@ -167,24 +167,26 @@ export function B2BDashboardComponent({
     <div className="flex min-h-screen bg-[#060d1a]">
       {/* Sidebar — desktop fixed, mobile overlay */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-[220px] flex-col border-r border-[rgba(255,255,255,0.06)] bg-[#0c1425] transition-transform lg:translate-x-0 ${
+        className={`fixed ${isPortalMode ? 'top-[57px]' : 'top-0'} bottom-0 left-0 z-30 flex w-[220px] flex-col border-r border-[rgba(255,255,255,0.06)] bg-[#0c1425] transition-transform lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Logo */}
-        <div className="border-b border-[rgba(255,255,255,0.06)] px-4 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(197,225,85,0.15)]">
-              <span className="text-[16px]">🧠</span>
-            </div>
-            <div>
-              <div className="text-[15px] font-bold text-[#c5e155]">
-                BrightMonitor
+        {/* Logo — hidden in portal mode since PortalTopNav provides branding */}
+        {!isPortalMode && (
+          <div className="border-b border-[rgba(255,255,255,0.06)] px-4 py-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(197,225,85,0.15)]">
+                <span className="text-[16px]">🧠</span>
               </div>
-              <div className="text-[10px] text-[#64748b]">Saúde Mental Corporativa</div>
+              <div>
+                <div className="text-[15px] font-bold text-[#c5e155]">
+                  BrightMonitor
+                </div>
+                <div className="text-[10px] text-[#64748b]">Saúde Mental Corporativa</div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Cycle selector */}
         {cycles.length > 0 && (
@@ -261,24 +263,33 @@ export function B2BDashboardComponent({
 
       {/* Main content */}
       <div className="flex flex-1 flex-col lg:ml-[220px]">
-        {/* Top bar */}
-        <header className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] bg-[#0c1425] px-4 py-2.5 lg:px-6">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-1.5 text-[#94a3b8] hover:bg-[rgba(255,255,255,0.04)] lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-
-          <div className="hidden items-center gap-1.5 lg:flex">
-            <span className="text-[12px] text-[#64748b]">Empresa:</span>
-            <span className="text-[14px] font-semibold text-[#c5e155]">
-              {companyName ?? 'Empresa'}
-            </span>
+        {/* Top bar — in portal mode only show mobile hamburger (PortalTopNav handles branding) */}
+        {isPortalMode ? (
+          <div className="flex items-center border-b border-[rgba(255,255,255,0.06)] bg-[#060d1a] px-4 py-2.5 lg:hidden">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="rounded-lg p-1.5 text-[#94a3b8] hover:bg-[rgba(255,255,255,0.04)]"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
           </div>
+        ) : (
+          <header className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] bg-[#0c1425] px-4 py-2.5 lg:px-6">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="rounded-lg p-1.5 text-[#94a3b8] hover:bg-[rgba(255,255,255,0.04)] lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
 
-          <div className="flex items-center gap-2">
-            {!isPortalMode && (
+            <div className="hidden items-center gap-1.5 lg:flex">
+              <span className="text-[12px] text-[#64748b]">Empresa:</span>
+              <span className="text-[14px] font-semibold text-[#c5e155]">
+                {companyName ?? 'Empresa'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -338,9 +349,9 @@ export function B2BDashboardComponent({
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </header>
+            </div>
+          </header>
+        )}
 
         {/* Tab content */}
         <main className="flex-1 overflow-auto px-4 py-5 lg:px-7">
@@ -379,7 +390,7 @@ export function B2BDashboardComponent({
                 <B2BReportsTab companyId={companyId} cycleId={cycleId} />
               )}
               {activeTab === 'settings' && (
-                <B2BSettingsTab companyId={companyId} />
+                <B2BSettingsTab companyId={companyId} isPortalMode={isPortalMode} />
               )}
             </>
           )}

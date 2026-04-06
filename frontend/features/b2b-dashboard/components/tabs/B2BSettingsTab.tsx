@@ -4,9 +4,10 @@ import { CompanySettingsComponent } from '../shared/CompanySettingsComponent'
 
 interface B2BSettingsTabProps {
   companyId: string | null
+  isPortalMode?: boolean
 }
 
-export function B2BSettingsTab({ companyId }: B2BSettingsTabProps) {
+export function B2BSettingsTab({ companyId, isPortalMode }: B2BSettingsTabProps) {
   if (!companyId) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -15,5 +16,5 @@ export function B2BSettingsTab({ companyId }: B2BSettingsTabProps) {
     )
   }
 
-  return <CompanySettingsComponent companyId={companyId} mode="b2b" />
+  return <CompanySettingsComponent companyId={companyId} mode={isPortalMode ? 'portal' : 'b2b'} />
 }

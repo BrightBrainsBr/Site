@@ -37,11 +37,14 @@ const AEP_DIM_MAX: Record<string, number> = {
   environment: 8,
 }
 
-function getAepBarColor(value: number, max: number): string {
-  const pct = value / max
-  if (pct < 0.4) return '#22c55e'
-  if (pct < 0.6) return '#eab308'
-  return '#f97316'
+// Fixed distinct colors per AEP dimension for visual clarity
+const AEP_DIM_COLORS: Record<string, string> = {
+  pressure: '#f97316',
+  autonomy: '#eab308',
+  breaks: '#60a5fa',
+  relationships: '#22c55e',
+  cognitive: '#a78bfa',
+  environment: '#14b8a6',
 }
 
 const SCALE_DISPLAY: Record<string, { label: string; max: number }> = {
@@ -54,30 +57,10 @@ const SCALE_DISPLAY: Record<string, { label: string; max: number }> = {
 }
 
 const SRQ_RANGES = [
-  {
-    label: 'Negativo',
-    range: '< 8',
-    color: '#22c55e',
-    key: 'negative' as const,
-  },
-  {
-    label: 'Moderado',
-    range: '8-11',
-    color: '#eab308',
-    key: 'moderate' as const,
-  },
-  {
-    label: 'Elevado',
-    range: '12-16',
-    color: '#f97316',
-    key: 'elevated' as const,
-  },
-  {
-    label: 'Crítico',
-    range: '17-20',
-    color: '#ef4444',
-    key: 'critical' as const,
-  },
+  { label: 'Negativo', range: '< 8', color: '#22c55e', key: 'negative' as const },
+  { label: 'Moderado', range: '8-11', color: '#eab308', key: 'moderate' as const },
+  { label: 'Elevado', range: '12-16', color: '#f97316', key: 'elevated' as const },
+  { label: 'Crítico', range: '17-20', color: '#ef4444', key: 'critical' as const },
 ]
 
 const MATRIX_COLORS = [
@@ -85,6 +68,71 @@ const MATRIX_COLORS = [
   ['#22c55e', '#eab308', '#f97316', '#ef4444'],
   ['#eab308', '#f97316', '#ef4444', '#ef4444'],
 ]
+
+// ─── Custom tooltip for AEP horizontal bars ───────────────
+function AepTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: { value: number; payload: { max: number; color: string } }[]
+  label?: string
+}) {
+  if (!active || !payload?.length) return null
+  const val = payload[0]?.value ?? 0
+  const max = payload[0]?.payload?.max ?? 12
+  const color = payload[0]?.payload?.color ?? '#e2e8f0'
+  return (
+    <div
+      style={{
+        backgroundColor: '#0c1425',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '8px',
+        padding: '8px 12px',
+        fontSize: '13px',
+      }}
+    >
+      <p style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}>{label}</p>
+      <p style={{ color: '#94a3b8', margin: 0 }}>
+        Score:{' '}
+        <span style={{ color, fontWeight: 700 }}>{val.toFixed(1)}</span>
+        <span style={{ color: '#64748b' }}> / {max}</span>
+      </p>
+    </div>
+  )
+}
+
+// ─── Custom tooltip for Radar chart ───────────────────────
+function RadarTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean
+  payload?: { value: number; payload: { scale: string; value: number; pct: number } }[]
+}) {
+  if (!active || !payload?.length) return null
+  const item = payload[0]?.payload
+  if (!item) return null
+  return (
+    <div
+      style={{
+        backgroundColor: '#0c1425',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '8px',
+        padding: '8px 12px',
+        fontSize: '13px',
+      }}
+    >
+      <p style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}>{item.scale}</p>
+      <p style={{ color: '#94a3b8', margin: 0 }}>
+        Média:{' '}
+        <span style={{ color: '#c5e155', fontWeight: 700 }}>{item.value.toFixed(1)}</span>
+        <span style={{ color: '#64748b' }}> ({item.pct}% do máx.)</span>
+      </p>
+    </div>
+  )
+}
 
 interface B2BGROTabProps {
   companyId: string | null
@@ -96,15 +144,14 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
     cycle: cycleId ?? undefined,
   })
 
+  // Always include all 6 scales; normalize each to % of clinical max
+  // so the radar polygon is properly sized even when scales have very different ranges
   const radarData = useMemo(() => {
-    if (!gro?.scaleAverages) return []
-    return Object.entries(SCALE_DISPLAY)
-      .filter(([key]) => (gro.scaleAverages[key] ?? 0) > 0)
-      .map(([key, cfg]) => ({
-        scale: cfg.label,
-        value: gro.scaleAverages[key] ?? 0,
-        max: cfg.max,
-      }))
+    return Object.entries(SCALE_DISPLAY).map(([key, cfg]) => {
+      const rawValue = gro?.scaleAverages?.[key] ?? 0
+      const pct = Math.round((rawValue / cfg.max) * 100)
+      return { scale: cfg.label, value: rawValue, pct, max: cfg.max }
+    })
   }, [gro?.scaleAverages])
 
   const aepData = useMemo(() => {
@@ -113,10 +160,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
       dimension: label,
       value: gro.aepDimensions[key] ?? 0,
       max: AEP_DIM_MAX[key] ?? 12,
-      fill: getAepBarColor(
-        gro.aepDimensions[key] ?? 0,
-        AEP_DIM_MAX[key] ?? 12
-      ),
+      color: AEP_DIM_COLORS[key] ?? '#94a3b8',
     }))
   }, [gro?.aepDimensions])
 
@@ -130,7 +174,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
     )
   }
 
-  const hasScaleData = radarData.length > 0
+  const hasScaleData = radarData.some((d) => d.value > 0)
   const hasAepData = aepData.some((d) => d.value > 0)
   const hasSrqData =
     gro?.srq20Distribution &&
@@ -148,13 +192,10 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
       <div>
         <div className="flex items-center gap-2">
           <span className="text-[20px]">⚖️</span>
-          <h2 className="text-[20px] font-bold text-[#e2e8f0]">
-            GRO Psicossocial
-          </h2>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">GRO Psicossocial</h2>
         </div>
         <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">
-          Gerenciamento de Riscos Ocupacionais — Fatores Psicossociais e
-          Ergonomia Cognitiva
+          Gerenciamento de Riscos Ocupacionais — Fatores Psicossociais e Ergonomia Cognitiva
         </p>
       </div>
 
@@ -165,54 +206,43 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
             Nenhum dado GRO disponível
           </h3>
           <p className="mt-2 max-w-md text-[14px] text-[#94a3b8]">
-            Os indicadores de GRO Psicossocial são gerados automaticamente a
-            partir das avaliações dos colaboradores. Mínimo de 10 avaliações
-            recomendado.
+            Os indicadores de GRO Psicossocial são gerados automaticamente a partir das
+            avaliações dos colaboradores. Mínimo de 10 avaliações recomendado.
           </p>
         </div>
       ) : (
         <>
           {/* Row 1: Radar + AEP Dimensions */}
           <div className="grid gap-3 lg:grid-cols-2">
-            {/* Radar chart */}
+            {/* Radar chart — normalized 0-100% per clinical max */}
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
               <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 Escalas Clínicas — Média Geral
               </h3>
               {hasScaleData ? (
                 <ResponsiveContainer width="100%" height={280}>
-                  <RadarChart
-                    data={radarData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius="70%"
-                  >
+                  <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
                     <PolarGrid stroke="rgba(255,255,255,0.06)" />
                     <PolarAngleAxis
                       dataKey="scale"
-                      tick={{ fontSize: 12, fill: '#94a3b8' }}
+                      tick={{ fontSize: 11, fill: '#94a3b8' }}
                     />
                     <PolarRadiusAxis
-                      tick={{ fontSize: 10, fill: '#64748b' }}
+                      domain={[0, 100]}
+                      tickCount={4}
+                      tick={{ fontSize: 9, fill: '#64748b' }}
+                      tickFormatter={(v: number) => `${v}%`}
                       axisLine={false}
                     />
                     <Radar
                       name="Empresa"
-                      dataKey="value"
+                      dataKey="pct"
                       stroke="#c5e155"
                       fill="rgba(197,225,85,0.15)"
                       strokeWidth={2}
                       dot={{ fill: '#c5e155', r: 4 }}
                     />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#111b2e',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                        borderRadius: '8px',
-                        fontSize: '13px',
-                        color: '#e2e8f0',
-                      }}
-                    />
+                    <Tooltip content={<RadarTooltip />} />
                   </RadarChart>
                 </ResponsiveContainer>
               ) : (
@@ -222,7 +252,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
               )}
             </div>
 
-            {/* AEP Dimensions — horizontal bars */}
+            {/* AEP Dimensions — horizontal bars, distinct color per dimension */}
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
               <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 AEP — Dimensões (Média Empresa)
@@ -232,7 +262,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   <BarChart
                     data={aepData}
                     layout="vertical"
-                    margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+                    margin={{ top: 0, right: 16, left: 0, bottom: 0 }}
                   >
                     <XAxis
                       type="number"
@@ -249,18 +279,10 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                       axisLine={false}
                       tickLine={false}
                     />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#111b2e',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                        borderRadius: '8px',
-                        fontSize: '13px',
-                        color: '#e2e8f0',
-                      }}
-                    />
-                    <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={30}>
+                    <Tooltip content={<AepTooltip />} />
+                    <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={26}>
                       {aepData.map((entry, i) => (
-                        <Cell key={i} fill={entry.fill} />
+                        <Cell key={i} fill={entry.color} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -284,10 +306,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   <div
                     key={r.key}
                     className="rounded-[10px] p-3 text-center"
-                    style={{
-                      background: `${r.color}08`,
-                      border: `1px solid ${r.color}15`,
-                    }}
+                    style={{ background: `${r.color}08`, border: `1px solid ${r.color}20` }}
                   >
                     <div
                       className="font-mono text-[26px] font-bold leading-none tracking-tight"
@@ -302,10 +321,9 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                 ))}
               </div>
               <div className="rounded-lg bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[12px] text-[#64748b]">
-                📎 O SRQ-20 da OMS é o instrumento recomendado pelo Ministério
-                da Saúde para vigilância de transtornos mentais comuns em
-                ambiente ocupacional. Ponto de corte: ≥ 8 (Mari & Williams,
-                1986).
+                📎 O SRQ-20 da OMS é o instrumento recomendado pelo Ministério da Saúde para
+                vigilância de transtornos mentais comuns em ambiente ocupacional. Ponto de corte:
+                ≥ 8 (Mari & Williams, 1986).
               </div>
             </div>
           )}
@@ -316,18 +334,9 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
               <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 Matriz Probabilidade × Severidade — Consolidado
               </h3>
-              <div
-                className="grid gap-0.5"
-                style={{ gridTemplateColumns: '90px repeat(4, 1fr)' }}
-              >
-                {/* Headers */}
+              <div className="grid gap-0.5" style={{ gridTemplateColumns: '90px repeat(4, 1fr)' }}>
                 <div />
-                {[
-                  'Sev. Baixa',
-                  'Sev. Moderada',
-                  'Sev. Alta',
-                  'Sev. Muito Alta',
-                ].map((h) => (
+                {['Sev. Baixa', 'Sev. Moderada', 'Sev. Alta', 'Sev. Muito Alta'].map((h) => (
                   <div
                     key={h}
                     className="rounded p-2 text-center text-[11px] font-semibold text-[#94a3b8]"
@@ -337,40 +346,32 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   </div>
                 ))}
 
-                {/* Rows: Prob. Alta (2), Prob. Média (1), Prob. Baixa (0) */}
-                {['Prob. Alta', 'Prob. Média', 'Prob. Baixa'].map(
-                  (rowLabel, rowIdx) => (
-                    <div key={rowIdx} className="contents">
-                      <div
-                        className="flex items-center text-[11px] font-semibold text-[#94a3b8]"
-                        style={{ padding: '8px' }}
-                      >
-                        {rowLabel}
-                      </div>
-                      {[0, 1, 2, 3].map((colIdx) => {
-                        const value = matrix[rowIdx]?.[colIdx] ?? 0
-                        const color =
-                          MATRIX_COLORS[rowIdx]?.[colIdx] ?? '#64748b'
-                        return (
-                          <div
-                            key={`cell-${rowIdx}-${colIdx}`}
-                            className="rounded p-2.5 text-center font-mono text-[15px] font-bold"
-                            style={{
-                              background: `${color}20`,
-                              color,
-                            }}
-                          >
-                            {value}
-                          </div>
-                        )
-                      })}
+                {['Prob. Alta', 'Prob. Média', 'Prob. Baixa'].map((rowLabel, rowIdx) => (
+                  <div key={rowIdx} className="contents">
+                    <div
+                      className="flex items-center text-[11px] font-semibold text-[#94a3b8]"
+                      style={{ padding: '8px' }}
+                    >
+                      {rowLabel}
                     </div>
-                  )
-                )}
+                    {[0, 1, 2, 3].map((colIdx) => {
+                      const value = matrix[rowIdx]?.[colIdx] ?? 0
+                      const color = MATRIX_COLORS[rowIdx]?.[colIdx] ?? '#64748b'
+                      return (
+                        <div
+                          key={`cell-${rowIdx}-${colIdx}`}
+                          className="rounded p-2.5 text-center font-mono text-[15px] font-bold"
+                          style={{ background: `${color}20`, color }}
+                        >
+                          {value}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
               </div>
               <div className="mt-2 text-center text-[11px] text-[#64748b]">
-                Número de colaboradores por célula da matriz · Ref. NR-1:
-                1.5.4.4.2
+                Número de colaboradores por célula da matriz · Ref. NR-1: 1.5.4.4.2
               </div>
             </div>
           )}
