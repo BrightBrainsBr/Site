@@ -205,6 +205,9 @@ export function SummaryStep({
                 `Nascimento: ${data.nascimento || '—'}`,
                 data.email ? `E-mail: ${data.email}` : null,
                 data.sexo ? `Sexo: ${data.sexo}` : null,
+                isCorporate && companyContext?.department
+                  ? `Setor: ${companyContext.department}`
+                  : null,
               ].filter(Boolean) as string[]}
             />
 
