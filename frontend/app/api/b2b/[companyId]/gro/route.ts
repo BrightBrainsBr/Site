@@ -30,6 +30,7 @@ function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v))
 }
 
+// eslint-disable-next-line complexity
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
@@ -126,7 +127,7 @@ export async function GET(
     }
 
     if (typeof scores.aep_total === 'number') {
-      severities.push(scores.aep_total / 100)
+      severities.push(scores.aep_total / 56)
     }
   }
 

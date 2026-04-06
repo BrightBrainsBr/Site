@@ -131,7 +131,7 @@ export function computeAllScores(
 
   if (data.aep_answers && data.aep_answers.length > 0) {
     const aepResult = scoreAEP(data.aep_answers)
-    result.aep = aepResult.total
+    result.aep_total = aepResult.total
     result.aep_pressure = aepResult.pressure
     result.aep_autonomy = aepResult.autonomy
     result.aep_breaks = aepResult.breaks

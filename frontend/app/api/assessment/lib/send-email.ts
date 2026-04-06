@@ -107,6 +107,33 @@ export async function sendB2BLaudoEmail(opts: {
   )
 }
 
+export async function sendB2CConsentLead(opts: {
+  patientName: string
+  patientEmail?: string
+  patientPhone?: string
+  evaluationId: string
+  companyName: string
+  contactConsent: boolean
+}): Promise<boolean> {
+  const date = formatDate()
+  const subject = `[Lead B2C] Colaborador optou por consulta — ${opts.patientName} — ${opts.companyName} — ${date}`
+  return postWebhook(
+    REPORT_WEBHOOK_URL,
+    {
+      event: 'b2c_consent_lead',
+      subject,
+      generated_at: new Date().toISOString(),
+      evaluation_id: opts.evaluationId,
+      patient_name: opts.patientName,
+      patient_email: opts.patientEmail ?? null,
+      patient_phone: opts.patientPhone ?? null,
+      company_name: opts.companyName,
+      contact_consent: opts.contactConsent,
+    },
+    'b2c-consent-lead'
+  )
+}
+
 export async function sendErrorEmail(opts: {
   patientName: string
   evaluationId: string

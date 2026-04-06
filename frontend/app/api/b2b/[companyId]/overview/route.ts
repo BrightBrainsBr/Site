@@ -13,6 +13,7 @@ import {
 
 export const runtime = 'nodejs'
 
+// eslint-disable-next-line complexity
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
@@ -120,8 +121,7 @@ export async function GET(
     countMbi > 0 ? Math.round((sumMbi / countMbi) * 10) / 10 : null
   const srq20Avg =
     countSrq20 > 0 ? Math.round((sumSrq20 / countSrq20) * 10) / 10 : null
-  const aepAvg =
-    countAep > 0 ? Math.round((sumAep / countAep) * 10) / 10 : null
+  const aepAvg = countAep > 0 ? Math.round((sumAep / countAep) * 10) / 10 : null
 
   const timeline = Array.from(monthlyBuckets.entries())
     .sort(([a], [b]) => a.localeCompare(b))

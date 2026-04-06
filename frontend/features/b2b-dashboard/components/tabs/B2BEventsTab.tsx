@@ -82,7 +82,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
   const departments = deptData?.departments ?? []
   const events = eventsData?.events ?? []
   const kpis = eventsData?.kpis ?? {
-    afastamentosCidF: 0,
+    afastamentos90d: 0,
     diasPerdidos: 0,
     relatosCanal: 0,
   }
@@ -151,7 +151,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
       description: ev.description,
       department: ev.department,
       days_lost: ev.days_lost,
-      source: 'pdf-import',
+      source: 'pdf_import',
     }))
     bulkCreate.mutate(inputs, {
       onSuccess: () => setExtractedEvents(null),
@@ -160,7 +160,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748B]">
+      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748b]">
         Carregando eventos…
       </div>
     )
@@ -168,12 +168,21 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
 
   return (
     <div className="space-y-4">
+      {/* Section header */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">🚨</span>
+          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Eventos & Análise de Nexo Causal</h2>
+        </div>
+        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Ref. NR-1: 1.5.5.5 — Registro de materialização de riscos e vinculação CID-10</p>
+      </div>
+
       {/* KPI cards */}
       <div className="grid grid-cols-3 gap-3">
         {[
           {
             label: 'Afastamentos CID-F (90d)',
-            value: kpis.afastamentosCidF,
+            value: kpis.afastamentos90d,
             color: '#F87171',
           },
           {
@@ -189,9 +198,9 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
         ].map((kpi) => (
           <div
             key={kpi.label}
-            className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#0A1628] p-3"
+            className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-3"
           >
-            <span className="text-[11px] font-medium text-[#94A3B8]">
+            <span className="text-[11px] font-medium text-[#94a3b8]">
               {kpi.label}
             </span>
             <p
@@ -211,14 +220,14 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             resetForm()
             setShowForm(true)
           }}
-          className="rounded-lg bg-[rgba(20,184,166,0.15)] px-3 py-1.5 text-[12px] font-semibold text-[#14B8A6] transition-colors hover:bg-[rgba(20,184,166,0.25)]"
+          className="rounded-lg bg-[rgba(197,225,85,0.15)] px-3 py-1.5 text-[12px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)]"
         >
           + Novo Evento
         </button>
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={extractPdf.isPending}
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[12px] font-semibold text-[#94A3B8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#E2E8F0] disabled:opacity-50"
+          className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[12px] font-semibold text-[#94a3b8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#e2e8f0] disabled:opacity-50"
         >
           {extractPdf.isPending ? 'Extraindo…' : 'Upload PDF (lote)'}
         </button>
@@ -238,7 +247,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="ml-auto rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-1.5 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+          className="ml-auto rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-1.5 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
         >
           <option value="">Todos os tipos</option>
           {(Object.entries(EVENT_TYPE_CONFIG) as [EventType, { label: string }][]).map(
@@ -253,7 +262,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
 
       {/* PDF extraction preview */}
       {extractedEvents && (
-        <div className="rounded-xl border border-[rgba(96,165,250,0.3)] bg-[#0E1E33] p-4">
+        <div className="rounded-[14px] border border-[rgba(96,165,250,0.3)] bg-[#0c1425] p-4">
           <h3 className="mb-2 text-[13px] font-semibold text-[#60A5FA]">
             Eventos extraídos do PDF — Revise antes de confirmar
           </h3>
@@ -261,7 +270,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             {extractedEvents.map((ev, i) => (
               <div
                 key={i}
-                className="rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#94A3B8]"
+                className="rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#94a3b8]"
               >
                 {ev.event_date.slice(0, 10)} — {ev.event_type} —{' '}
                 {ev.description}
@@ -273,7 +282,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             <button
               onClick={handleConfirmBulk}
               disabled={bulkCreate.isPending}
-              className="rounded-lg bg-[rgba(20,184,166,0.15)] px-4 py-1.5 text-[12px] font-semibold text-[#14B8A6] disabled:opacity-50"
+              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[12px] font-semibold text-[#c5e155] disabled:opacity-50"
             >
               {bulkCreate.isPending
                 ? 'Importando…'
@@ -281,7 +290,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             </button>
             <button
               onClick={() => setExtractedEvents(null)}
-              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[12px] font-semibold text-[#94A3B8]"
+              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[12px] font-semibold text-[#94a3b8]"
             >
               Cancelar
             </button>
@@ -291,13 +300,13 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
 
       {/* Create / Edit form */}
       {showForm && (
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <h3 className="mb-3 text-[13px] font-semibold text-[#E2E8F0]">
+        <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
+          <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
             {editingId ? 'Editar Evento' : 'Novo Evento'}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Data
               </label>
               <input
@@ -306,11 +315,11 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, event_date: e.target.value }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Tipo
               </label>
               <select
@@ -321,7 +330,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                     event_type: e.target.value as EventType,
                   }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               >
                 {(
                   Object.entries(EVENT_TYPE_CONFIG) as [
@@ -336,7 +345,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Código CID
               </label>
               <input
@@ -346,11 +355,11 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                   setForm((f) => ({ ...f, cid_code: e.target.value }))
                 }
                 placeholder="Ex: F32.1"
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Descrição
               </label>
               <textarea
@@ -359,11 +368,11 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                   setForm((f) => ({ ...f, description: e.target.value }))
                 }
                 rows={2}
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Departamento
               </label>
               <select
@@ -371,7 +380,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, department: e.target.value }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               >
                 <option value="">—</option>
                 {departments.map((d) => (
@@ -383,7 +392,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             </div>
             {form.event_type === 'afastamento' && (
               <div>
-                <label className="mb-1 block text-[11px] text-[#64748B]">
+                <label className="mb-1 block text-[11px] text-[#64748b]">
                   Dias Perdidos
                 </label>
                 <input
@@ -398,7 +407,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                         : undefined,
                     }))
                   }
-                  className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                  className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
                 />
               </div>
             )}
@@ -407,7 +416,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             <button
               onClick={handleSubmit}
               disabled={createEvent.isPending || updateEvent.isPending}
-              className="rounded-lg bg-[rgba(20,184,166,0.15)] px-4 py-1.5 text-[12px] font-semibold text-[#14B8A6] transition-colors hover:bg-[rgba(20,184,166,0.25)] disabled:opacity-50"
+              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[12px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
             >
               {createEvent.isPending || updateEvent.isPending
                 ? 'Salvando…'
@@ -417,7 +426,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             </button>
             <button
               onClick={resetForm}
-              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[12px] font-semibold text-[#94A3B8] transition-colors hover:text-[#E2E8F0]"
+              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[12px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
             >
               Cancelar
             </button>
@@ -426,38 +435,38 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
       )}
 
       {/* Event list */}
-      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-[#E2E8F0]">
+      <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
+        <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
           Registro de Eventos
         </h3>
         {events.length === 0 ? (
-          <div className="flex h-32 items-center justify-center text-[13px] text-[#64748B]">
+          <div className="flex h-32 items-center justify-center text-[13px] text-[#64748b]">
             Nenhum evento registrado
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">
               <thead>
-                <tr className="border-b border-[rgba(255,255,255,0.08)]">
-                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                <tr className="border-b border-[rgba(255,255,255,0.06)]">
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748b]">
                     Data
                   </th>
-                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748b]">
                     Tipo
                   </th>
-                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748b]">
                     CID
                   </th>
-                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748b]">
                     Descrição
                   </th>
-                  <th className="py-2 text-left text-[11px] font-medium text-[#64748B]">
+                  <th className="py-2 text-left text-[11px] font-medium text-[#64748b]">
                     Depto
                   </th>
-                  <th className="py-2 text-right text-[11px] font-medium text-[#64748B]">
+                  <th className="py-2 text-right text-[11px] font-medium text-[#64748b]">
                     Dias
                   </th>
-                  <th className="py-2 text-right text-[11px] font-medium text-[#64748B]">
+                  <th className="py-2 text-right text-[11px] font-medium text-[#64748b]">
                     Ações
                   </th>
                 </tr>
@@ -470,7 +479,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                       key={ev.id}
                       className="border-b border-[rgba(255,255,255,0.04)]"
                     >
-                      <td className="py-2.5 text-[12px] text-[#94A3B8]">
+                      <td className="py-2.5 text-[12px] text-[#94a3b8]">
                         {new Date(ev.event_date).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="py-2.5">
@@ -481,23 +490,23 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                           {tCfg.label}
                         </span>
                       </td>
-                      <td className="py-2.5 text-[12px] font-medium text-[#E2E8F0]">
+                      <td className="py-2.5 text-[12px] font-medium text-[#e2e8f0]">
                         {ev.cid_code || '—'}
                       </td>
-                      <td className="max-w-[200px] truncate py-2.5 text-[12px] text-[#94A3B8]">
+                      <td className="max-w-[200px] truncate py-2.5 text-[12px] text-[#94a3b8]">
                         {ev.description}
                       </td>
-                      <td className="py-2.5 text-[12px] text-[#64748B]">
+                      <td className="py-2.5 text-[12px] text-[#64748b]">
                         {ev.department || '—'}
                       </td>
-                      <td className="py-2.5 text-right text-[12px] text-[#94A3B8]">
+                      <td className="py-2.5 text-right text-[12px] text-[#94a3b8]">
                         {ev.days_lost ?? '—'}
                       </td>
                       <td className="py-2.5 text-right">
                         <div className="flex justify-end gap-1">
                           <button
                             onClick={() => handleEdit(ev)}
-                            className="rounded p-1 text-[#64748B] transition-colors hover:text-[#E2E8F0]"
+                            className="rounded p-1 text-[#64748b] transition-colors hover:text-[#e2e8f0]"
                             title="Editar"
                           >
                             <svg
@@ -516,7 +525,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                           </button>
                           <button
                             onClick={() => handleDelete(ev.id)}
-                            className="rounded p-1 text-[#64748B] transition-colors hover:text-[#F87171]"
+                            className="rounded p-1 text-[#64748b] transition-colors hover:text-[#F87171]"
                             title="Excluir"
                           >
                             <svg
@@ -545,9 +554,9 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
       </div>
 
       {/* Correlações Identificadas */}
-      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
+      <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
         <div className="mb-3 flex items-center gap-2">
-          <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
+          <h3 className="text-[13px] font-semibold text-[#e2e8f0]">
             Correlações Identificadas
           </h3>
           <div className="group relative">
@@ -564,7 +573,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-64 -translate-x-1/2 rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[11px] text-[#94A3B8] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-64 -translate-x-1/2 rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[11px] text-[#94a3b8] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
               Correlações identificadas automaticamente ao comparar relatos de
               percepção com dados das avaliações.
             </div>
@@ -572,7 +581,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
         </div>
 
         {!percepcao?.correlations?.length ? (
-          <div className="flex h-24 items-center justify-center text-[13px] text-[#64748B]">
+          <div className="flex h-24 items-center justify-center text-[13px] text-[#64748b]">
             Nenhuma correlação identificada
           </div>
         ) : (
@@ -585,7 +594,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
               return (
                 <div
                   key={i}
-                  className="flex items-start gap-3 rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#0A1628] px-3 py-2.5"
+                  className="flex items-start gap-3 rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#111b2e] px-3 py-2.5"
                 >
                   <span
                     className="mt-0.5 shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold"
@@ -598,7 +607,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                   >
                     {isHigh ? 'Alta' : 'Média'}
                   </span>
-                  <p className="text-[12px] leading-relaxed text-[#94A3B8]">
+                  <p className="text-[12px] leading-relaxed text-[#94a3b8]">
                     {c.description}
                   </p>
                 </div>

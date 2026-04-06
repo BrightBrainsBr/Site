@@ -168,7 +168,7 @@ export type CreateEventInput = Omit<
 export type UpdateEventInput = Partial<CreateEventInput> & { eventId: string }
 
 export interface B2BEventsKPIs {
-  afastamentosCidF: number
+  afastamentos90d: number
   diasPerdidos: number
   relatosCanal: number
 }

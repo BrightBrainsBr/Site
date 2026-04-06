@@ -10,10 +10,11 @@ Regras:
 - Prioridade baseada na severidade dos dados (alta = risco crítico, media = risco moderado, baixa = melhoria)
 - Sugira responsáveis genéricos quando apropriado (RH, Gestor, SESMT, Comitê SST)
 - Prazos sugeridos devem ser realistas (30, 60, 90, 180 dias)
-- Gere entre 5 e 15 planos de ação
+- Gere entre 5 e 10 planos de ação
 - Foque em intervenções baseadas em evidências
 - Considere dimensões AEP (pressão, autonomia, pausas, relações, cognitiva, ambiente)
 - Se um departamento específico foi solicitado, foque nele
+- Quando não há dados de avaliações ainda, gere um plano de ação de implantação inicial da NR-1 com ações obrigatórias de conformidade
 
 Responda APENAS com JSON válido no formato especificado.`
 
@@ -46,7 +47,20 @@ export function buildGroContextMessage(ctx: GROContext, department?: string): st
     lines.push('', `### Filtro: Departamento "${department}"`)
   }
 
-  lines.push('', 'Com base nesses dados, gere planos de ação para mitigar os riscos psicossociais identificados.')
+  if (ctx.totalEvaluations === 0) {
+    lines.push(
+      '',
+      '### ATENÇÃO: Nenhuma avaliação realizada ainda neste ciclo.',
+      'Gere um plano de ação de IMPLANTAÇÃO INICIAL da NR-1 com as ações obrigatórias para:',
+      '1. Realizar o mapeamento e inventário de riscos psicossociais (NR-1: 1.5.4)',
+      '2. Estruturar o Programa de Gerenciamento de Riscos (PGR)',
+      '3. Comunicar e mobilizar colaboradores para participação na avaliação BrightMonitor',
+      '4. Designar responsáveis SST e constituir Comitê Médico Interdisciplinar',
+      '5. Estabelecer cronograma de avaliações periódicas'
+    )
+  } else {
+    lines.push('', 'Com base nesses dados, gere planos de ação para mitigar os riscos psicossociais identificados.')
+  }
 
   return lines.join('\n')
 }

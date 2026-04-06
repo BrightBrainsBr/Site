@@ -38,7 +38,7 @@ export function B2BComplianceTab({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#14B8A6] border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#c5e155] border-t-transparent" />
       </div>
     )
   }
@@ -50,31 +50,46 @@ export function B2BComplianceTab({
 
   return (
     <div className="space-y-4">
+      {/* Section header */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">✅</span>
+          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Compliance</h2>
+        </div>
+        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Portaria MTE 1.419/2024 — Status de conformidade por requisito</p>
+      </div>
+
       {/* Score header */}
-      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
+      <div
+        className="rounded-[14px] border border-[rgba(255,255,255,0.06)] p-5"
+        style={{ background: 'rgba(255,255,255,0.03)' }}
+      >
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
           <div className="text-center sm:text-left">
-            <p className="text-[11px] uppercase tracking-wider text-[#64748B]">
+            <p className="text-[11px] uppercase tracking-wider text-[#64748b]">
               Conformidade NR-1
             </p>
-            <p className="mt-1 text-[36px] font-bold leading-none text-[#14B8A6]">
+            <p className="mt-1 font-mono text-[36px] font-bold leading-none text-[#c5e155]">
               {conformeCount}
-              <span className="text-[18px] font-normal text-[#64748B]">
+              <span className="text-[18px] font-normal text-[#64748b]">
                 /{totalItems}
               </span>
             </p>
-            <p className="mt-0.5 text-[13px] text-[#94A3B8]">
+            <p className="mt-0.5 text-[13px] text-[#94a3b8]">
               itens conformes
             </p>
           </div>
           <div className="w-full max-w-xs">
-            <div className="mb-1 text-right text-[11px] text-[#64748B]">
+            <div className="mb-1 text-right text-[11px] text-[#64748b]">
               {progressPct}%
             </div>
-            <div className="h-3 w-full overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+            <div className="h-3 w-full overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
               <div
-                className="h-full rounded-full bg-[#0D9488] transition-all duration-500"
-                style={{ width: `${progressPct}%` }}
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${progressPct}%`,
+                  background: 'linear-gradient(90deg, #c5e155, #22c55e)',
+                }}
               />
             </div>
           </div>
@@ -82,8 +97,11 @@ export function B2BComplianceTab({
       </div>
 
       {/* Checklist */}
-      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-        <h3 className="mb-4 text-[13px] font-semibold text-[#E2E8F0]">
+      <div
+        className="rounded-[14px] border border-[rgba(255,255,255,0.06)] p-4"
+        style={{ background: 'rgba(255,255,255,0.03)' }}
+      >
+        <h3 className="mb-4 text-[13px] font-semibold text-[#e2e8f0]">
           Checklist de Conformidade
         </h3>
         {items.length > 0 ? (
@@ -103,15 +121,15 @@ export function B2BComplianceTab({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start gap-2">
-                      <span className="shrink-0 rounded bg-[rgba(255,255,255,0.06)] px-1.5 py-0.5 font-mono text-[10px] text-[#94A3B8]">
+                      <span className="shrink-0 rounded bg-[rgba(255,255,255,0.06)] px-1.5 py-0.5 font-mono text-[10px] text-[#c5e155]">
                         {item.ref}
                       </span>
-                      <p className="text-[13px] text-[#E2E8F0]">
+                      <p className="text-[13px] text-[#e2e8f0]">
                         {item.description}
                       </p>
                     </div>
                     {item.detail && (
-                      <p className="mt-0.5 text-[11px] text-[#64748B]">
+                      <p className="mt-0.5 text-[11px] text-[#64748b]">
                         {item.detail}
                       </p>
                     )}
@@ -127,7 +145,7 @@ export function B2BComplianceTab({
             })}
           </div>
         ) : (
-          <p className="py-8 text-center text-[13px] text-[#64748B]">
+          <p className="py-8 text-center text-[13px] text-[#64748b]">
             Nenhum item de conformidade disponível para este ciclo.
           </p>
         )}

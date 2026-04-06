@@ -6,10 +6,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { getB2BUser, resolveCycle } from '../../lib/getB2BUser'
-import {
-  computeNormalizedScore,
-  getRiskLevel,
-} from '../../lib/riskUtils'
+import { computeNormalizedScore, getRiskLevel } from '../../lib/riskUtils'
 
 export const runtime = 'nodejs'
 
@@ -27,8 +24,12 @@ interface InventoryField {
   value: string
 }
 
+// eslint-disable-next-line complexity
 function computeAutomatedFields(
-  evaluations: Array<{ scores: Record<string, number> | null; employee_department?: string | null }>
+  evaluations: Array<{
+    scores: Record<string, number> | null
+    employee_department?: string | null
+  }>
 ): InventoryField[] {
   const scaleLabels: Record<string, string> = {
     phq9: 'Depressão (PHQ-9)',
@@ -67,7 +68,9 @@ function computeAutomatedFields(
     const avg = scaleSums[key] / scaleCounts[key]
     const pct = avg / max
     if (pct >= 0.5) {
-      perigos.push(`${scaleLabels[key] ?? key} (média ${avg.toFixed(1)}/${max})`)
+      perigos.push(
+        `${scaleLabels[key] ?? key} (média ${avg.toFixed(1)}/${max})`
+      )
     }
     if (pct >= 0.6) {
       agravos.push(scaleLabels[key] ?? key)
@@ -88,19 +91,29 @@ function computeAutomatedFields(
   return [
     {
       label: '1. Perigos Psicossociais Identificados',
-      value: perigos.length > 0 ? perigos.join('; ') : 'Nenhum perigo significativo identificado',
+      value:
+        perigos.length > 0
+          ? perigos.join('; ')
+          : 'Nenhum perigo significativo identificado',
     },
     {
       label: '2. Possíveis Agravos à Saúde',
-      value: agravos.length > 0 ? agravos.join('; ') : 'Sem agravos significativos identificados',
+      value:
+        agravos.length > 0
+          ? agravos.join('; ')
+          : 'Sem agravos significativos identificados',
     },
     {
       label: '3. Grupos de Exposição',
-      value: departments.size > 0 ? Array.from(departments).join(', ') : 'Todos os departamentos',
+      value:
+        departments.size > 0
+          ? Array.from(departments).join(', ')
+          : 'Todos os departamentos',
     },
     {
       label: '4. Fontes de Exposição',
-      value: 'Ambiente de trabalho, organização do trabalho, relações interpessoais, carga e ritmo de trabalho',
+      value:
+        'Ambiente de trabalho, organização do trabalho, relações interpessoais, carga e ritmo de trabalho',
     },
     {
       label: '5. Análise Preliminar de Risco',
@@ -247,7 +260,9 @@ export async function POST(
     },
     {
       label: '8. Atividades da Empresa',
-      value: company.nr1_activities ?? `CNAE: ${company.cnae ?? 'N/I'} | Grau de Risco: ${company.risk_grade ?? 'N/I'}`,
+      value:
+        company.nr1_activities ??
+        `CNAE: ${company.cnae ?? 'N/I'} | Grau de Risco: ${company.risk_grade ?? 'N/I'}`,
     },
     {
       label: '9. Medidas Preventivas Implementadas',

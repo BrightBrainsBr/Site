@@ -21,6 +21,66 @@ function randScale(length: number, max: number): number[] {
   return Array.from({ length }, () => randInt(0, max))
 }
 
+// AEP has exactly 14 questions (Likert 0-4)
+// SRQ-20 has 20 questions (binary 0-1)
+// canal_percepcao values must match CanalPercepcaoStep constants exactly
+
+export function generateB2BTestFormData(): AssessmentFormData {
+  return {
+    ...INITIAL_FORM_DATA,
+
+    nome: pick(['Ana Lima', 'Carlos Mendes', 'Fernanda Costa', 'Rafael Souza']),
+    nascimento: pick(['1985-03-12', '1990-07-24', '1978-11-05', '1995-02-18']),
+    cpf: '999.999.999-99',
+    telefone: '(11) 99999-0000',
+    email: 'colaborador.teste@empresa.com',
+    sexo: pick(['masculino', 'feminino']),
+    profissao: pick(['Analista', 'Coordenador', 'Assistente', 'Gerente']),
+    escolaridade: pick(['sup_comp', 'pos']),
+
+    publico: 'adulto',
+
+    // SRQ-20: 20 binary answers (0 = Não, 1 = Sim)
+    srq20_answers: Array.from({ length: 20 }, () => randInt(0, 1)),
+
+    // AEP: exactly 14 questions, Likert 0-4
+    aep_answers: Array.from({ length: 14 }, () => randInt(1, 4)),
+    aep_percepcao_livre: pick([
+      'Sinto que as demandas de trabalho têm aumentado muito e não tenho tempo para pausas adequadas.',
+      'A comunicação com a liderança poderia melhorar. Às vezes me sinto sobrecarregado.',
+      'De modo geral estou bem, mas as metas mensais criam bastante pressão.',
+    ]),
+
+    // canal_percepcao values must match CanalPercepcaoStep constants exactly:
+    // urgencia: 'urgente' | 'registro'
+    // tipo: 'estresse' | 'sobrecarga' | 'assedio_moral' | 'assedio_sexual' | 'conflito' | 'condicoes_fisicas' | 'falta_recursos' | 'discriminacao' | 'outro'
+    // frequencia: 'isolado' | 'recorrente' | 'continuo'
+    // impacto: 'baixo' | 'moderado' | 'alto' | 'critico'
+    // setor: 'outro' is always available; real departments from company context
+    canal_percepcao: {
+      urgencia: pick(['urgente', 'registro'] as const),
+      tipo: pick(['estresse', 'sobrecarga', 'conflito', 'falta_recursos'] as const),
+      frequencia: pick(['isolado', 'recorrente', 'continuo'] as const),
+      setor: 'outro',
+      impacto: pick(['baixo', 'moderado', 'alto', 'critico'] as const),
+      descricao: pick([
+        'Pressão constante para bater metas sem suporte adequado.',
+        'Dificuldade em conciliar demandas de múltiplos projetos ao mesmo tempo.',
+        'Sobrecarga de reuniões que afeta a produtividade.',
+      ]),
+      sugestao: pick([
+        'Implementar pausas ativas no meio do expediente.',
+        'Reduzir número de reuniões diárias.',
+        'Mais treinamentos sobre gestão do estresse.',
+      ]),
+    },
+
+    b2b_anonymized_consent: true,
+    b2c_consent: pick([true, false]),
+    b2c_contact_consent: false,
+  }
+}
+
 export function generateTestFormData(): AssessmentFormData {
   const allSymptoms = SYMPTOM_CATEGORIES.flatMap((c) => c.items)
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { computeAllScores } from '../../helpers/compute-scores'
 import { clearFormData } from '../../services/localStorage'
@@ -9,6 +9,42 @@ import { InfoBox, SectionTitle } from '../fields'
 import { StepNavigation } from '../StepNavigation'
 
 type Phase = 'review' | 'submitting' | 'submitted'
+
+interface LaudoStatus {
+  status: string
+  laudo_pdf_url?: string | null
+}
+
+function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
+  const [laudo, setLaudo] = useState<LaudoStatus | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    if (!enabled || !evaluationId) return
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/assessment/laudo-status?id=${evaluationId}`)
+        if (!res.ok) return
+        const data = (await res.json()) as LaudoStatus
+        setLaudo(data)
+        if (data.laudo_pdf_url || data.status === 'error') {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+        }
+      } catch {
+        // silently ignore polling errors
+      }
+    }
+
+    void poll()
+    intervalRef.current = setInterval(() => void poll(), 12_000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [evaluationId, enabled])
+
+  return laudo
+}
 
 export function SummaryStep({
   data,
@@ -19,6 +55,7 @@ export function SummaryStep({
   const [error, setError] = useState<string | null>(null)
   const [evaluationId, setEvaluationId] = useState<string | null>(null)
   const isCorporate = !!companyContext?.company_id
+  const laudo = useLaudoPolling(evaluationId, isCorporate && phase === 'submitted')
 
   const scores = computeAllScores(data)
 
@@ -105,6 +142,9 @@ export function SummaryStep({
           ...(companyContext?.code_id
             ? { code_id: companyContext.code_id }
             : {}),
+          b2b_anonymized_consent: data.b2b_anonymized_consent === true,
+          b2c_consent: data.b2c_consent === true,
+          b2c_contact_consent: data.b2c_contact_consent === true,
         }),
       })
 
@@ -210,35 +250,68 @@ export function SummaryStep({
               O que acontece agora?
             </p>
             {isCorporate ? (
-              <ol className="mx-auto max-w-md space-y-2 text-left text-xs text-zinc-400">
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                    1
-                  </span>
-                  O sistema está gerando um relatório simplificado com
-                  inteligência artificial
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                    2
-                  </span>
-                  O relatório será disponibilizado no painel da sua empresa
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                    3
-                  </span>
-                  Seus dados individuais são confidenciais — a empresa recebe
-                  apenas indicadores agregados
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                    4
-                  </span>
-                  O RH poderá entrar em contato para agendar acompanhamento, se
-                  necessário
-                </li>
-              </ol>
+              <div className="mx-auto max-w-md space-y-3 text-left">
+                <ol className="space-y-2 text-xs text-zinc-400">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                      1
+                    </span>
+                    A IA está gerando seu Laudo Individual BrightMonitor
+                    (pode levar 1-3 min)
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                      2
+                    </span>
+                    Seus dados individuais são confidenciais — a empresa recebe
+                    apenas indicadores agregados
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                      3
+                    </span>
+                    O RH poderá entrar em contato para agendar acompanhamento,
+                    se necessário
+                  </li>
+                </ol>
+
+                {/* Laudo PDF polling status */}
+                <div className="mt-4 rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-4">
+                  {!laudo || !laudo.laudo_pdf_url ? (
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+                      <div>
+                        <p className="text-xs font-medium text-zinc-300">
+                          Gerando Laudo Individual…
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Aguarde enquanto processamos sua avaliação
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">📄</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-lime-400">
+                          Laudo Individual Pronto
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Seu relatório foi gerado com sucesso
+                        </p>
+                      </div>
+                      <a
+                        href={laudo.laudo_pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 rounded-lg bg-lime-400/15 px-3 py-1.5 text-xs font-semibold text-lime-400 transition-colors hover:bg-lime-400/25"
+                      >
+                        Baixar PDF
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
             ) : (
               <ol className="mx-auto max-w-md space-y-2 text-left text-xs text-zinc-400">
                 <li className="flex items-start gap-2">

@@ -27,10 +27,13 @@ Análise das dimensões da AEP. Interprete os scores de cada dimensão (Organiza
 Narrativa de classificação de risco integrada. Explique a classificação final considerando probabilidade × severidade. Identifique os principais fatores contribuintes e descreva o cenário de risco em linguagem acessível.
 
 ## SECTION_7
-Ações individuais PDCA. Liste 3-5 recomendações personalizadas com base no perfil de risco. Cada ação deve ter: descrição, prazo sugerido, e indicador de acompanhamento. Priorize intervenções de maior impacto.
+Plano de Ação Individual PDCA. Gere 3-5 ações no formato estruturado abaixo — UMA AÇÃO POR LINHA, campos separados por pipe (|):
+PRIORIDADE|AÇÃO|RESPONSÁVEL|PRAZO|STATUS
+Onde: PRIORIDADE = Alta, Média ou Baixa; PRAZO = número de dias ou data (ex: 30 dias, 15/05/2026); STATUS = Pendente, Em andamento ou Agendado.
+Personalize baseado no perfil de risco. Não adicione texto antes ou depois das linhas de ação.
 
 ## SECTION_8
-Análise de tendências. Se dados históricos estiverem disponíveis, compare a evolução dos scores entre ciclos. Destaque melhorias, deteriorações e pontos de atenção. Se não houver histórico, indique que esta é a primeira avaliação e sugira baseline para acompanhamento.`
+Análise de tendências. Se dados históricos estiverem disponíveis, compare a evolução dos scores entre ciclos. Destaque melhorias, deteriorações e pontos de atenção. Se não houver histórico, indique que esta é a primeira avaliação e estabeleça o baseline de referência para os próximos ciclos, indicando metas sugeridas para SRQ-20 e AEP.`
 
 export function buildLaudoUserMessage(state: B2BLaudoState): string {
   const fd = state.formData

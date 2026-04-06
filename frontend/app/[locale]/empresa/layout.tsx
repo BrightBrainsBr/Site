@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next'
 import { DM_Sans, JetBrains_Mono, Syne } from 'next/font/google'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 
 import { ReactQueryProvider } from '~/shared/providers/ReactQueryProvider'
 
@@ -38,13 +39,15 @@ export default function EmpresaLayout({
   children: React.ReactNode
 }) {
   return (
-    <ReactQueryProvider>
-      <div
-        className={`${syne.variable} ${dmSans.variable} ${jetBrainsMono.variable} min-h-screen bg-[#060e1a] text-[#cce6f7] antialiased`}
-        style={{ fontFamily: 'var(--font-sans-portal), sans-serif' }}
-      >
-        <main>{children}</main>
-      </div>
-    </ReactQueryProvider>
+    <NuqsAdapter>
+      <ReactQueryProvider>
+        <div
+          className={`${syne.variable} ${dmSans.variable} ${jetBrainsMono.variable} min-h-screen bg-[#060d1a] text-[#e2e8f0] antialiased`}
+          style={{ fontFamily: 'var(--font-sans-portal), sans-serif' }}
+        >
+          <main>{children}</main>
+        </div>
+      </ReactQueryProvider>
+    </NuqsAdapter>
   )
 }

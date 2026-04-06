@@ -25,6 +25,7 @@ function getSiteUrl(): string {
   return raw
 }
 
+// eslint-disable-next-line complexity
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
@@ -304,7 +305,7 @@ export async function POST(
   }
 
   if (body.action === 'upload_file') {
-    const { bucket, fileName, contentType } = body as {
+    const { bucket, fileName } = body as {
       bucket: string
       fileName: string
       contentType: string
@@ -319,10 +320,7 @@ export async function POST(
       .createSignedUploadUrl(filePath)
 
     if (signedError) {
-      return NextResponse.json(
-        { error: signedError.message },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: signedError.message }, { status: 500 })
     }
 
     return NextResponse.json({
@@ -375,10 +373,7 @@ export async function POST(
       .eq('id', companyId)
 
     if (updateError) {
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })

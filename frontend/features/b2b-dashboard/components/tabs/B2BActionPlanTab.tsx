@@ -35,8 +35,8 @@ const STATUS_CONFIG: Record<
   },
   concluido: {
     label: 'Concluído',
-    color: '#34D399',
-    bg: 'rgba(16,185,129,0.15)',
+    color: '#22c55e',
+    bg: 'rgba(34,197,94,0.15)',
   },
 }
 
@@ -51,7 +51,7 @@ const PRIORITY_CONFIG: Record<
   },
   alta: { label: 'Alta', color: '#F97316', bg: 'rgba(249,115,22,0.15)' },
   media: { label: 'Média', color: '#F59E0B', bg: 'rgba(245,158,11,0.15)' },
-  baixa: { label: 'Baixa', color: '#10B981', bg: 'rgba(16,185,129,0.15)' },
+  baixa: { label: 'Baixa', color: '#22c55e', bg: 'rgba(34,197,94,0.15)' },
 }
 
 const EMPTY_FORM: CreateActionPlanInput = {
@@ -143,7 +143,7 @@ export function B2BActionPlanTab({
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748B]">
+      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748b]">
         Carregando plano de ação…
       </div>
     )
@@ -151,6 +151,15 @@ export function B2BActionPlanTab({
 
   return (
     <div className="space-y-4">
+      {/* Section header */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">🔄</span>
+          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Plano de Ação (PDCA)</h2>
+        </div>
+        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Ref. NR-1: 1.5.5.2 — Medidas de prevenção com responsáveis, prazos e status</p>
+      </div>
+
       {/* Status counters */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {(
@@ -164,13 +173,13 @@ export function B2BActionPlanTab({
             onClick={() =>
               setFilterStatus((prev) => (prev === key ? '' : key))
             }
-            className={`rounded-lg border p-3 text-left transition-colors ${
+            className={`rounded-[14px] border p-3 text-left transition-colors ${
               filterStatus === key
-                ? 'border-[rgba(255,255,255,0.2)] bg-[#0E1E33]'
-                : 'border-[rgba(255,255,255,0.06)] bg-[#0A1628] hover:border-[rgba(255,255,255,0.12)]'
+                ? 'border-[rgba(255,255,255,0.2)] bg-[#0c1425]'
+                : 'border-[rgba(255,255,255,0.06)] bg-[#0c1425] hover:border-[rgba(255,255,255,0.12)]'
             }`}
           >
-            <span className="text-[11px] font-medium text-[#94A3B8]">
+            <span className="text-[11px] font-medium text-[#94a3b8]">
               {cfg.label}
             </span>
             <p className="mt-1 text-[22px] font-bold" style={{ color: cfg.color }}>
@@ -187,14 +196,14 @@ export function B2BActionPlanTab({
             resetForm()
             setShowForm(true)
           }}
-          className="rounded-lg bg-[rgba(20,184,166,0.15)] px-3 py-1.5 text-[12px] font-semibold text-[#14B8A6] transition-colors hover:bg-[rgba(20,184,166,0.25)]"
+          className="rounded-lg bg-[rgba(197,225,85,0.15)] px-3 py-1.5 text-[12px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)]"
         >
           + Nova Ação
         </button>
         <button
           onClick={handleGenerate}
           disabled={generatePlans.isPending}
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[12px] font-semibold text-[#94A3B8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#E2E8F0] disabled:opacity-50"
+          className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[12px] font-semibold text-[#94a3b8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#e2e8f0] disabled:opacity-50"
         >
           {generatePlans.isPending ? 'Gerando…' : 'Gerar com IA'}
         </button>
@@ -202,13 +211,13 @@ export function B2BActionPlanTab({
 
       {/* Create / Edit form */}
       {showForm && (
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <h3 className="mb-3 text-[13px] font-semibold text-[#E2E8F0]">
+        <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
+          <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
             {editingId ? 'Editar Ação' : 'Nova Ação'}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Descrição
               </label>
               <textarea
@@ -217,11 +226,11 @@ export function B2BActionPlanTab({
                   setForm((f) => ({ ...f, description: e.target.value }))
                 }
                 rows={2}
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Departamento
               </label>
               <select
@@ -229,7 +238,7 @@ export function B2BActionPlanTab({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, department: e.target.value }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               >
                 <option value="">—</option>
                 {departments.map((d) => (
@@ -240,7 +249,7 @@ export function B2BActionPlanTab({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Prioridade
               </label>
               <select
@@ -251,7 +260,7 @@ export function B2BActionPlanTab({
                     priority: e.target.value as ActionPlanPriority,
                   }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               >
                 {(
                   Object.entries(PRIORITY_CONFIG) as [
@@ -266,7 +275,7 @@ export function B2BActionPlanTab({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Responsável
               </label>
               <input
@@ -275,11 +284,11 @@ export function B2BActionPlanTab({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, responsible: e.target.value }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Prazo
               </label>
               <input
@@ -288,12 +297,12 @@ export function B2BActionPlanTab({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, deadline: e.target.value }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             {editingId && (
               <div>
-                <label className="mb-1 block text-[11px] text-[#64748B]">
+                <label className="mb-1 block text-[11px] text-[#64748b]">
                   Status
                 </label>
                 <select
@@ -304,7 +313,7 @@ export function B2BActionPlanTab({
                       status: e.target.value as ActionPlanStatus,
                     }))
                   }
-                  className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                  className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
                 >
                   {(
                     Object.entries(STATUS_CONFIG) as [
@@ -320,7 +329,7 @@ export function B2BActionPlanTab({
               </div>
             )}
             <div className="sm:col-span-2 lg:col-span-3">
-              <label className="mb-1 block text-[11px] text-[#64748B]">
+              <label className="mb-1 block text-[11px] text-[#64748b]">
                 Observações
               </label>
               <textarea
@@ -329,7 +338,7 @@ export function B2BActionPlanTab({
                   setForm((f) => ({ ...f, notes: e.target.value }))
                 }
                 rows={2}
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#0A1628] px-3 py-2 text-[12px] text-[#E2E8F0] outline-none focus:border-[#0D9488]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
           </div>
@@ -337,7 +346,7 @@ export function B2BActionPlanTab({
             <button
               onClick={handleSubmit}
               disabled={createPlan.isPending || updatePlan.isPending}
-              className="rounded-lg bg-[rgba(20,184,166,0.15)] px-4 py-1.5 text-[12px] font-semibold text-[#14B8A6] transition-colors hover:bg-[rgba(20,184,166,0.25)] disabled:opacity-50"
+              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[12px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
             >
               {createPlan.isPending || updatePlan.isPending
                 ? 'Salvando…'
@@ -347,7 +356,7 @@ export function B2BActionPlanTab({
             </button>
             <button
               onClick={resetForm}
-              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[12px] font-semibold text-[#94A3B8] transition-colors hover:text-[#E2E8F0]"
+              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[12px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
             >
               Cancelar
             </button>
@@ -358,7 +367,7 @@ export function B2BActionPlanTab({
       {/* Action list */}
       <div className="space-y-2">
         {items.length === 0 ? (
-          <div className="flex h-40 items-center justify-center rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] text-[13px] text-[#64748B]">
+          <div className="flex h-40 items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] text-[13px] text-[#64748b]">
             Nenhuma ação cadastrada
           </div>
         ) : (
@@ -368,7 +377,7 @@ export function B2BActionPlanTab({
             return (
               <div
                 key={plan.id}
-                className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#0A1628] px-4 py-3"
+                className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] px-4 py-3"
               >
                 <div className="flex flex-wrap items-start gap-2">
                   {/* Priority badge */}
@@ -385,10 +394,10 @@ export function B2BActionPlanTab({
                   )}
 
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-medium text-[#E2E8F0]">
+                    <p className="text-[13px] font-medium text-[#e2e8f0]">
                       {plan.description}
                     </p>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#64748B]">
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#64748b]">
                       {plan.department && <span>{plan.department}</span>}
                       {plan.responsible && (
                         <span>Resp: {plan.responsible}</span>
@@ -414,7 +423,7 @@ export function B2BActionPlanTab({
                   <div className="flex shrink-0 gap-1">
                     <button
                       onClick={() => handleEdit(plan)}
-                      className="rounded p-1 text-[#64748B] transition-colors hover:text-[#E2E8F0]"
+                      className="rounded p-1 text-[#64748b] transition-colors hover:text-[#e2e8f0]"
                       title="Editar"
                     >
                       <svg
@@ -433,7 +442,7 @@ export function B2BActionPlanTab({
                     </button>
                     <button
                       onClick={() => handleDelete(plan.id)}
-                      className="rounded p-1 text-[#64748B] transition-colors hover:text-[#F87171]"
+                      className="rounded p-1 text-[#64748b] transition-colors hover:text-[#F87171]"
                       title="Excluir"
                     >
                       <svg

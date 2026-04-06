@@ -2,25 +2,69 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import {
+  Bar,
+  BarChart,
+  Cell,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 
-import { useB2BPercepcaoQueryHook } from '../../hooks/useB2BPercepcaoQueryHook'
+import { useB2BGROQueryHook } from '../../hooks/useB2BGROQueryHook'
 
-const TYPE_COLORS: Record<string, string> = {
-  Estresse: '#EF4444',
-  Sobrecarga: '#F97316',
-  'Assédio Moral': '#F59E0B',
-  'Assédio Sexual': '#EC4899',
-  Conflito: '#8B5CF6',
-  'Condições Físicas': '#06B6D4',
-  'Falta de Recursos': '#64748B',
-  Discriminação: '#D946EF',
-  Outro: '#94A3B8',
+const AEP_DIM_LABELS: Record<string, string> = {
+  pressure: 'Pressão Metas',
+  autonomy: 'Autonomia',
+  breaks: 'Pausas',
+  relationships: 'Relações',
+  cognitive: 'Demandas Cogn.',
+  environment: 'Ambiente',
 }
 
-function getTypeColor(type: string): string {
-  return TYPE_COLORS[type] ?? '#94A3B8'
+const AEP_DIM_MAX: Record<string, number> = {
+  pressure: 12,
+  autonomy: 8,
+  breaks: 8,
+  relationships: 12,
+  cognitive: 8,
+  environment: 8,
 }
+
+function getAepBarColor(value: number, max: number): string {
+  const pct = value / max
+  if (pct < 0.4) return '#22c55e'
+  if (pct < 0.6) return '#eab308'
+  return '#f97316'
+}
+
+const SCALE_DISPLAY: Record<string, { label: string; max: number }> = {
+  phq9: { label: 'PHQ-9', max: 27 },
+  gad7: { label: 'GAD-7', max: 21 },
+  srq20: { label: 'SRQ-20', max: 20 },
+  pss10: { label: 'PSS-10', max: 40 },
+  mbi: { label: 'MBI-EE', max: 80 },
+  isi: { label: 'ISI', max: 28 },
+}
+
+const SRQ_RANGES = [
+  { label: 'Negativo', range: '< 8', color: '#22c55e', key: 'negative' as const },
+  { label: 'Moderado', range: '8-11', color: '#eab308', key: 'moderate' as const },
+  { label: 'Elevado', range: '12-16', color: '#f97316', key: 'elevated' as const },
+  { label: 'Crítico', range: '17-20', color: '#ef4444', key: 'critical' as const },
+]
+
+const MATRIX_COLORS = [
+  ['#22c55e', '#22c55e', '#eab308', '#f97316'],
+  ['#22c55e', '#eab308', '#f97316', '#ef4444'],
+  ['#eab308', '#f97316', '#ef4444', '#ef4444'],
+]
 
 interface B2BGROTabProps {
   companyId: string | null
@@ -28,214 +72,283 @@ interface B2BGROTabProps {
 }
 
 export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
-  const { data: percepcao, isLoading } = useB2BPercepcaoQueryHook(
-    companyId,
-    cycleId ?? undefined
-  )
+  const { data: gro, isLoading } = useB2BGROQueryHook(companyId, {
+    cycle: cycleId ?? undefined,
+  })
 
-  const pieData = useMemo(() => {
-    if (!percepcao?.byType) return []
-    return Object.entries(percepcao.byType)
-      .map(([name, value]) => ({ name, value, color: getTypeColor(name) }))
-      .filter((d) => d.value > 0)
-      .sort((a, b) => b.value - a.value)
-  }, [percepcao?.byType])
+  const radarData = useMemo(() => {
+    if (!gro?.scaleAverages) return []
+    return Object.entries(SCALE_DISPLAY)
+      .filter(([key]) => (gro.scaleAverages[key] ?? 0) > 0)
+      .map(([key, cfg]) => ({
+        scale: cfg.label,
+        value: gro.scaleAverages[key] ?? 0,
+        max: cfg.max,
+      }))
+  }, [gro?.scaleAverages])
 
-  const totalPie = useMemo(
-    () => pieData.reduce((sum, d) => sum + d.value, 0),
-    [pieData]
-  )
+  const aepData = useMemo(() => {
+    if (!gro?.aepDimensions) return []
+    return Object.entries(AEP_DIM_LABELS).map(([key, label]) => ({
+      dimension: label,
+      value: gro.aepDimensions[key] ?? 0,
+      max: AEP_DIM_MAX[key] ?? 12,
+      fill: getAepBarColor(
+        gro.aepDimensions[key] ?? 0,
+        AEP_DIM_MAX[key] ?? 12
+      ),
+    }))
+  }, [gro?.aepDimensions])
+
+  const matrix = gro?.riskMatrix ?? []
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748B]">
+      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748b]">
         Carregando dados GRO…
       </div>
     )
   }
 
-  const hasData = percepcao && percepcao.total > 0
+  const hasScaleData = radarData.length > 0
+  const hasAepData = aepData.some((d) => d.value > 0)
+  const hasSrqData =
+    gro?.srq20Distribution &&
+    (gro.srq20Distribution.negative > 0 ||
+      gro.srq20Distribution.moderate > 0 ||
+      gro.srq20Distribution.elevated > 0 ||
+      gro.srq20Distribution.critical > 0)
+  const hasMatrix = matrix.length > 0
+
+  const noData = !hasScaleData && !hasAepData && !hasSrqData && !hasMatrix
 
   return (
-    <div className="space-y-6">
-      {/* GRO placeholder header */}
-      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(20,184,166,0.1)]">
-            <svg
-              className="h-5 w-5 text-[#14B8A6]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-[16px] font-semibold text-[#E2E8F0]">
-              GRO Psicossocial
-            </h3>
-            <p className="text-[12px] text-[#64748B]">
-              Gerenciamento de riscos ocupacionais psicossociais
-            </p>
-          </div>
+    <div className="space-y-5">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">⚖️</span>
+          <h2 className="text-[18px] font-bold text-[#e2e8f0]">
+            GRO Psicossocial
+          </h2>
         </div>
+        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">
+          Gerenciamento de Riscos Ocupacionais — Fatores Psicossociais e
+          Ergonomia Cognitiva
+        </p>
       </div>
 
-      {/* Percepção dos Colaboradores */}
-      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
-        <h3 className="mb-4 text-[14px] font-semibold text-[#E2E8F0]">
-          Percepção dos Colaboradores
-        </h3>
-
-        {!hasData ? (
-          <div className="flex h-40 items-center justify-center text-[13px] text-[#64748B]">
-            Nenhum relato de percepção registrado ainda
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {/* 4 KPI cards */}
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <div
-                className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0A1628] py-3 pl-4 pr-4"
-                style={{ borderLeft: '3px solid #14B8A6' }}
-              >
-                <p className="text-[11px] uppercase tracking-[0.5px] text-[#64748B]">
-                  Total Respostas
-                </p>
-                <p className="mt-1.5 text-[26px] font-bold leading-none text-[#14B8A6]">
-                  {percepcao.total}
-                </p>
-              </div>
-
-              <div
-                className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0A1628] py-3 pl-4 pr-4"
-                style={{ borderLeft: '3px solid #EF4444' }}
-              >
-                <p className="text-[11px] uppercase tracking-[0.5px] text-[#64748B]">
-                  Urgência Alta
-                </p>
-                <p className="mt-1.5 text-[26px] font-bold leading-none text-[#EF4444]">
-                  {percepcao.urgentes}
-                </p>
-              </div>
-
-              <div
-                className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0A1628] py-3 pl-4 pr-4"
-                style={{ borderLeft: '3px solid #60A5FA' }}
-              >
-                <p className="text-[11px] uppercase tracking-[0.5px] text-[#64748B]">
-                  Setor com Mais Sinais
-                </p>
-                <p
-                  className="mt-1.5 truncate text-[16px] font-bold leading-none text-[#60A5FA]"
-                  title={percepcao.topSetor || '—'}
-                >
-                  {percepcao.topSetor || '—'}
-                </p>
-              </div>
-
-              <div
-                className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0A1628] py-3 pl-4 pr-4"
-                style={{ borderLeft: '3px solid #8B5CF6' }}
-              >
-                <p className="text-[11px] uppercase tracking-[0.5px] text-[#64748B]">
-                  Anonimato
-                </p>
-                <span className="mt-1.5 inline-block rounded-full bg-[rgba(139,92,246,0.15)] px-3 py-1 text-[12px] font-semibold text-[#A78BFA]">
-                  100% garantido
-                </span>
-              </div>
+      {noData ? (
+        <div className="flex h-48 items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[13px] text-[#64748b]">
+          Nenhum dado GRO disponível — execute avaliações para gerar os
+          indicadores.
+        </div>
+      ) : (
+        <>
+          {/* Row 1: Radar + AEP Dimensions */}
+          <div className="grid gap-3 lg:grid-cols-2">
+            {/* Radar chart */}
+            <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
+              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+                Escalas Clínicas — Média Geral
+              </h3>
+              {hasScaleData ? (
+                <ResponsiveContainer width="100%" height={260}>
+                  <RadarChart
+                    data={radarData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius="70%"
+                  >
+                    <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                    <PolarAngleAxis
+                      dataKey="scale"
+                      tick={{ fontSize: 11, fill: '#94a3b8' }}
+                    />
+                    <PolarRadiusAxis
+                      tick={{ fontSize: 9, fill: '#64748b' }}
+                      axisLine={false}
+                    />
+                    <Radar
+                      name="Empresa"
+                      dataKey="value"
+                      stroke="#c5e155"
+                      fill="rgba(197,225,85,0.15)"
+                      strokeWidth={2}
+                      dot={{ fill: '#c5e155', r: 3 }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#111b2e',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: '#e2e8f0',
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-[260px] items-center justify-center text-[12px] text-[#64748b]">
+                  Sem dados de escalas clínicas
+                </div>
+              )}
             </div>
 
-            {/* Donut chart — distribution by type */}
-            <div className="grid gap-4 lg:grid-cols-2">
-              <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0A1628] p-4">
-                <h4 className="mb-3 text-[12px] font-semibold text-[#94A3B8]">
-                  Distribuição por Tipo de Fator
-                </h4>
-                {pieData.length === 0 ? (
-                  <div className="flex h-48 items-center justify-center text-[12px] text-[#475569]">
-                    Sem dados para exibir
+            {/* AEP Dimensions — horizontal bars */}
+            <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
+              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+                AEP — Dimensões (Média Empresa)
+              </h3>
+              {hasAepData ? (
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart
+                    data={aepData}
+                    layout="vertical"
+                    margin={{ top: 0, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <XAxis
+                      type="number"
+                      domain={[0, 12]}
+                      tick={{ fontSize: 10, fill: '#64748b' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      dataKey="dimension"
+                      type="category"
+                      width={110}
+                      tick={{ fontSize: 11, fill: '#94a3b8' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#111b2e',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: '#e2e8f0',
+                      }}
+                    />
+                    <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
+                      {aepData.map((entry, i) => (
+                        <Cell key={i} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-[260px] items-center justify-center text-[12px] text-[#64748b]">
+                  Sem dados AEP
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* SRQ-20 Distribution */}
+          {hasSrqData && (
+            <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
+              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+                SRQ-20 (OMS) — Distribuição de Rastreamento
+              </h3>
+              <div className="mb-3 grid grid-cols-2 gap-2.5 md:grid-cols-4">
+                {SRQ_RANGES.map((r) => (
+                  <div
+                    key={r.key}
+                    className="rounded-[10px] p-3 text-center"
+                    style={{
+                      background: `${r.color}08`,
+                      border: `1px solid ${r.color}15`,
+                    }}
+                  >
+                    <div
+                      className="font-mono text-[22px] font-bold leading-none tracking-tight"
+                      style={{ color: r.color }}
+                    >
+                      {gro?.srq20Distribution[r.key] ?? 0}
+                    </div>
+                    <div className="mt-1 text-[10px] text-[#94a3b8]">
+                      SRQ {r.range} ({r.label})
+                    </div>
                   </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={220}>
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={90}
-                        paddingAngle={2}
-                        dataKey="value"
-                        stroke="none"
+                ))}
+              </div>
+              <div className="rounded-lg bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[11px] text-[#64748b]">
+                📎 O SRQ-20 da OMS é o instrumento recomendado pelo Ministério
+                da Saúde para vigilância de transtornos mentais comuns em
+                ambiente ocupacional. Ponto de corte: ≥ 8 (Mari & Williams,
+                1986).
+              </div>
+            </div>
+          )}
+
+          {/* Probability × Severity Matrix */}
+          {hasMatrix && (
+            <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
+              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+                Matriz Probabilidade × Severidade — Consolidado
+              </h3>
+              <div
+                className="grid gap-0.5"
+                style={{ gridTemplateColumns: '80px repeat(4, 1fr)' }}
+              >
+                {/* Headers */}
+                <div />
+                {[
+                  'Sev. Baixa',
+                  'Sev. Moderada',
+                  'Sev. Alta',
+                  'Sev. Muito Alta',
+                ].map((h) => (
+                  <div
+                    key={h}
+                    className="rounded p-2 text-center text-[10px] font-semibold text-[#94a3b8]"
+                    style={{ background: 'rgba(255,255,255,0.03)' }}
+                  >
+                    {h}
+                  </div>
+                ))}
+
+                {/* Rows: Prob. Alta (2), Prob. Média (1), Prob. Baixa (0) */}
+                {['Prob. Alta', 'Prob. Média', 'Prob. Baixa'].map(
+                  (rowLabel, rowIdx) => (
+                    <div key={rowIdx} className="contents">
+                      <div
+                        className="flex items-center text-[10px] font-semibold text-[#94a3b8]"
+                        style={{ padding: '8px' }}
                       >
-                        {pieData.map((entry) => (
-                          <Cell key={entry.name} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#0E1E33',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          color: '#E2E8F0',
-                        }}
-                        formatter={(value, name) => [
-                          `${value} (${totalPie > 0 ? Math.round((Number(value) / totalPie) * 100) : 0}%)`,
-                          name,
-                        ]}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                        {rowLabel}
+                      </div>
+                      {[0, 1, 2, 3].map((colIdx) => {
+                        const value =
+                          matrix[rowIdx]?.[colIdx] ?? 0
+                        const color = MATRIX_COLORS[rowIdx]?.[colIdx] ?? '#64748b'
+                        return (
+                          <div
+                            key={`cell-${rowIdx}-${colIdx}`}
+                            className="rounded p-2.5 text-center font-mono text-[14px] font-bold"
+                            style={{
+                              background: `${color}20`,
+                              color,
+                            }}
+                          >
+                            {value}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
                 )}
               </div>
-
-              {/* Legend */}
-              <div className="rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0A1628] p-4">
-                <h4 className="mb-3 text-[12px] font-semibold text-[#94A3B8]">
-                  Detalhamento
-                </h4>
-                <div className="space-y-2">
-                  {pieData.map((entry) => (
-                    <div
-                      key={entry.name}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="inline-block h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="text-[12px] text-[#94A3B8]">
-                          {entry.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[12px] font-semibold text-[#E2E8F0]">
-                          {entry.value}
-                        </span>
-                        <span className="text-[11px] text-[#64748B]">
-                          {totalPie > 0
-                            ? `${Math.round((entry.value / totalPie) * 100)}%`
-                            : '0%'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="mt-2 text-center text-[10px] text-[#64748b]">
+                Número de colaboradores por célula da matriz · Ref. NR-1:
+                1.5.4.4.2
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

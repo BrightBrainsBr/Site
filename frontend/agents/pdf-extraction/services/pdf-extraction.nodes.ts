@@ -1,9 +1,5 @@
 // frontend/agents/pdf-extraction/services/pdf-extraction.nodes.ts
 
-// pdf-parse ships as CommonJS with module.exports; use require() to avoid
-// TS1192 "has no default export" when targeting ESM.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdf = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
 import { z } from 'zod'
 
 import { AgentError } from '~/agents/shared/errors'
@@ -53,6 +49,9 @@ export async function parsePdf(
   state: PdfExtractionStateType
 ): Promise<Partial<PdfExtractionStateType>> {
   try {
+    // Lazy-require at runtime to avoid pdfjs-dist canvas globals failing at build time
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdf = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
     const buffer = await downloadPdf(state.fileUrl)
     const parsed = await pdf(buffer)
 

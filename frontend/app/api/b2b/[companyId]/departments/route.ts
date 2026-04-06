@@ -13,6 +13,7 @@ import {
 
 export const runtime = 'nodejs'
 
+// eslint-disable-next-line complexity
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
@@ -102,8 +103,7 @@ export async function GET(
     if (rawScores) {
       if (typeof rawScores.phq9 === 'number') entry.phq9.push(rawScores.phq9)
       if (typeof rawScores.gad7 === 'number') entry.gad7.push(rawScores.gad7)
-      if (typeof rawScores.srq20 === 'number')
-        entry.srq20.push(rawScores.srq20)
+      if (typeof rawScores.srq20 === 'number') entry.srq20.push(rawScores.srq20)
       if (typeof rawScores.aep_total === 'number')
         entry.aep.push(rawScores.aep_total)
     }

@@ -140,3 +140,22 @@ export async function updateEvaluation(
     throw new Error(`Evaluation update failed: ${error.message}`)
   }
 }
+
+export async function fetchEvaluationConsents(evaluationId: string): Promise<{
+  b2c_consent: boolean
+  b2c_contact_consent: boolean
+}> {
+  const sb = createSb()
+  const { data, error } = await sb
+    .from('mental_health_evaluations')
+    .select('b2c_consent, b2c_contact_consent')
+    .eq('id', evaluationId)
+    .single()
+
+  if (error || !data) return { b2c_consent: false, b2c_contact_consent: false }
+
+  return {
+    b2c_consent: data.b2c_consent === true,
+    b2c_contact_consent: data.b2c_contact_consent === true,
+  }
+}

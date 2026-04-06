@@ -61,20 +61,15 @@ export async function GET(
     const t = r.report_type ?? 'outro'
     byType[t] = (byType[t] ?? 0) + 1
 
-    if (r.urgencia === 'alta' || r.urgencia === 'critica') urgentes++
+    if (r.urgencia === 'urgente') urgentes++
 
     const dept = r.department ?? 'Sem departamento'
     deptCounts[dept] = (deptCounts[dept] ?? 0) + 1
 
-    if (r.urgencia === 'critica' || r.impacto === 'alto') {
+    if (r.urgencia === 'urgente' || r.impacto === 'alto') {
       correlations.push({
         description: r.descricao ?? r.description ?? '',
-        severity:
-          r.urgencia === 'critica'
-            ? 'critical'
-            : r.impacto === 'alto'
-              ? 'high'
-              : 'medium',
+        severity: r.urgencia === 'urgente' ? 'critical' : 'high',
       })
     }
   }

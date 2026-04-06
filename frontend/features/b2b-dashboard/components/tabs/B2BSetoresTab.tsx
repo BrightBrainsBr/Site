@@ -21,10 +21,10 @@ type SortField =
   | 'name'
 
 const RISK_LABEL: Record<RiskLevel, { label: string; color: string }> = {
-  low: { label: 'Baixo', color: '#10B981' },
-  moderate: { label: 'Moderado', color: '#F59E0B' },
-  elevated: { label: 'Elevado', color: '#F97316' },
-  critical: { label: 'Crítico', color: '#EF4444' },
+  low: { label: 'Baixo', color: '#22c55e' },
+  moderate: { label: 'Moderado', color: '#eab308' },
+  elevated: { label: 'Elevado', color: '#f97316' },
+  critical: { label: 'Crítico', color: '#ef4444' },
 }
 
 const RISK_PT_MAP: Record<string, RiskLevel> = {
@@ -35,12 +35,12 @@ const RISK_PT_MAP: Record<string, RiskLevel> = {
 }
 
 function scoreColor(value: number | null): string {
-  if (value === null) return '#64748B'
+  if (value === null) return '#64748b'
   const normalized = value
-  if (normalized < 40) return '#10B981'
-  if (normalized < 60) return '#F59E0B'
-  if (normalized < 80) return '#F97316'
-  return '#EF4444'
+  if (normalized < 40) return '#22c55e'
+  if (normalized < 60) return '#eab308'
+  if (normalized < 80) return '#f97316'
+  return '#ef4444'
 }
 
 function dominantRisk(
@@ -142,7 +142,7 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#14B8A6] border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#c5e155] border-t-transparent" />
       </div>
     )
   }
@@ -152,8 +152,8 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
       onClick={() => handleSort(field)}
       className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
         sortField === field
-          ? 'bg-[rgba(20,184,166,0.2)] text-[#14B8A6]'
-          : 'bg-[rgba(255,255,255,0.06)] text-[#94A3B8] hover:bg-[rgba(255,255,255,0.1)]'
+          ? 'border border-[rgba(197,225,85,0.3)] bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
+          : 'border border-[rgba(255,255,255,0.06)] bg-transparent text-[#94a3b8] hover:bg-[rgba(255,255,255,0.06)]'
       }`}
     >
       {label} {sortField === field && (sortAsc ? '↑' : '↓')}
@@ -169,9 +169,17 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
         onFiltersChange={handleFiltersChange}
       />
 
-      <div className="overflow-x-auto rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33]">
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">🏢</span>
+          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Mapa de Riscos por Setor</h2>
+        </div>
+        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Ref. NR-1: 1.5.7.3.2 — Inventário consolidado por grupo de exposição</p>
+      </div>
+
+      <div className="overflow-x-auto rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)]">
         <div className="flex flex-wrap items-center gap-2 px-4 py-3">
-          <span className="text-[11px] font-medium text-[#64748B]">
+          <span className="text-[11px] font-medium text-[#64748b]">
             Ordenar por:
           </span>
           {sortButton('score', 'Score Global')}
@@ -184,32 +192,32 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
 
         <table className="w-full min-w-[900px] border-collapse text-[12px]">
           <thead>
-            <tr className="border-b border-[rgba(255,255,255,0.08)] border-t border-t-[rgba(255,255,255,0.04)]">
-              <th className="px-4 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+            <tr className="border-b border-[rgba(255,255,255,0.06)] border-t border-t-[rgba(255,255,255,0.04)]">
+              <th className="px-4 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 Setor
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 Colabs
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 Risco
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 Score
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 PHQ-9
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 GAD-7
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 SRQ-20
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 AEP/56
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
                 Ações
               </th>
             </tr>
@@ -223,10 +231,10 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
                   key={d.name}
                   className="border-b border-[rgba(255,255,255,0.04)] transition-colors hover:bg-[rgba(255,255,255,0.02)] last:border-0"
                 >
-                  <td className="px-4 py-2.5 text-[12px] font-medium text-[#E2E8F0]">
+                  <td className="px-4 py-2.5 text-[12px] font-medium text-[#e2e8f0]">
                     {d.name}
                   </td>
-                  <td className="px-2 py-2.5 text-center text-[#94A3B8]">
+                  <td className="px-2 py-2.5 text-center text-[#94a3b8]">
                     {d.n}
                   </td>
                   <td className="px-2 py-2.5 text-center">
@@ -277,7 +285,7 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
                         {d.pendingActions}
                       </span>
                     ) : (
-                      <span className="text-[#64748B]">–</span>
+                      <span className="text-[#64748b]">–</span>
                     )}
                   </td>
                 </tr>
@@ -287,7 +295,7 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
         </table>
 
         {sortedDepts.length === 0 && (
-          <p className="py-12 text-center text-[13px] text-[#64748B]">
+          <p className="py-12 text-center text-[13px] text-[#64748b]">
             Nenhum setor encontrado com os filtros selecionados.
           </p>
         )}

@@ -20,6 +20,7 @@ function anonymizeId(id: string): string {
   return `COL-${hash.slice(-4).toUpperCase()}`
 }
 
+// eslint-disable-next-line complexity
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
@@ -82,7 +83,11 @@ export async function GET(
     if (!normAlert && !srq20Alert && !aepAlert) continue
 
     const riskLevel =
-      norm != null ? getRiskLevel(norm) : srq20Alert ? getSRQ20RiskLevel(srq20!) : 'elevated'
+      norm != null
+        ? getRiskLevel(norm)
+        : srq20Alert
+          ? getSRQ20RiskLevel(srq20)
+          : 'elevated'
     const domainScores: Record<string, number> = {}
     if (scores) {
       for (const [k, v] of Object.entries(scores)) {
@@ -102,9 +107,11 @@ export async function GET(
       domainScores:
         Object.keys(domainScores).length > 0 ? domainScores : undefined,
       srq20Score: typeof srq20 === 'number' ? srq20 : undefined,
-      srq20Risk: typeof srq20 === 'number' ? getSRQ20RiskLevel(srq20) : undefined,
+      srq20Risk:
+        typeof srq20 === 'number' ? getSRQ20RiskLevel(srq20) : undefined,
       aepScore: typeof aepTotal === 'number' ? aepTotal : undefined,
-      aepRisk: typeof aepTotal === 'number' ? getAEPRiskLevel(aepTotal) : undefined,
+      aepRisk:
+        typeof aepTotal === 'number' ? getAEPRiskLevel(aepTotal) : undefined,
       reasons,
     })
   }

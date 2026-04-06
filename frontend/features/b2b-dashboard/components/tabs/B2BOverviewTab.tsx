@@ -18,10 +18,10 @@ import type { B2BOverviewData, RiskLevel } from '../../b2b-dashboard.interface'
 import { useB2BAlerts } from '../../hooks/useB2BAlerts'
 
 const RISK_COLORS: Record<RiskLevel, string> = {
-  low: '#10B981',
-  moderate: '#F59E0B',
-  elevated: '#F97316',
-  critical: '#EF4444',
+  low: '#22c55e',
+  moderate: '#eab308',
+  elevated: '#f97316',
+  critical: '#ef4444',
 }
 
 const RISK_LABELS: Record<RiskLevel, string> = {
@@ -31,11 +31,11 @@ const RISK_LABELS: Record<RiskLevel, string> = {
   critical: 'Crítico',
 }
 
-const URGENCY_BADGE: Record<string, { bg: string; text: string }> = {
-  critical: { bg: 'rgba(239,68,68,0.15)', text: '#F87171' },
-  elevated: { bg: 'rgba(249,115,22,0.15)', text: '#FB923C' },
-  moderate: { bg: 'rgba(245,158,11,0.15)', text: '#FBBF24' },
-  low: { bg: 'rgba(16,185,129,0.15)', text: '#34D399' },
+const RISK_ICONS: Record<RiskLevel, string> = {
+  low: '🟢',
+  moderate: '🟡',
+  elevated: '🟠',
+  critical: '🔴',
 }
 
 interface B2BOverviewTabProps {
@@ -59,47 +59,57 @@ export function B2BOverviewTab({
     low: 0,
   }
 
-  const kpis = [
+  const kpis: {
+    label: string
+    value: number | string
+    sub: string
+    color: string
+    icon: string
+    borderColor: string
+  }[] = [
     {
       label: 'Total Avaliados',
       value: total,
       sub: 'avaliações',
-      borderColor: '#14B8A6',
-      valueColor: '#14B8A6',
+      color: '#c5e155',
+      icon: '👥',
+      borderColor: 'rgba(197,225,85,0.3)',
     },
     {
-      label: 'Baixo',
+      label: 'Risco Baixo',
       value: rd.low,
       sub: total > 0 ? `${Math.round((rd.low / total) * 100)}%` : '0%',
-      borderColor: '#10B981',
-      valueColor: '#10B981',
+      color: '#22c55e',
+      icon: '🟢',
+      borderColor: 'rgba(34,197,94,0.3)',
     },
     {
-      label: 'Moderado',
+      label: 'Risco Moderado',
       value: rd.moderate,
       sub: total > 0 ? `${Math.round((rd.moderate / total) * 100)}%` : '0%',
-      borderColor: '#F59E0B',
-      valueColor: '#F59E0B',
+      color: '#eab308',
+      icon: '🟡',
+      borderColor: 'rgba(234,179,8,0.3)',
     },
     {
-      label: 'Elevado',
+      label: 'Risco Elevado',
       value: rd.elevated,
       sub: total > 0 ? `${Math.round((rd.elevated / total) * 100)}%` : '0%',
-      borderColor: '#F97316',
-      valueColor: '#F97316',
+      color: '#f97316',
+      icon: '🟠',
+      borderColor: 'rgba(249,115,22,0.3)',
     },
     {
-      label: 'Crítico',
+      label: 'Risco Crítico',
       value: rd.critical,
       sub: total > 0 ? `${Math.round((rd.critical / total) * 100)}%` : '0%',
-      borderColor: '#EF4444',
-      valueColor: '#EF4444',
+      color: '#ef4444',
+      icon: '🔴',
+      borderColor: 'rgba(239,68,68,0.3)',
     },
   ]
 
-  const pieData = (
-    ['low', 'moderate', 'elevated', 'critical'] as RiskLevel[]
-  )
+  const pieData = (['low', 'moderate', 'elevated', 'critical'] as RiskLevel[])
     .map((level) => ({
       name: RISK_LABELS[level],
       value: rd[level],
@@ -111,76 +121,84 @@ export function B2BOverviewTab({
 
   const timeline = overview?.timeline ?? []
   const TIMELINE_COLORS = {
-    baixo: '#10B981',
-    moderado: '#F59E0B',
-    elevado: '#F97316',
-    critico: '#EF4444',
+    baixo: '#22c55e',
+    moderado: '#eab308',
+    elevado: '#f97316',
+    critico: '#ef4444',
   }
 
   const alerts = alertsData?.alerts ?? []
 
   return (
     <div className="space-y-4">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">📊</span>
+          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Visão Geral</h2>
+        </div>
+      </div>
+
       {/* KPI strip */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-5">
         {kpis.map((k) => (
           <div
             key={k.label}
-            className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] py-3.5 pl-4 pr-4"
-            style={{ borderLeft: `3px solid ${k.borderColor}` }}
+            className="rounded-[14px] border bg-[rgba(255,255,255,0.03)] p-4 text-center"
+            style={{ borderColor: k.borderColor }}
           >
-            <p className="text-[11px] uppercase tracking-[0.5px] text-[#64748B]">
-              {k.label}
-            </p>
-            <p
-              className="mt-1.5 text-[26px] font-bold leading-none"
-              style={{ color: k.valueColor }}
+            <div className="text-[22px]">{k.icon}</div>
+            <div
+              className="mt-1 font-mono text-[28px] font-bold leading-none tracking-tight"
+              style={{ color: k.color }}
             >
               {k.value}
-            </p>
-            <p className="mt-1 text-[11px] text-[#64748B]">{k.sub}</p>
+            </div>
+            <div className="mt-1 text-[11px] text-[#94a3b8]">{k.label}</div>
+            <div className="mt-0.5 text-[10px] text-[#64748b]">{k.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Charts row */}
-      <div className="grid gap-4 lg:grid-cols-[45fr_55fr]">
+      <div className="grid gap-3 lg:grid-cols-2">
         {/* Donut chart */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <h3 className="mb-3 text-[13px] font-semibold text-[#E2E8F0]">
+        <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
+          <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
             Distribuição de Risco
           </h3>
           {pieData.length > 0 ? (
             <div className="flex flex-col items-center">
-              <div className="relative" style={{ width: 180, height: 180 }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={80}
-                      paddingAngle={1}
-                      startAngle={90}
-                      endAngle={-270}
-                    >
-                      {pieData.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} stroke="none" />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-[28px] font-bold text-[#E2E8F0]">
-                    {totalRisk || total}
-                  </span>
-                  <span className="text-[11px] text-[#64748B]">avaliados</span>
-                </div>
-              </div>
-              <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5">
+              <ResponsiveContainer width="100%" height={200} minWidth={0}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={1}
+                    startAngle={90}
+                    endAngle={-270}
+                  >
+                    {pieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} stroke="none" />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#111b2e',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      color: '#e2e8f0',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">
                 {pieData.map((d) => (
                   <div
                     key={d.name}
@@ -190,22 +208,17 @@ export function B2BOverviewTab({
                       className="h-2 w-2 shrink-0 rounded-sm"
                       style={{ backgroundColor: d.color }}
                     />
-                    <span className="text-[#64748B]">{d.name}</span>
-                    <span className="ml-auto font-semibold text-[#E2E8F0]">
+                    <span className="text-[#94a3b8]">{d.name}</span>
+                    <span className="ml-auto font-semibold text-[#e2e8f0]">
                       {d.value}
-                    </span>
-                    <span className="text-[10px] text-[#64748B]">
-                      {totalRisk > 0
-                        ? `${Math.round((d.value / totalRisk) * 100)}%`
-                        : ''}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="flex h-[200px] flex-col items-center justify-center text-[13px] text-[#64748B]">
-              <span className="text-2xl font-bold text-[#E2E8F0]">{total}</span>
+            <div className="flex h-[200px] flex-col items-center justify-center text-[13px] text-[#64748b]">
+              <span className="text-2xl font-bold text-[#e2e8f0]">{total}</span>
               <span className="mt-1">avaliados</span>
               <span className="mt-4">Sem dados de risco</span>
             </div>
@@ -213,18 +226,13 @@ export function B2BOverviewTab({
         </div>
 
         {/* Stacked bar chart — monthly evolution */}
-        <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
-              Evolução Mensal
-            </h3>
-            <span className="text-[11px] text-[#64748B]">
-              distribuição de risco por mês
-            </span>
-          </div>
+        <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
+          <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+            Evolução Mensal (%)
+          </h3>
           {timeline.length > 0 ? (
             <>
-              <ResponsiveContainer width="100%" height={220} minWidth={0}>
+              <ResponsiveContainer width="100%" height={200} minWidth={0}>
                 <BarChart
                   data={timeline}
                   margin={{ top: 5, right: 5, left: -10, bottom: 5 }}
@@ -235,23 +243,23 @@ export function B2BOverviewTab({
                   />
                   <XAxis
                     dataKey="month"
-                    tick={{ fontSize: 10, fill: '#64748B' }}
+                    tick={{ fontSize: 10, fill: '#64748b' }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fill: '#64748B' }}
+                    tick={{ fontSize: 10, fill: '#64748b' }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#132540',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      backgroundColor: '#111b2e',
+                      border: '1px solid rgba(255,255,255,0.06)',
                       borderRadius: 8,
                       fontSize: 12,
                     }}
-                    itemStyle={{ color: '#E2E8F0' }}
+                    itemStyle={{ color: '#e2e8f0' }}
                   />
                   <Bar
                     dataKey="baixo"
@@ -259,6 +267,7 @@ export function B2BOverviewTab({
                     stackId="risk"
                     fill={TIMELINE_COLORS.baixo}
                     barSize={28}
+                    radius={[0, 0, 0, 0]}
                   />
                   <Bar
                     dataKey="moderado"
@@ -279,12 +288,12 @@ export function B2BOverviewTab({
                     name="Crítico"
                     stackId="risk"
                     fill={TIMELINE_COLORS.critico}
-                    radius={[4, 4, 0, 0]}
+                    radius={[3, 3, 0, 0]}
                     barSize={28}
                   />
                 </BarChart>
               </ResponsiveContainer>
-              <div className="mt-2 flex justify-center gap-4 text-[10px] text-[#64748B]">
+              <div className="mt-2 flex justify-center gap-4 text-[10px] text-[#64748b]">
                 {Object.entries(TIMELINE_COLORS).map(([key, color]) => (
                   <span key={key} className="flex items-center gap-1">
                     <span
@@ -297,7 +306,7 @@ export function B2BOverviewTab({
               </div>
             </>
           ) : (
-            <div className="flex h-[220px] items-center justify-center text-[13px] text-[#64748B]">
+            <div className="flex h-[200px] items-center justify-center text-[13px] text-[#64748b]">
               Dados de evolução disponíveis após o segundo ciclo
             </div>
           )}
@@ -305,59 +314,47 @@ export function B2BOverviewTab({
       </div>
 
       {/* Alerts section */}
-      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
-            Alertas
-          </h3>
-          {alerts.length > 0 && (
-            <span className="rounded-full bg-[rgba(239,68,68,0.15)] px-2 py-0.5 text-[10px] font-bold text-[#F87171]">
-              {alerts.length}
-            </span>
-          )}
-        </div>
+      <div
+        className="rounded-[14px] border p-5"
+        style={{
+          borderColor: 'rgba(239,68,68,0.2)',
+          background: 'rgba(239,68,68,0.04)',
+        }}
+      >
+        <h3 className="mb-2.5 text-[13px] font-semibold text-[#ef4444]">
+          🚨 Alertas Ativos
+        </h3>
         {alerts.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {alerts.slice(0, 10).map((alert) => {
-              const badge =
-                URGENCY_BADGE[alert.riskLevel] ?? URGENCY_BADGE.low
+              const dotColor = RISK_COLORS[alert.riskLevel as RiskLevel] ?? '#64748b'
               return (
                 <div
                   key={alert.id}
-                  className="flex items-center gap-3 rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#0A1628] px-3 py-2.5"
+                  className="flex items-center gap-2 rounded-lg bg-[rgba(255,255,255,0.02)] px-3 py-2"
                 >
                   <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{
-                      backgroundColor: badge.bg,
-                      color: badge.text,
+                      backgroundColor: dotColor,
+                      boxShadow: `0 0 6px ${dotColor}40`,
                     }}
-                  >
-                    {alert.riskLevel === 'critical'
-                      ? 'Crítico'
-                      : alert.riskLevel === 'elevated'
-                        ? 'Elevado'
-                        : alert.riskLevel === 'moderate'
-                          ? 'Moderado'
-                          : 'Baixo'}
+                  />
+                  <span className="flex-1 text-[12px] text-[#e2e8f0]">
+                    Colaborador anônimo
+                    {alert.department ? ` · ${alert.department}` : ''}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[12px] text-[#E2E8F0]">
-                      Colaborador anônimo
-                      {alert.department ? ` · ${alert.department}` : ''}
-                    </p>
-                  </div>
                 </div>
               )
             })}
             {alerts.length > 10 && (
-              <p className="pt-1 text-center text-[11px] text-[#64748B]">
+              <p className="pt-1 text-center text-[11px] text-[#64748b]">
                 +{alerts.length - 10} alertas adicionais
               </p>
             )}
           </div>
         ) : (
-          <p className="py-6 text-center text-[13px] text-[#64748B]">
+          <p className="py-4 text-center text-[13px] text-[#64748b]">
             Nenhum alerta neste ciclo
           </p>
         )}

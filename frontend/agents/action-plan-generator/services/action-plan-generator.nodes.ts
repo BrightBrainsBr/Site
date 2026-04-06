@@ -39,14 +39,8 @@ export async function loadGroData(
       state.department
     )
 
-    if (groContext.totalEvaluations === 0) {
-      return {
-        groContext,
-        status: 'error',
-        errors: [...state.errors, 'No evaluations found for this company/cycle'],
-      }
-    }
-
+    // When there are no evaluations yet, generate a baseline action plan
+    // based on NR-1 requirements instead of failing
     return { groContext }
   } catch (err) {
     throw new AgentError(

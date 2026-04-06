@@ -326,7 +326,7 @@ export async function GET(
   return NextResponse.json({
     items,
     conformeCount,
-    totalCount: 17,
+    totalItems: items.length,
     groIssuedAt: company?.gro_issued_at ?? null,
     groValidUntil: company?.gro_valid_until ?? null,
   })
