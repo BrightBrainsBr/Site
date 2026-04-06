@@ -46,7 +46,9 @@ export async function PATCH(
     'deadline',
     'notes',
   ]
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  const updates: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  }
   for (const key of allowed) {
     if (key in body) updates[key] = body[key]
   }
@@ -96,10 +98,7 @@ export async function DELETE(
     return NextResponse.json({ error: 'Plano não encontrado' }, { status: 404 })
   }
 
-  const { error } = await sb
-    .from('b2b_action_plans')
-    .delete()
-    .eq('id', planId)
+  const { error } = await sb.from('b2b_action_plans').delete().eq('id', planId)
 
   if (error) {
     console.error('[b2b/action-plans/delete]', error)

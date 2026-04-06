@@ -45,41 +45,36 @@ export async function GET(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const [
-    companyRes,
-    evalRes,
-    actionPlanRes,
-    percepcaoRes,
-    eventsRes,
-  ] = await Promise.all([
-    sb
-      .from('companies')
-      .select(
-        'gro_issued_at, gro_valid_until, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, sst_responsible_name, sst_responsible_role, sst_signature_url, cnae, risk_grade, emergency_sop_urls'
-      )
-      .eq('id', companyId)
-      .single(),
-    sb
-      .from('mental_health_evaluations')
-      .select('id, scores, laudo_pdf_url')
-      .eq('company_id', companyId)
-      .eq('cycle_id', cycleRes.cycleId),
-    sb
-      .from('b2b_action_plans')
-      .select('id, deadline, responsible, status')
-      .eq('company_id', companyId),
-    sb
-      .from('b2b_percepcao_reports')
-      .select('id')
-      .eq('company_id', companyId)
-      .limit(1),
-    sb
-      .from('b2b_events')
-      .select('id, event_type')
-      .eq('company_id', companyId)
-      .eq('event_type', 'afastamento')
-      .limit(1),
-  ])
+  const [companyRes, evalRes, actionPlanRes, percepcaoRes, eventsRes] =
+    await Promise.all([
+      sb
+        .from('companies')
+        .select(
+          'gro_issued_at, gro_valid_until, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, sst_responsible_name, sst_responsible_role, sst_signature_url, cnae, risk_grade, emergency_sop_urls'
+        )
+        .eq('id', companyId)
+        .single(),
+      sb
+        .from('mental_health_evaluations')
+        .select('id, scores, laudo_pdf_url')
+        .eq('company_id', companyId)
+        .eq('cycle_id', cycleRes.cycleId),
+      sb
+        .from('b2b_action_plans')
+        .select('id, deadline, responsible, status')
+        .eq('company_id', companyId),
+      sb
+        .from('b2b_percepcao_reports')
+        .select('id')
+        .eq('company_id', companyId)
+        .limit(1),
+      sb
+        .from('b2b_events')
+        .select('id, event_type')
+        .eq('company_id', companyId)
+        .eq('event_type', 'afastamento')
+        .limit(1),
+    ])
 
   const company = companyRes.data
   const evaluations = evalRes.data ?? []
@@ -136,16 +131,13 @@ export async function GET(
     {
       id: 1,
       ref: '1.5.7.1.a',
-      description:
-        'PGR contém inventário de riscos psicossociais',
+      description: 'PGR contém inventário de riscos psicossociais',
       status:
-        (hasSRQ20 || hasAEP) &&
-        company?.nr1_process_descriptions
+        (hasSRQ20 || hasAEP) && company?.nr1_process_descriptions
           ? 'conforme'
           : 'pendente',
       detail:
-        (hasSRQ20 || hasAEP) &&
-        company?.nr1_process_descriptions
+        (hasSRQ20 || hasAEP) && company?.nr1_process_descriptions
           ? 'Avaliações SRQ-20/AEP realizadas e descrições de processos preenchidas'
           : 'Aguardando avaliações psicossociais e/ou preenchimento das descrições de processos',
     },
@@ -162,8 +154,7 @@ export async function GET(
     {
       id: 3,
       ref: '1.5.3.1.4',
-      description:
-        'Inventário contempla fatores psicossociais',
+      description: 'Inventário contempla fatores psicossociais',
       status: hasSRQ20 ? 'conforme' : 'pendente',
       detail: hasSRQ20
         ? 'Escores SRQ-20 presentes nas avaliações'
@@ -172,8 +163,7 @@ export async function GET(
     {
       id: 4,
       ref: '1.5.7.3.2',
-      description:
-        'Inventário possui os 9 campos obrigatórios',
+      description: 'Inventário possui os 9 campos obrigatórios',
       status:
         mandatoryFieldsFilled >= 9
           ? 'conforme'
@@ -185,8 +175,7 @@ export async function GET(
     {
       id: 5,
       ref: '1.5.3.2.1',
-      description:
-        'Avaliação ergonômica NR-17 (AEP)',
+      description: 'Avaliação ergonômica NR-17 (AEP)',
       status: hasAEP ? 'conforme' : 'pendente',
       detail: hasAEP
         ? 'Escores AEP presentes nas avaliações'
@@ -195,8 +184,7 @@ export async function GET(
     {
       id: 6,
       ref: '1.5.4.4.2',
-      description:
-        'Classificação de riscos com níveis',
+      description: 'Classificação de riscos com níveis',
       status: hasEvals ? 'conforme' : 'pendente',
       detail: hasEvals
         ? 'Distribuição de risco computada a partir das avaliações'
@@ -205,8 +193,7 @@ export async function GET(
     {
       id: 7,
       ref: '1.5.4.4.2.2',
-      description:
-        'Critérios de graduação documentados',
+      description: 'Critérios de graduação documentados',
       status: 'conforme',
       detail:
         'Metodologia de graduação integrada ao sistema (escalas validadas)',
@@ -214,8 +201,7 @@ export async function GET(
     {
       id: 8,
       ref: '1.5.5.2.2',
-      description:
-        'Plano de ação com cronograma e responsável',
+      description: 'Plano de ação com cronograma e responsável',
       status:
         totalActionPlans === 0
           ? 'pendente'
@@ -230,8 +216,7 @@ export async function GET(
     {
       id: 9,
       ref: '1.5.5.2.2',
-      description:
-        'Plano de ação com aferição de resultados',
+      description: 'Plano de ação com aferição de resultados',
       status:
         totalActionPlans === 0
           ? 'pendente'
@@ -255,16 +240,14 @@ export async function GET(
     {
       id: 11,
       ref: '1.5.7.2.1',
-      description:
-        'PGR disponível aos trabalhadores',
+      description: 'PGR disponível aos trabalhadores',
       status: 'conforme',
       detail: 'Laudos entregues aos colaboradores via plataforma',
     },
     {
       id: 12,
       ref: '1.5.3.3.a',
-      description:
-        'Mecanismo de participação dos trabalhadores',
+      description: 'Mecanismo de participação dos trabalhadores',
       status: percepcaoReports.length > 0 ? 'conforme' : 'pendente',
       detail:
         percepcaoReports.length > 0
@@ -274,8 +257,7 @@ export async function GET(
     {
       id: 13,
       ref: '1.5.3.3.b',
-      description:
-        'Percepção dos trabalhadores consultada',
+      description: 'Percepção dos trabalhadores consultada',
       status: hasSRQ20 && hasAEP ? 'conforme' : 'pendente',
       detail:
         hasSRQ20 && hasAEP
@@ -294,11 +276,10 @@ export async function GET(
     {
       id: 15,
       ref: '1.5.6.1',
-      description:
-        'Procedimentos de resposta a emergências',
+      description: 'Procedimentos de resposta a emergências',
       status: hasEmergencySops ? 'conforme' : 'pendente',
       detail: hasEmergencySops
-        ? `${emergencySops!.length} procedimento(s) de emergência cadastrado(s)`
+        ? `${emergencySops.length} procedimento(s) de emergência cadastrado(s)`
         : 'Nenhum procedimento de emergência cadastrado',
     },
     {
@@ -311,8 +292,7 @@ export async function GET(
     {
       id: 17,
       ref: '1.5.5.5',
-      description:
-        'Análise de acidentes e doenças ocupacionais',
+      description: 'Análise de acidentes e doenças ocupacionais',
       status: afastamentoEvents.length > 0 ? 'conforme' : 'pendente',
       detail:
         afastamentoEvents.length > 0

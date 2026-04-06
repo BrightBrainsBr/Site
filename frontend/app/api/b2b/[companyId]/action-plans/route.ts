@@ -57,7 +57,10 @@ export async function GET(
 
   if (error) {
     console.error('[b2b/action-plans]', error)
-    return NextResponse.json({ error: 'Erro ao buscar planos' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Erro ao buscar planos' },
+      { status: 500 }
+    )
   }
 
   const plans = items ?? []

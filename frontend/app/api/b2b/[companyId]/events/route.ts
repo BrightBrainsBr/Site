@@ -52,7 +52,10 @@ export async function GET(
 
   if (error) {
     console.error('[b2b/events]', error)
-    return NextResponse.json({ error: 'Erro ao buscar eventos' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Erro ao buscar eventos' },
+      { status: 500 }
+    )
   }
 
   const allEvents = events ?? []
@@ -134,8 +137,7 @@ export async function POST(
     )
   }
 
-  return NextResponse.json(
-    isBulk ? { items: data } : data?.[0] ?? null,
-    { status: 201 }
-  )
+  return NextResponse.json(isBulk ? { items: data } : (data?.[0] ?? null), {
+    status: 201,
+  })
 }

@@ -33,7 +33,7 @@ Onde: PRIORIDADE = Alta, Média ou Baixa; PRAZO = número de dias ou data (ex: 3
 Personalize baseado no perfil de risco. Não adicione texto antes ou depois das linhas de ação.
 
 ## SECTION_8
-Análise de tendências. Se dados históricos estiverem disponíveis, compare a evolução dos scores entre ciclos. Destaque melhorias, deteriorações e pontos de atenção. Se não houver histórico, indique que esta é a primeira avaliação e estabeleça o baseline de referência para os próximos ciclos, indicando metas sugeridas para SRQ-20 e AEP.`
+Análise de tendências em TEXTO CORRIDO (sem tabelas markdown, sem pipes). Se houver histórico de avaliações anteriores, compare a evolução dos scores em 2-3 parágrafos. Se for a primeira avaliação, escreva 1-2 parágrafos descrevendo o baseline estabelecido e as metas sugeridas para o próximo ciclo — NÃO use tabelas, NÃO use pipes "|", apenas parágrafos e listas com hífens.`
 
 export function buildLaudoUserMessage(state: B2BLaudoState): string {
   const fd = state.formData

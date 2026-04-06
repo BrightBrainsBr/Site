@@ -244,12 +244,12 @@ function drawFooter(doc: jsPDF, today: string, pageNum: number) {
 // ── Section heading ──────────────────────────────────────────────────────────
 
 function secHead(doc: jsPDF, title: string, ref: string | null, y: number): number {
-  doc.setFontSize(11); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
-  doc.text(title, MX, y); y += 2
-  fr(doc, MX, y, CW, 0.5, LIME); y += 4
+  doc.setFontSize(13); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+  doc.text(title, MX, y); y += 3
+  fr(doc, MX, y, CW, 0.8, LIME); y += 5
   if (ref) {
-    doc.setFontSize(6); doc.setFont('helvetica', 'italic'); st(doc, TXT_L)
-    doc.text(ref, MX, y); y += 4
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'italic'); st(doc, TXT_L)
+    doc.text(ref, MX, y); y += 5
   }
   return y
 }
@@ -261,18 +261,20 @@ function infoGrid(
   pairs: { l1: string; v1: string; l2: string; v2: string }[],
   y: number
 ): number {
-  const RH = 8.5; const HALF = CW / 2
+  const RH = 10; const HALF = CW / 2
   for (const p of pairs) {
     fr(doc, MX, y, CW, RH, ROW1); sr(doc, MX, y, CW, RH, RULE)
     vl(doc, MX + HALF, y, RH, RULE)
     // col 1
-    doc.setFontSize(5); doc.setFont('helvetica', 'normal'); st(doc, TXT_L); doc.text(p.l1, MX + 2.5, y + 3)
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
-    doc.text(doc.splitTextToSize(p.v1 || '\u2014', HALF - 5)[0] ?? '\u2014', MX + 2.5, y + 7)
+    doc.setFontSize(6); doc.setFont('helvetica', 'normal'); st(doc, TXT_L); doc.text(p.l1, MX + 3, y + 3.5)
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
+    doc.text(doc.splitTextToSize(p.v1 || '\u2014', HALF - 6)[0] ?? '\u2014', MX + 3, y + 8)
     // col 2
-    doc.setFontSize(5); doc.setFont('helvetica', 'normal'); st(doc, TXT_L); doc.text(p.l2, MX + HALF + 2.5, y + 3)
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
-    doc.text(doc.splitTextToSize(p.v2 || '\u2014', HALF - 5)[0] ?? '\u2014', MX + HALF + 2.5, y + 7)
+    if (p.l2) {
+      doc.setFontSize(6); doc.setFont('helvetica', 'normal'); st(doc, TXT_L); doc.text(p.l2, MX + HALF + 3, y + 3.5)
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
+      doc.text(doc.splitTextToSize(p.v2 || '\u2014', HALF - 6)[0] ?? '\u2014', MX + HALF + 3, y + 8)
+    }
     y += RH
   }
   return y + 3
@@ -302,7 +304,7 @@ function scaleTable(doc: jsPDF, rows: ScaleRow[], y: number): number {
 
   fr(doc, MX, y, CW, HH, NAVY)
   let cx = MX + 3
-  doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
   for (const c of cols) {
     doc.text(c.lbl, c.align === 'center' ? cx + c.w / 2 : cx, y + 4.7,
       { align: c.align === 'center' ? 'center' : 'left', maxWidth: c.w - 3 })
@@ -312,31 +314,31 @@ function scaleTable(doc: jsPDF, rows: ScaleRow[], y: number): number {
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!
-    fr(doc, MX, y, CW, RH, i % 2 === 0 ? ROW1 : WHITE)
-    sr(doc, MX, y, CW, RH, RULE)
+    const rowH = 8
+    fr(doc, MX, y, CW, rowH, i % 2 === 0 ? ROW1 : WHITE)
+    sr(doc, MX, y, CW, rowH, RULE)
     cx = MX + 3
     const cells = [row.escala, row.dominio, row.score, row.range, row.classificacao] as const
     for (let j = 0; j < 5; j++) {
       const c = cols[j]!
-      doc.setFontSize(7); doc.setFont('helvetica', j === 0 ? 'bold' : 'normal'); st(doc, TXT_B)
-      if (c.align === 'center') doc.text(cells[j] ?? '', cx + c.w / 2, y + 4.7, { align: 'center' })
-      else doc.text((doc.splitTextToSize(cells[j] ?? '', c.w - 4) as string[])[0] ?? '', cx, y + 4.7)
+      doc.setFontSize(8); doc.setFont('helvetica', j === 0 ? 'bold' : 'normal'); st(doc, TXT_B)
+      if (c.align === 'center') doc.text(cells[j] ?? '', cx + c.w / 2, y + 5.2, { align: 'center' })
+      else doc.text((doc.splitTextToSize(cells[j] ?? '', c.w - 4) as string[])[0] ?? '', cx, y + 5.2)
       cx += c.w
     }
-    // Coloured dot for nível
-    dot(doc, row.nivel, cx + 9, y + 3.5)
-    y += RH
+    dot(doc, row.nivel, cx + 9, y + 4)
+    y += rowH
   }
 
   // Legend
-  y += 2
-  doc.setFontSize(6.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
+  y += 3
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
   let lx = MX
   for (const [lvl, label] of [['baixo', 'Baixo'], ['moderado', 'Moderado'], ['elevado', 'Elevado'], ['critico', 'Cr\u00EDtico']] as const) {
-    dot(doc, lvl, lx + 2, y + 1); lx += 5
-    doc.text(label, lx, y + 2); lx += doc.getTextWidth(label) + 7
+    dot(doc, lvl, lx + 2, y + 1.5); lx += 6
+    doc.text(label, lx, y + 3); lx += doc.getTextWidth(label) + 8
   }
-  return y + 6
+  return y + 8
 }
 
 // ── AEP table (Section 5) ────────────────────────────────────────────────────
@@ -355,7 +357,7 @@ function aepTable(doc: jsPDF, rows: AepRow[], total: number, y: number): number 
 
   fr(doc, MX, y, CW, HH, NAVY)
   let cx = MX + 3
-  doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
   for (const c of cols) {
     doc.text(c.lbl, c.align === 'center' ? cx + c.w / 2 : cx, y + 4.7,
       { align: c.align === 'center' ? 'center' : 'left', maxWidth: c.w - 3 })
@@ -365,28 +367,30 @@ function aepTable(doc: jsPDF, rows: AepRow[], total: number, y: number): number 
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!
+    const rowH = 8
     const { label, level } = dimRisk(row.score, row.max)
-    fr(doc, MX, y, CW, RH, i % 2 === 0 ? ROW1 : WHITE); sr(doc, MX, y, CW, RH, RULE)
+    fr(doc, MX, y, CW, rowH, i % 2 === 0 ? ROW1 : WHITE); sr(doc, MX, y, CW, rowH, RULE)
     cx = MX + 3
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); st(doc, TXT_B); doc.text(row.dim, cx, y + 4.7); cx += cols[0]!.w
-    doc.setFont('helvetica', 'bold'); doc.text(String(row.score), cx + cols[1]!.w / 2, y + 4.7, { align: 'center' }); cx += cols[1]!.w
-    doc.setFont('helvetica', 'normal'); st(doc, TXT_M); doc.text(String(row.max), cx + cols[2]!.w / 2, y + 4.7, { align: 'center' }); cx += cols[2]!.w
-    st(doc, TXT_B); doc.text(label, cx + 2, y + 4.7); cx += cols[3]!.w
-    dot(doc, level, cx + 9, y + 3.5)
-    y += RH
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); st(doc, TXT_B); doc.text(row.dim, cx, y + 5.2); cx += cols[0]!.w
+    doc.setFont('helvetica', 'bold'); doc.text(String(row.score), cx + cols[1]!.w / 2, y + 5.2, { align: 'center' }); cx += cols[1]!.w
+    doc.setFont('helvetica', 'normal'); st(doc, TXT_M); doc.text(String(row.max), cx + cols[2]!.w / 2, y + 5.2, { align: 'center' }); cx += cols[2]!.w
+    st(doc, TXT_B); doc.text(label, cx + 2, y + 5.2); cx += cols[3]!.w
+    dot(doc, level, cx + 9, y + 4)
+    y += rowH
   }
 
   // Total row
   const totLevel = aepGlobalRisk(total)
   const { label: totLbl } = dimRisk(total, 56)
-  fr(doc, MX, y, CW, RH + 1, [228, 235, 248]); sr(doc, MX, y, CW, RH + 1, NAVY, 0.5)
+  const totRH = 10
+  fr(doc, MX, y, CW, totRH, [228, 235, 248]); sr(doc, MX, y, CW, totRH, NAVY, 0.5)
   cx = MX + 3
-  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_H); doc.text('SCORE GLOBAL AEP', cx, y + 5.5); cx += cols[0]!.w
-  doc.setFontSize(9); doc.text(String(total), cx + cols[1]!.w / 2, y + 5.5, { align: 'center' }); cx += cols[1]!.w
-  doc.setFontSize(7); doc.setFont('helvetica', 'normal'); st(doc, TXT_M); doc.text('56', cx + cols[2]!.w / 2, y + 5.5, { align: 'center' }); cx += cols[2]!.w
-  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_H); doc.text(totLbl, cx + 2, y + 5.5); cx += cols[3]!.w
-  dot(doc, totLevel, cx + 9, y + 4)
-  return y + RH + 4
+  doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_H); doc.text('SCORE GLOBAL AEP', cx, y + 6.5); cx += cols[0]!.w
+  doc.setFontSize(10); doc.text(String(total), cx + cols[1]!.w / 2, y + 6.5, { align: 'center' }); cx += cols[1]!.w
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); st(doc, TXT_M); doc.text('56', cx + cols[2]!.w / 2, y + 6.5, { align: 'center' }); cx += cols[2]!.w
+  doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_H); doc.text(totLbl, cx + 2, y + 6.5); cx += cols[3]!.w
+  dot(doc, totLevel, cx + 9, y + 5)
+  return y + totRH + 4
 }
 
 // ── Risk matrix (Section 6) ──────────────────────────────────────────────────
@@ -401,10 +405,10 @@ function riskMatrixGrid(doc: jsPDF, srq20Score: number, aepTotal: number, y: num
 
   // Column headers
   fr(doc, MX + labelColW, y, totalW - labelColW, labH, NAVY)
-  doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
   for (let c = 0; c < cols; c++) {
     const cx = MX + labelColW + c * colW + colW / 2
-    doc.text(sevLabel(c), cx, y + 5, { align: 'center', maxWidth: colW - 2 })
+    doc.text(sevLabel(c), cx, y + 5.5, { align: 'center', maxWidth: colW - 2 })
   }
   y += labH
 
@@ -412,7 +416,7 @@ function riskMatrixGrid(doc: jsPDF, srq20Score: number, aepTotal: number, y: num
   for (let r = 0; r < rows; r++) {
     // Row label
     fr(doc, MX, y, labelColW, CH, NAVY)
-    doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
     doc.text(probLabel(r), MX + labelColW / 2, y + CH / 2 + 2, { align: 'center', maxWidth: labelColW - 4 })
 
     for (let c = 0; c < cols; c++) {
@@ -421,77 +425,86 @@ function riskMatrixGrid(doc: jsPDF, srq20Score: number, aepTotal: number, y: num
       const cellX = MX + labelColW + c * colW
       fr(doc, cellX, y, colW, CH, riskBg(cellLevel))
       if (isActive) {
-        sd(doc, riskFg(cellLevel)); doc.setLineWidth(1.2); doc.rect(cellX, y, colW, CH, 'S')
+        sd(doc, NAVY); doc.setLineWidth(1.5); doc.rect(cellX, y, colW, CH, 'S')
       } else {
         sr(doc, cellX, y, colW, CH, RULE)
       }
-      doc.setFontSize(7); doc.setFont('helvetica', isActive ? 'bold' : 'normal')
-      st(doc, riskFg(cellLevel))
+      doc.setFontSize(7.5); doc.setFont('helvetica', isActive ? 'bold' : 'normal')
+      // Use dark navy text for readability on colored backgrounds
+      st(doc, TXT_H)
       doc.text(riskPT(cellLevel), cellX + colW / 2, y + CH / 2 + 2, { align: 'center' })
     }
     y += CH
   }
 
   // Classification result banner
-  y += 4
+  y += 5
   const { level: fl } = { level: finalLevel }
-  fr(doc, MX, y, CW, 12, riskBg(fl))
-  sd(doc, riskFg(fl)); doc.setLineWidth(0.6); doc.rect(MX, y, CW, 12, 'S')
-  doc.setFontSize(7); doc.setFont('helvetica', 'bold'); st(doc, TXT_L)
-  doc.text('CLASSIFICA\u00C7\u00C3O FINAL', MX + 4, y + 4.5)
-  doc.setFontSize(12); st(doc, riskFg(fl))
-  doc.text(`RISCO ${riskPT(fl).toUpperCase()}`, MX + 50, y + 9)
-  return y + 16
+  const bannerH = 16
+  fr(doc, MX, y, CW, bannerH, riskBg(fl))
+  sd(doc, riskFg(fl)); doc.setLineWidth(0.8); doc.rect(MX, y, CW, bannerH, 'S')
+  // Left accent strip
+  fr(doc, MX, y, 5, bannerH, riskFg(fl))
+  // Label (dark)
+  doc.setFontSize(7); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+  doc.text('CLASSIFICA\u00C7\u00C3O FINAL', MX + 8, y + 5.5)
+  // Risk name in large dark navy text for legibility
+  doc.setFontSize(14); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+  doc.text(`RISCO ${riskPT(fl).toUpperCase()}`, MX + 8, y + 13)
+  return y + bannerH + 4
 }
 
 // ── PDCA table (Section 7) ───────────────────────────────────────────────────
 
 function pdcaTable(doc: jsPDF, rows: PdcaRow[], y: number, ens: (y: number, n: number) => number): number {
-  const HH = 7; const RH = 8
-  const priorCol = 18; const respCol = 38; const prazoCol = 25; const statusCol = 25
+  const HH = 8; const LINE_H = 5; const PAD = 4
+  const priorCol = 20; const respCol = 40; const prazoCol = 26; const statusCol = 26
   const acoesCol = CW - priorCol - respCol - prazoCol - statusCol
 
   y = ens(y, HH + 3)
   fr(doc, MX, y, CW, HH, NAVY)
-  doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
-  let cx = MX + 2
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
+  let cx = MX + 3
   for (const [lbl, w] of [['PRIOR.', priorCol], ['A\u00C7\u00C3O', acoesCol], ['RESPONS\u00C1VEL', respCol], ['PRAZO', prazoCol], ['STATUS', statusCol]] as [string, number][]) {
-    doc.text(lbl, cx, y + 4.7); cx += w
+    doc.text(lbl, cx, y + 5.5); cx += w
   }
   y += HH
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!
     const priorLvl: RiskLevel = /^alt/i.test(row.prior) ? 'critico' : /^m[eé]/i.test(row.prior) ? 'moderado' : 'baixo'
-    const acoLines = doc.splitTextToSize(row.acao, acoesCol - 4) as string[]
-    const rowH = Math.max(RH, acoLines.length * 3.8 + 3)
+    const acoLines = doc.splitTextToSize(row.acao, acoesCol - PAD) as string[]
+    const rowH = Math.max(12, acoLines.length * LINE_H + PAD + 2)
 
     y = ens(y, rowH)
     fr(doc, MX, y, CW, rowH, i % 2 === 0 ? ROW1 : WHITE); sr(doc, MX, y, CW, rowH, RULE)
 
-    cx = MX + 2
-    // Prioridade badge
-    fr(doc, cx, y + 1.5, priorCol - 3, rowH - 3, riskBg(priorLvl))
-    doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); st(doc, riskFg(priorLvl))
-    doc.text(row.prior, cx + (priorCol - 3) / 2, y + rowH / 2 + 1.5, { align: 'center' })
+    cx = MX + 3
+    // Prioridade badge — dark text on colored bg for legibility
+    const badgeW = priorCol - 4; const badgeH = rowH - 4
+    fr(doc, cx, y + 2, badgeW, badgeH, riskBg(priorLvl))
+    sd(doc, riskFg(priorLvl)); doc.setLineWidth(0.4); doc.rect(cx, y + 2, badgeW, badgeH, 'S')
+    doc.setFontSize(7); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+    doc.text(row.prior, cx + badgeW / 2, y + rowH / 2 + 2, { align: 'center' })
     cx += priorCol
 
     // Ação (multiline)
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
-    let ay = y + 3.5
-    for (const al of acoLines) { doc.text(al, cx, ay); ay += 3.8 }
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
+    let ay = y + PAD + 2
+    for (const al of acoLines) { doc.text(al, cx, ay); ay += LINE_H }
     cx += acoesCol
 
     // Responsável, Prazo, Status
     for (const [val, w] of [[row.resp, respCol], [row.prazo, prazoCol], [row.status, statusCol]] as [string, number][]) {
-      doc.setFontSize(6.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
+      doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
       const vl2 = doc.splitTextToSize(val, w - 4) as string[]
-      doc.text(vl2[0] ?? '', cx, y + rowH / 2 + 1.5)
+      let vy = y + PAD + 1
+      for (const vLine of vl2) { doc.text(vLine, cx, vy); vy += LINE_H }
       cx += w
     }
     y += rowH
   }
-  return y + 2
+  return y + 3
 }
 
 // ── Body text renderer ───────────────────────────────────────────────────────
@@ -499,24 +512,29 @@ function pdcaTable(doc: jsPDF, rows: PdcaRow[], y: number, ens: (y: number, n: n
 function bodyText(doc: jsPDF, content: string, y: number, ens: (y: number, n: number) => number): number {
   for (const raw of content.split('\n')) {
     const line = raw.trim()
-    if (!line) { y += 1.5; continue }
+    if (!line) { y += 2; continue }
     if (/^#{1,2}\s/.test(line)) continue
+    // Skip markdown table rows and separator lines
+    if (/^\|/.test(line) || /^\|?[-:]+\|/.test(line)) continue
+    // Skip horizontal rules
+    if (/^-{3,}$/.test(line) || /^\*{3,}$/.test(line)) { y += 4; continue }
 
     if (line.startsWith('### ')) {
-      y = ens(y, 9); doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
-      doc.text(line.replace(/^###\s+/, '').replace(/\*\*/g, ''), MX, y); y += 5; continue
+      y = ens(y, 11); doc.setFontSize(9); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+      doc.text(line.replace(/^###\s+/, '').replace(/\*\*/g, ''), MX, y); y += 6; continue
     }
 
     const isBullet = /^[-•*]\s/.test(line)
-    const plain = line.replace(/^[-•*]\s+/, '').replace(/\*\*/g, '').replace(/^#+\s*/, '')
+    const plain = line.replace(/^[-•*]\s+/, '').replace(/\*\*/g, '').replace(/^#+\s*/, '').trim()
+    if (!plain) continue
     const prefix = isBullet ? '\u2022 ' : ''
-    const indent = isBullet ? 4 : 0
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
+    const indent = isBullet ? 5 : 0
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
     for (const wl of doc.splitTextToSize(prefix + plain, CW - indent - 2) as string[]) {
-      y = ens(y, 5); doc.text(wl, MX + indent, y); y += 3.8
+      y = ens(y, 6); doc.text(wl, MX + indent, y); y += 5
     }
   }
-  return y + 2
+  return y + 3
 }
 
 // ── History table ────────────────────────────────────────────────────────────
@@ -528,28 +546,33 @@ function historyTable(
   ens: (y: number, n: number) => number
 ): number {
   if (history.length === 0) return y
-  const HH = 7; const RH = 6
+  const HH = 8; const RH = 8
   const cols = [35, 22, 22, 22, 22, 33, 24]
   const labels = ['DATA', 'PHQ-9', 'GAD-7', 'SRQ-20', 'AEP', 'RISCO GLOBAL', 'TEND\u00CANCIA']
 
   y = ens(y, HH + history.length * RH + 5)
   fr(doc, MX, y, CW, HH, NAVY)
   let cx = MX + 3
-  doc.setFontSize(6.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
-  for (let i = 0; i < labels.length; i++) { doc.text(labels[i]!, cx, y + 4.7); cx += cols[i]! }
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, LIME)
+  for (let i = 0; i < labels.length; i++) { doc.text(labels[i]!, cx, y + 5.2); cx += cols[i]! }
   y += HH
 
   for (let i = 0; i < history.length; i++) {
     const h = history[i]!
     fr(doc, MX, y, CW, RH, i % 2 === 0 ? ROW1 : WHITE); sr(doc, MX, y, CW, RH, RULE)
     cx = MX + 3
-    const vals = [
+    const riskLvl = (h.risk_level || 'baixo').toLowerCase() as RiskLevel
+    const textVals = [
       h.created_at ? new Date(h.created_at).toLocaleDateString('pt-BR') : '\u2014',
       s(h.scores.phq9), s(h.scores.gad7), s(h.scores.srq20), `${s(h.scores.aep_total)}/56`,
-      h.risk_level || '\u2014', '\u2014',
     ]
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
-    for (let j = 0; j < vals.length; j++) { doc.text(vals[j]!, cx, y + 4.2); cx += cols[j]! }
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
+    for (let j = 0; j < textVals.length; j++) { doc.text(textVals[j]!, cx, y + 5.2); cx += cols[j]! }
+    // Colored risk badge
+    doc.setFont('helvetica', 'bold'); st(doc, riskFg(riskLvl))
+    doc.text(h.risk_level || '\u2014', cx, y + 5.2); cx += cols[5]!
+    doc.setFont('helvetica', 'normal'); st(doc, TXT_M)
+    doc.text('\u2014', cx, y + 5.2)
     y += RH
   }
   return y + 3
@@ -597,14 +620,14 @@ export async function buildPdf(
     const ens = (cy: number, need: number): number => cy + need > SAFE_BOT ? newPage() : cy
 
     // ── Document title ─────────────────────────────────────────────────────
-    y = ens(y, 16)
-    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
-    doc.text('Laudo Individual de Sa\u00FAde Mental', PW / 2, y, { align: 'center' }); y += 5
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
-    doc.text('Avalia\u00E7\u00E3o de Riscos Psicossociais e Ergonomia Cognitiva', PW / 2, y, { align: 'center' }); y += 4
-    doc.setFontSize(5.5); st(doc, TXT_M)
+    y = ens(y, 20)
+    doc.setFontSize(17); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+    doc.text('Laudo Individual de Sa\u00FAde Mental', PW / 2, y, { align: 'center' }); y += 6
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
+    doc.text('Avalia\u00E7\u00E3o de Riscos Psicossociais e Ergonomia Cognitiva', PW / 2, y, { align: 'center' }); y += 5
+    doc.setFontSize(7); st(doc, TXT_M)
     doc.text('Ref. NR-1: 1.5.7.2.1 \u00B7 Portaria MTE 1.419/2024 \u00B7 Programa de Gerenciamento de Riscos (PGR)', PW / 2, y, { align: 'center' })
-    y += 5; fr(doc, MX, y, CW, 0.4, LIME); y += 5
+    y += 6; fr(doc, MX, y, CW, 0.8, LIME); y += 7
 
     // ── Section 1: Employee ────────────────────────────────────────────────
     y = ens(y, 10); y = secHead(doc, '1. Identifica\u00E7\u00E3o do Colaborador', null, y)
@@ -643,14 +666,14 @@ export async function buildPdf(
       'As escalas abaixo foram aplicadas via plataforma BrightMonitor e comp\u00F5em a avalia\u00E7\u00E3o de sa\u00FAde mental para mapeamento de riscos psicossociais.',
       y)
     const srq = sc.srq20 ?? 0
-    y = ens(y, 22)
+    y = ens(y, 24)
     y = scaleTable(doc, [
       { escala: 'SRQ-20', dominio: 'Transtornos Mentais Comuns (OMS)', score: String(srq), range: '0\u201320', classificacao: srq20Label(srq), nivel: srq20Risk(srq) },
-    ], y); y += 2
+    ], y); y += 4
 
     const sec4 = aiSection(state.laudoMarkdown, 'SECTION_4')
-    if (sec4) y = bodyText(doc, sec4, y, ens)
-    y += 2
+    if (sec4) { y = bodyText(doc, sec4, y, ens) }
+    y += 3
 
     // ── Section 5: AEP ────────────────────────────────────────────────────
     y = ens(y, 10)
@@ -671,30 +694,30 @@ export async function buildPdf(
 
     const percLivre = s(fd.aep_percepcao_livre, '')
     if (percLivre) {
-      y = ens(y, 14)
-      doc.setFontSize(7); doc.setFont('helvetica', 'italic'); st(doc, TXT_L)
-      doc.text('Percep\u00E7\u00E3o livre do colaborador:', MX, y); y += 4
+      y = ens(y, 16)
+      doc.setFontSize(8); doc.setFont('helvetica', 'italic'); st(doc, TXT_L)
+      doc.text('Percep\u00E7\u00E3o livre do colaborador:', MX, y); y += 5
       doc.setFont('helvetica', 'italic'); st(doc, TXT_B)
       for (const l of doc.splitTextToSize(`\u201C${percLivre}\u201D`, CW - 6) as string[]) {
-        y = ens(y, 5); doc.text(l, MX + 3, y); y += 3.8
+        y = ens(y, 6); doc.text(l, MX + 3, y); y += 5
       }
-      y += 3
+      y += 4
     }
 
     const sec5 = aiSection(state.laudoMarkdown, 'SECTION_5')
-    if (sec5) y = bodyText(doc, sec5, y, ens)
-    y += 2
+    if (sec5) { y = bodyText(doc, sec5, y, ens) }
+    y += 4
 
     // ── Section 6: Risk classification ────────────────────────────────────
     y = ens(y, 10)
     y = secHead(doc, '6. Classifica\u00E7\u00E3o de Risco Psicossocial Integrado',
       'Resultado da matriz probabilidade \u00D7 severidade conforme metodologia BrightMonitor, integrando dados das escalas cl\u00EDnicas, AEP e SRQ-20.',
       y)
-    y = ens(y, 60); y = riskMatrixGrid(doc, srq, aepTotal, y); y += 2
+    y = ens(y, 65); y = riskMatrixGrid(doc, srq, aepTotal, y); y += 4
 
     const sec6 = aiSection(state.laudoMarkdown, 'SECTION_6')
-    if (sec6) y = bodyText(doc, sec6, y, ens)
-    y += 2
+    if (sec6) { y = bodyText(doc, sec6, y, ens) }
+    y += 4
 
     // ── Section 7: PDCA ───────────────────────────────────────────────────
     y = ens(y, 10)
@@ -707,10 +730,9 @@ export async function buildPdf(
     if (pdcaRows.length > 0) {
       y = pdcaTable(doc, pdcaRows, y, ens)
     } else if (sec7raw) {
-      // fallback: render as text if AI didn't follow pipe format
       y = bodyText(doc, sec7raw, y, ens)
     }
-    y += 2
+    y += 4
 
     // ── Section 8: History / Trends ────────────────────────────────────────
     y = ens(y, 10)
@@ -720,8 +742,8 @@ export async function buildPdf(
 
     y = historyTable(doc, state.historyData, y, ens)
     const sec8 = aiSection(state.laudoMarkdown, 'SECTION_8')
-    if (sec8) y = bodyText(doc, sec8, y, ens)
-    y += 4
+    if (sec8) { y = bodyText(doc, sec8, y, ens) }
+    y += 5
 
     // ── Section 9: Nota Metodológica ──────────────────────────────────────
     y = ens(y, 10)
@@ -748,23 +770,23 @@ export async function buildPdf(
     }
     y += 5
 
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
+    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
     doc.text(co.sst_responsible_name || 'Dra. Soraya Aurani Jorge Cecilio', sig1X, y)
     doc.text('Respons\u00E1vel SST da Empresa', sig2X, y)
-    y += 4
-    doc.setFontSize(6.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
+    y += 5
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
     doc.text('Diretora T\u00E9cnica BrightMonitor', sig1X, y)
     doc.text('Assinatura Digital ICP-Brasil', sig2X, y)
-    y += 3.5
+    y += 4.5
     doc.text('CRM/SP 60.246', sig1X, y)
     doc.text('Carimbo de data/hora', sig2X, y)
-    y += 8
+    y += 10
 
     // Legal notice
-    doc.setFontSize(5.5); doc.setFont('helvetica', 'italic'); st(doc, TXT_M)
+    doc.setFontSize(7); doc.setFont('helvetica', 'italic'); st(doc, TXT_M)
     const legal = 'AVISO LEGAL: Este laudo \u00E9 gerado eletronicamente pela plataforma BrightMonitor (Bright Brains \u2014 Instituto da Mente) e possui validade como documento t\u00E9cnico integrante do Programa de Gerenciamento de Riscos (PGR). Os resultados s\u00E3o de natureza probabil\u00EDstica e n\u00E3o constituem diagn\u00F3stico cl\u00EDnico definitivo. A interpreta\u00E7\u00E3o deve ser feita exclusivamente por profissional de sa\u00FAde habilitado. Dados protegidos conforme LGPD (Lei 13.709/2018). Reten\u00E7\u00E3o garantida por 20 anos conforme NR-1: 1.5.7.3.3.1.'
     for (const l of doc.splitTextToSize(legal, CW) as string[]) {
-      y = ens(y, 4); doc.text(l, MX, y); y += 3
+      y = ens(y, 5); doc.text(l, MX, y); y += 4
     }
     y += 4
 

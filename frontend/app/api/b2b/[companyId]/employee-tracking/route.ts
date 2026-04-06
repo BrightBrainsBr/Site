@@ -54,10 +54,7 @@ export async function GET(
   let started = 0
   let pending = 0
 
-  const deptMap = new Map<
-    string,
-    { total: number; completed: number }
-  >()
+  const deptMap = new Map<string, { total: number; completed: number }>()
 
   const employees: Array<{
     email: string | null
@@ -103,8 +100,7 @@ export async function GET(
     pct: d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0,
   }))
 
-  const completionPct =
-    total > 0 ? Math.round((completed / total) * 100) : 0
+  const completionPct = total > 0 ? Math.round((completed / total) * 100) : 0
 
   return NextResponse.json({
     total,

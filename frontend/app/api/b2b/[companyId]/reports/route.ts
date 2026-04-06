@@ -7,10 +7,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { getB2BUser, resolveCycle } from '../../lib/getB2BUser'
-import {
-  computeNormalizedScore,
-  getRiskLevel,
-} from '../../lib/riskUtils'
+import { computeNormalizedScore, getRiskLevel } from '../../lib/riskUtils'
 
 export const runtime = 'nodejs'
 
@@ -80,10 +77,7 @@ export async function POST(
 
   if (error) {
     console.error('[b2b/reports]', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar dados' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao buscar dados' }, { status: 500 })
   }
 
   const evaluations = (rows ?? []).map((r) => ({
@@ -125,9 +119,7 @@ function buildCsvResponse(
     const norm = computeNormalizedScore(ev.scores)
     const risk = norm != null ? getRiskLevel(norm) : ''
     const scaleVals = scaleKeys.map((k) =>
-      ev.scores && typeof ev.scores[k] === 'number'
-        ? String(ev.scores[k])
-        : ''
+      ev.scores && typeof ev.scores[k] === 'number' ? String(ev.scores[k]) : ''
     )
     csvRows.push(
       [
@@ -206,11 +198,7 @@ async function buildGroConsolidadoPdf(
 
   doc.setFontSize(8)
   doc.setFont('helvetica', 'italic')
-  doc.text(
-    'Gerado automaticamente pelo BrightMonitor.',
-    margin,
-    y
-  )
+  doc.text('Gerado automaticamente pelo BrightMonitor.', margin, y)
 
   const pdfBuffer = Buffer.from(doc.output('arraybuffer'))
 
@@ -234,7 +222,10 @@ async function buildGroConsolidadoPdf(
     data: { publicUrl },
   } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
 
-  return NextResponse.json({ url: publicUrl, generated_at: new Date().toISOString() })
+  return NextResponse.json({
+    url: publicUrl,
+    generated_at: new Date().toISOString(),
+  })
 }
 
 async function buildDepartmentPdf(
@@ -327,5 +318,8 @@ async function buildDepartmentPdf(
     data: { publicUrl },
   } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
 
-  return NextResponse.json({ url: publicUrl, generated_at: new Date().toISOString() })
+  return NextResponse.json({
+    url: publicUrl,
+    generated_at: new Date().toISOString(),
+  })
 }

@@ -34,7 +34,10 @@ export async function PATCH(
     .maybeSingle()
 
   if (!existing) {
-    return NextResponse.json({ error: 'Evento não encontrado' }, { status: 404 })
+    return NextResponse.json(
+      { error: 'Evento não encontrado' },
+      { status: 404 }
+    )
   }
 
   const allowed = [
@@ -47,7 +50,9 @@ export async function PATCH(
     'source',
     'notes',
   ]
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  const updates: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  }
   for (const key of allowed) {
     if (key in body) updates[key] = body[key]
   }
@@ -94,7 +99,10 @@ export async function DELETE(
     .maybeSingle()
 
   if (!existing) {
-    return NextResponse.json({ error: 'Evento não encontrado' }, { status: 404 })
+    return NextResponse.json(
+      { error: 'Evento não encontrado' },
+      { status: 404 }
+    )
   }
 
   const { error } = await sb.from('b2b_events').delete().eq('id', eventId)
