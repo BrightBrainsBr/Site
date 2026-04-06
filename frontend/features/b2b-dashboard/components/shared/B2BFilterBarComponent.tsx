@@ -130,7 +130,7 @@ export function B2BFilterBarComponent({
       <div className="flex items-center gap-2">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[14px] font-medium text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
         >
           <svg
             className="h-3.5 w-3.5"
@@ -147,7 +147,7 @@ export function B2BFilterBarComponent({
           </svg>
           Filtros
           {activeCount > 0 && (
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#c5e155] text-[10px] font-bold text-[#060d1a]">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#c5e155] text-[12px] font-bold text-[#060d1a]">
               {activeCount}
             </span>
           )}
@@ -158,7 +158,7 @@ export function B2BFilterBarComponent({
             {selectedDepts.map((dept) => (
               <span
                 key={dept}
-                className="flex items-center gap-1 rounded-full bg-[rgba(197,225,85,0.15)] px-2 py-0.5 text-[11px] text-[#c5e155]"
+                className="flex items-center gap-1 rounded-full bg-[rgba(197,225,85,0.15)] px-2 py-0.5 text-[13px] text-[#c5e155]"
               >
                 {dept}
                 <button onClick={() => toggleDept(dept)} className="ml-0.5">
@@ -171,7 +171,7 @@ export function B2BFilterBarComponent({
               return (
                 <span
                   key={risk}
-                  className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]"
+                  className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[13px]"
                   style={{
                     backgroundColor: `${opt?.color ?? '#64748b'}20`,
                     color: opt?.color ?? '#64748b',
@@ -185,7 +185,7 @@ export function B2BFilterBarComponent({
               )
             })}
             {instrumentParam && (
-              <span className="flex items-center gap-1 rounded-full bg-[rgba(59,130,246,0.15)] px-2 py-0.5 text-[11px] text-[#3b82f6]">
+              <span className="flex items-center gap-1 rounded-full bg-[rgba(59,130,246,0.15)] px-2 py-0.5 text-[13px] text-[#3b82f6]">
                 {INSTRUMENT_OPTIONS.find((o) => o.value === instrumentParam)
                   ?.label ?? instrumentParam}
                 <button
@@ -202,7 +202,7 @@ export function B2BFilterBarComponent({
         {hasActiveFilters && (
           <button
             onClick={clearAll}
-            className="ml-auto text-[11px] text-[#64748b] transition-colors hover:text-[#f87171]"
+            className="ml-auto text-[13px] text-[#64748b] transition-colors hover:text-[#f87171]"
           >
             Limpar filtros
           </button>
@@ -213,7 +213,7 @@ export function B2BFilterBarComponent({
         <div className="mt-3 space-y-3 border-t border-[rgba(255,255,255,0.06)] pt-3">
           {availableDepartments.length > 0 && (
             <div>
-              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              <p className="mb-1.5 text-[12px] font-medium uppercase tracking-wider text-[#64748b]">
                 Departamentos
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -221,7 +221,7 @@ export function B2BFilterBarComponent({
                   <button
                     key={dept}
                     onClick={() => toggleDept(dept)}
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                    className={`rounded-full px-2.5 py-1 text-[13px] font-medium transition-colors ${
                       selectedDepts.includes(dept)
                         ? 'bg-[rgba(197,225,85,0.3)] text-[#c5e155]'
                         : 'bg-[rgba(255,255,255,0.06)] text-[#94a3b8] hover:bg-[rgba(255,255,255,0.1)]'
@@ -236,7 +236,7 @@ export function B2BFilterBarComponent({
 
           {showRiskFilter && (
             <div>
-              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              <p className="mb-1.5 text-[12px] font-medium uppercase tracking-wider text-[#64748b]">
                 Nível de Risco
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -244,7 +244,7 @@ export function B2BFilterBarComponent({
                   <button
                     key={opt.value}
                     onClick={() => toggleRisk(opt.value)}
-                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors"
+                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-medium transition-colors"
                     style={
                       selectedRisks.includes(opt.value)
                         ? {
@@ -270,7 +270,7 @@ export function B2BFilterBarComponent({
 
           {showInstrumentFilter && (
             <div>
-              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              <p className="mb-1.5 text-[12px] font-medium uppercase tracking-wider text-[#64748b]">
                 Instrumento
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -282,7 +282,7 @@ export function B2BFilterBarComponent({
                         instrumentParam === opt.value ? '' : opt.value
                       )
                     }
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                    className={`rounded-full px-2.5 py-1 text-[13px] font-medium transition-colors ${
                       instrumentParam === opt.value
                         ? 'bg-[rgba(59,130,246,0.3)] text-[#3b82f6]'
                         : 'bg-[rgba(255,255,255,0.06)] text-[#94a3b8] hover:bg-[rgba(255,255,255,0.1)]'
@@ -297,7 +297,7 @@ export function B2BFilterBarComponent({
 
           {showDateFilter && (
             <div>
-              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              <p className="mb-1.5 text-[12px] font-medium uppercase tracking-wider text-[#64748b]">
                 Período
               </p>
               <div className="flex items-center gap-2">
@@ -305,14 +305,14 @@ export function B2BFilterBarComponent({
                   type="date"
                   value={fromParam}
                   onChange={(e) => void setFromParam(e.target.value)}
-                  className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111b2e] px-2.5 py-1.5 text-[12px] text-[#e2e8f0] focus:border-[rgba(197,225,85,0.3)] focus:outline-none"
+                  className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111b2e] px-2.5 py-1.5 text-[14px] text-[#e2e8f0] focus:border-[rgba(197,225,85,0.3)] focus:outline-none"
                 />
-                <span className="text-[11px] text-[#64748b]">até</span>
+                <span className="text-[13px] text-[#64748b]">até</span>
                 <input
                   type="date"
                   value={toParam}
                   onChange={(e) => void setToParam(e.target.value)}
-                  className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111b2e] px-2.5 py-1.5 text-[12px] text-[#e2e8f0] focus:border-[rgba(197,225,85,0.3)] focus:outline-none"
+                  className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111b2e] px-2.5 py-1.5 text-[14px] text-[#e2e8f0] focus:border-[rgba(197,225,85,0.3)] focus:outline-none"
                 />
               </div>
             </div>

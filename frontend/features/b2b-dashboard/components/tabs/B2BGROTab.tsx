@@ -194,7 +194,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
           <span className="text-[20px]">⚖️</span>
           <h2 className="text-[20px] font-bold text-[#e2e8f0]">GRO Psicossocial</h2>
         </div>
-        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">
+        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">
           Gerenciamento de Riscos Ocupacionais — Fatores Psicossociais e Ergonomia Cognitiva
         </p>
       </div>
@@ -202,7 +202,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
       {noData ? (
         <div className="flex flex-col items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-6 py-16 text-center">
           <span className="text-[32px]">⚖️</span>
-          <h3 className="mt-3 text-[16px] font-semibold text-[#e2e8f0]">
+          <h3 className="mt-3 text-[18px] font-semibold text-[#e2e8f0]">
             Nenhum dado GRO disponível
           </h3>
           <p className="mt-2 max-w-md text-[14px] text-[#94a3b8]">
@@ -216,7 +216,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
           <div className="grid gap-3 lg:grid-cols-2">
             {/* Radar chart — normalized 0-100% per clinical max */}
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
                 Escalas Clínicas — Média Geral
               </h3>
               {hasScaleData ? (
@@ -246,7 +246,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   </RadarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-[280px] items-center justify-center text-[13px] text-[#64748b]">
+                <div className="flex h-[280px] items-center justify-center text-[15px] text-[#64748b]">
                   Sem dados de escalas clínicas
                 </div>
               )}
@@ -254,7 +254,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
 
             {/* AEP Dimensions — horizontal bars, distinct color per dimension */}
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
                 AEP — Dimensões (Média Empresa)
               </h3>
               {hasAepData ? (
@@ -288,7 +288,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-[280px] items-center justify-center text-[13px] text-[#64748b]">
+                <div className="flex h-[280px] items-center justify-center text-[15px] text-[#64748b]">
                   Sem dados AEP
                 </div>
               )}
@@ -298,7 +298,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
           {/* SRQ-20 Distribution */}
           {hasSrqData && (
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
                 SRQ-20 (OMS) — Distribuição de Rastreamento
               </h3>
               <div className="mb-3 grid grid-cols-2 gap-2.5 md:grid-cols-4">
@@ -314,13 +314,13 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                     >
                       {gro?.srq20Distribution[r.key] ?? 0}
                     </div>
-                    <div className="mt-1.5 text-[12px] text-[#94a3b8]">
+                    <div className="mt-1.5 text-[14px] text-[#94a3b8]">
                       SRQ {r.range} ({r.label})
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="rounded-lg bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[12px] text-[#64748b]">
+              <div className="rounded-lg bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[14px] text-[#64748b]">
                 📎 O SRQ-20 da OMS é o instrumento recomendado pelo Ministério da Saúde para
                 vigilância de transtornos mentais comuns em ambiente ocupacional. Ponto de corte:
                 ≥ 8 (Mari & Williams, 1986).
@@ -331,7 +331,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
           {/* Probability × Severity Matrix */}
           {hasMatrix && (
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
                 Matriz Probabilidade × Severidade — Consolidado
               </h3>
               <div className="grid gap-0.5" style={{ gridTemplateColumns: '90px repeat(4, 1fr)' }}>
@@ -339,7 +339,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                 {['Sev. Baixa', 'Sev. Moderada', 'Sev. Alta', 'Sev. Muito Alta'].map((h) => (
                   <div
                     key={h}
-                    className="rounded p-2 text-center text-[11px] font-semibold text-[#94a3b8]"
+                    className="rounded p-2 text-center text-[13px] font-semibold text-[#94a3b8]"
                     style={{ background: 'rgba(255,255,255,0.03)' }}
                   >
                     {h}
@@ -349,7 +349,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                 {['Prob. Alta', 'Prob. Média', 'Prob. Baixa'].map((rowLabel, rowIdx) => (
                   <div key={rowIdx} className="contents">
                     <div
-                      className="flex items-center text-[11px] font-semibold text-[#94a3b8]"
+                      className="flex items-center text-[13px] font-semibold text-[#94a3b8]"
                       style={{ padding: '8px' }}
                     >
                       {rowLabel}
@@ -360,7 +360,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                       return (
                         <div
                           key={`cell-${rowIdx}-${colIdx}`}
-                          className="rounded p-2.5 text-center font-mono text-[15px] font-bold"
+                          className="rounded p-2.5 text-center font-mono text-[17px] font-bold"
                           style={{ background: `${color}20`, color }}
                         >
                           {value}
@@ -370,7 +370,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   </div>
                 ))}
               </div>
-              <div className="mt-2 text-center text-[11px] text-[#64748b]">
+              <div className="mt-2 text-center text-[13px] text-[#64748b]">
                 Número de colaboradores por célula da matriz · Ref. NR-1: 1.5.4.4.2
               </div>
             </div>

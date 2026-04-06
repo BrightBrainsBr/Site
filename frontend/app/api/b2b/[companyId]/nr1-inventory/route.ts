@@ -297,9 +297,12 @@ export async function POST(
     data: { publicUrl },
   } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
 
+  const generatedAt = new Date().toISOString()
   return NextResponse.json({
     url: publicUrl,
-    generated_at: new Date().toISOString(),
+    filename,
+    generatedAt,
+    generated_at: generatedAt,
   })
 }
 

@@ -14,6 +14,7 @@ import { useB2BActionPlansMutationHook } from '../../hooks/useB2BActionPlansMuta
 import { useB2BActionPlansQueryHook } from '../../hooks/useB2BActionPlansQueryHook'
 import { useB2BDepartments } from '../../hooks/useB2BDepartments'
 
+
 const STATUS_CONFIG: Record<
   ActionPlanStatus,
   { label: string; color: string; bg: string }
@@ -77,6 +78,7 @@ export function B2BActionPlanTab({
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<CreateActionPlanInput>({ ...EMPTY_FORM })
+  const [generateError, setGenerateError] = useState<string | null>(null)
 
   const { data: deptData } = useB2BDepartments(companyId, cycleId)
   const { data: plans, isLoading } = useB2BActionPlansQueryHook(companyId, {
@@ -84,7 +86,7 @@ export function B2BActionPlanTab({
     cycle: cycleId ?? undefined,
   })
   const { createPlan, updatePlan, deletePlan, generatePlans } =
-    useB2BActionPlansMutationHook(companyId)
+    useB2BActionPlansMutationHook(companyId, cycleId)
 
   const departments = deptData?.departments ?? []
   const items = plans ?? []
@@ -138,12 +140,20 @@ export function B2BActionPlanTab({
   )
 
   const handleGenerate = useCallback(() => {
-    generatePlans.mutate({})
+    setGenerateError(null)
+    generatePlans.mutate(
+      {},
+      {
+        onError: (err) => {
+          setGenerateError(err.message || 'Erro ao gerar plano de ação com IA')
+        },
+      }
+    )
   }, [generatePlans])
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748b]">
+      <div className="flex h-64 items-center justify-center text-[15px] text-[#64748b]">
         Carregando plano de ação…
       </div>
     )
@@ -157,7 +167,7 @@ export function B2BActionPlanTab({
           <span className="text-[20px]">🔄</span>
           <h2 className="text-[20px] font-bold text-[#e2e8f0]">Plano de Ação (PDCA)</h2>
         </div>
-        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">Ref. NR-1: 1.5.5.2 — Medidas de prevenção com responsáveis, prazos e status</p>
+        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">Ref. NR-1: 1.5.5.2 — Medidas de prevenção com responsáveis, prazos e status</p>
       </div>
 
       {/* Status counters */}
@@ -179,7 +189,7 @@ export function B2BActionPlanTab({
                 : 'border-[rgba(255,255,255,0.06)] bg-[#0c1425] hover:border-[rgba(255,255,255,0.12)]'
             }`}
           >
-            <span className="text-[12px] font-medium text-[#94a3b8]">
+            <span className="text-[14px] font-medium text-[#94a3b8]">
               {cfg.label}
             </span>
             <p className="mt-1 text-[26px] font-bold" style={{ color: cfg.color }}>
@@ -196,28 +206,40 @@ export function B2BActionPlanTab({
             resetForm()
             setShowForm(true)
           }}
-          className="rounded-lg bg-[rgba(197,225,85,0.15)] px-3 py-1.5 text-[12px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)]"
+          className="rounded-lg bg-[rgba(197,225,85,0.15)] px-3 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)]"
         >
           + Nova Ação
         </button>
         <button
           onClick={handleGenerate}
           disabled={generatePlans.isPending}
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[12px] font-semibold text-[#94a3b8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#e2e8f0] disabled:opacity-50"
+          className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[14px] font-semibold text-[#94a3b8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#e2e8f0] disabled:opacity-50"
         >
-          {generatePlans.isPending ? 'Gerando…' : 'Gerar com IA'}
+          {generatePlans.isPending ? 'Gerando…' : '✨ Gerar com IA'}
         </button>
       </div>
+
+      {generateError && (
+        <div className="rounded-lg border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.08)] px-3 py-2 text-[14px] text-[#F87171]">
+          {generateError}
+        </div>
+      )}
+
+      {generatePlans.isSuccess && (
+        <div className="rounded-lg border border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.08)] px-3 py-2 text-[14px] text-[#22c55e]">
+          ✓ Plano de ação gerado com sucesso pela IA
+        </div>
+      )}
 
       {/* Create / Edit form */}
       {showForm && (
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
-          <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+          <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
             {editingId ? 'Editar Ação' : 'Nova Ação'}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
-              <label className="mb-1 block text-[11px] text-[#64748b]">
+              <label className="mb-1 block text-[13px] text-[#64748b]">
                 Descrição
               </label>
               <textarea
@@ -226,11 +248,11 @@ export function B2BActionPlanTab({
                   setForm((f) => ({ ...f, description: e.target.value }))
                 }
                 rows={2}
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748b]">
+              <label className="mb-1 block text-[13px] text-[#64748b]">
                 Departamento
               </label>
               <select
@@ -238,7 +260,7 @@ export function B2BActionPlanTab({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, department: e.target.value }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               >
                 <option value="">—</option>
                 {departments.map((d) => (
@@ -249,7 +271,7 @@ export function B2BActionPlanTab({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748b]">
+              <label className="mb-1 block text-[13px] text-[#64748b]">
                 Prioridade
               </label>
               <select
@@ -260,7 +282,7 @@ export function B2BActionPlanTab({
                     priority: e.target.value as ActionPlanPriority,
                   }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               >
                 {(
                   Object.entries(PRIORITY_CONFIG) as [
@@ -275,7 +297,7 @@ export function B2BActionPlanTab({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748b]">
+              <label className="mb-1 block text-[13px] text-[#64748b]">
                 Responsável
               </label>
               <input
@@ -284,11 +306,11 @@ export function B2BActionPlanTab({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, responsible: e.target.value }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-[#64748b]">
+              <label className="mb-1 block text-[13px] text-[#64748b]">
                 Prazo
               </label>
               <input
@@ -297,12 +319,12 @@ export function B2BActionPlanTab({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, deadline: e.target.value }))
                 }
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
             {editingId && (
               <div>
-                <label className="mb-1 block text-[11px] text-[#64748b]">
+                <label className="mb-1 block text-[13px] text-[#64748b]">
                   Status
                 </label>
                 <select
@@ -313,7 +335,7 @@ export function B2BActionPlanTab({
                       status: e.target.value as ActionPlanStatus,
                     }))
                   }
-                  className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+                  className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
                 >
                   {(
                     Object.entries(STATUS_CONFIG) as [
@@ -329,7 +351,7 @@ export function B2BActionPlanTab({
               </div>
             )}
             <div className="sm:col-span-2 lg:col-span-3">
-              <label className="mb-1 block text-[11px] text-[#64748b]">
+              <label className="mb-1 block text-[13px] text-[#64748b]">
                 Observações
               </label>
               <textarea
@@ -338,7 +360,7 @@ export function B2BActionPlanTab({
                   setForm((f) => ({ ...f, notes: e.target.value }))
                 }
                 rows={2}
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-2 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
               />
             </div>
           </div>
@@ -346,7 +368,7 @@ export function B2BActionPlanTab({
             <button
               onClick={handleSubmit}
               disabled={createPlan.isPending || updatePlan.isPending}
-              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[12px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
+              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
             >
               {createPlan.isPending || updatePlan.isPending
                 ? 'Salvando…'
@@ -356,7 +378,7 @@ export function B2BActionPlanTab({
             </button>
             <button
               onClick={resetForm}
-              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[12px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
+              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[14px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
             >
               Cancelar
             </button>
@@ -367,7 +389,7 @@ export function B2BActionPlanTab({
       {/* Action list */}
       <div className="space-y-2">
         {items.length === 0 ? (
-          <div className="flex h-40 items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] text-[13px] text-[#64748b]">
+          <div className="flex h-40 items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] text-[15px] text-[#64748b]">
             Nenhuma ação cadastrada
           </div>
         ) : (
@@ -382,13 +404,13 @@ export function B2BActionPlanTab({
                 <div className="flex flex-wrap items-start gap-2">
                   {/* Priority badge */}
                   <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-semibold"
                     style={{ color: pCfg.color, backgroundColor: pCfg.bg }}
                   >
                     {pCfg.label}
                   </span>
                   {plan.ai_generated && (
-                    <span className="shrink-0 rounded-full bg-[rgba(96,165,250,0.15)] px-2 py-0.5 text-[10px] font-semibold text-[#60A5FA]">
+                    <span className="shrink-0 rounded-full bg-[rgba(96,165,250,0.15)] px-2 py-0.5 text-[12px] font-semibold text-[#60A5FA]">
                       IA
                     </span>
                   )}
@@ -397,7 +419,7 @@ export function B2BActionPlanTab({
                     <p className="text-[14px] font-medium text-[#e2e8f0]">
                       {plan.description}
                     </p>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-[#64748b]">
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[14px] text-[#64748b]">
                       {plan.department && <span>{plan.department}</span>}
                       {plan.responsible && (
                         <span>Resp: {plan.responsible}</span>
@@ -413,7 +435,7 @@ export function B2BActionPlanTab({
 
                   {/* Status badge */}
                   <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[12px] font-semibold"
                     style={{ color: sCfg.color, backgroundColor: sCfg.bg }}
                   >
                     {sCfg.label}

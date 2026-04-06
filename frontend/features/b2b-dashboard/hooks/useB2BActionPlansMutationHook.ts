@@ -8,6 +8,18 @@ import type {
   UpdateActionPlanInput,
 } from '../b2b-dashboard.interface'
 
+function extractErrorMessage(body: unknown): string {
+  if (typeof body === 'object' && body !== null) {
+    const b = body as Record<string, unknown>
+    return (
+      (typeof b.error === 'string' ? b.error : null) ??
+      (typeof b.message === 'string' ? b.message : null) ??
+      'Request failed'
+    )
+  }
+  return 'Request failed'
+}
+
 async function postJSON<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: 'POST',
@@ -16,9 +28,7 @@ async function postJSON<T>(url: string, body: unknown): Promise<T> {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(
-      (err as { message?: string }).message || 'Request failed'
-    )
+    throw new Error(extractErrorMessage(err))
   }
   return res.json()
 }
@@ -31,9 +41,7 @@ async function patchJSON<T>(url: string, body: unknown): Promise<T> {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(
-      (err as { message?: string }).message || 'Request failed'
-    )
+    throw new Error(extractErrorMessage(err))
   }
   return res.json()
 }
@@ -42,16 +50,19 @@ async function deleteFetch<T>(url: string): Promise<T> {
   const res = await fetch(url, { method: 'DELETE' })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(
-      (err as { message?: string }).message || 'Request failed'
-    )
+    throw new Error(extractErrorMessage(err))
   }
   return res.json()
 }
 
-export function useB2BActionPlansMutationHook(companyId: string | null) {
+export function useB2BActionPlansMutationHook(
+  companyId: string | null,
+  cycleId?: string | null
+) {
   const queryClient = useQueryClient()
-  const base = `/api/b2b/${companyId}/action-plans`
+  const basePath = `/api/b2b/${companyId}/action-plans`
+  const cycleQuery = cycleId ? `?cycle=${cycleId}` : ''
+  const base = `${basePath}${cycleQuery}`
 
   const invalidate = () =>
     queryClient.invalidateQueries({
@@ -65,12 +76,12 @@ export function useB2BActionPlansMutationHook(companyId: string | null) {
 
   const updatePlan = useMutation<B2BActionPlan, Error, UpdateActionPlanInput>({
     mutationFn: ({ planId, ...data }) =>
-      patchJSON(`${base}/${planId}`, data),
+      patchJSON(`${basePath}/${planId}${cycleQuery}`, data),
     onSuccess: invalidate,
   })
 
   const deletePlan = useMutation<{ success: boolean }, Error, string>({
-    mutationFn: (planId) => deleteFetch(`${base}/${planId}`),
+    mutationFn: (planId) => deleteFetch(`${basePath}/${planId}`),
     onSuccess: invalidate,
   })
 

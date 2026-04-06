@@ -92,18 +92,18 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
           <span className="text-[20px]">📄</span>
           <h2 className="text-[20px] font-bold text-[#e2e8f0]">Relatórios</h2>
         </div>
-        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">Geração de relatórios com filtros e download</p>
+        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">Geração de relatórios com filtros e download</p>
       </div>
 
       {/* Filter bar */}
       <div className="flex items-center gap-3">
-        <label className="text-[12px] font-medium text-[#94a3b8]">
+        <label className="text-[14px] font-medium text-[#94a3b8]">
           Departamento
         </label>
         <select
           value={department}
           onChange={(e) => setDepartment(e.target.value)}
-          className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111b2e] px-3 py-1.5 text-[12px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+          className="rounded-lg border border-[rgba(255,255,255,0.06)] bg-[#111b2e] px-3 py-1.5 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
         >
           <option value="">Todos</option>
           {departments.map((d) => (
@@ -126,17 +126,17 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
               key={card.type}
               className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4"
             >
-              <h3 className="text-[15px] font-semibold text-[#e2e8f0]">
+              <h3 className="text-[17px] font-semibold text-[#e2e8f0]">
                 {card.title}
               </h3>
-              <p className="mt-1 text-[12px] text-[#64748b]">
+              <p className="mt-1 text-[14px] text-[#64748b]">
                 {card.description}
               </p>
               <div className="mt-4 flex items-center gap-2">
                 <button
                   onClick={() => handleGenerate(card.type)}
                   disabled={isGenerating}
-                  className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[12px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
+                  className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
                 >
                   {isGenerating ? 'Gerando…' : 'Gerar'}
                 </button>
@@ -145,14 +145,14 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
                     href={result.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] font-medium text-[#c5e155] underline underline-offset-2 hover:text-[#d4ec7e]"
+                    className="text-[13px] font-medium text-[#c5e155] underline underline-offset-2 hover:text-[#d4ec7e]"
                   >
                     Download ({result.filename})
                   </a>
                 )}
               </div>
               {result && (
-                <p className="mt-2 text-[10px] text-[#64748b]">
+                <p className="mt-2 text-[12px] text-[#64748b]">
                   Gerado em{' '}
                   {new Date(result.generatedAt).toLocaleString('pt-BR')}
                 </p>
@@ -165,16 +165,16 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
         <div className="rounded-[14px] border border-[rgba(197,225,85,0.3)] bg-[#0c1425] p-4 sm:col-span-2 lg:col-span-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-[15px] font-semibold text-[#c5e155]">
+              <h3 className="text-[17px] font-semibold text-[#c5e155]">
                 Inventário de Riscos NR-1
               </h3>
-              <p className="mt-1 text-[12px] text-[#64748b]">
+              <p className="mt-1 text-[14px] text-[#64748b]">
                 Documento oficial de inventário de riscos psicossociais
                 conforme NR-1. Gera PDF completo com matriz de risco, plano de
                 ação e recomendações.
               </p>
               {results['nr1-inventario'] && (
-                <p className="mt-1 text-[10px] text-[#64748b]">
+                <p className="mt-1 text-[12px] text-[#64748b]">
                   Última geração:{' '}
                   {new Date(
                     results['nr1-inventario'].generatedAt
@@ -186,7 +186,7 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
               <button
                 onClick={handleGenerateInventory}
                 disabled={inventoryMutation.isPending}
-                className="shrink-0 rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-2 text-[12px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
+                className="shrink-0 rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-2 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
               >
                 {inventoryMutation.isPending
                   ? 'Gerando Inventário…'
@@ -197,7 +197,7 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
                   href={results['nr1-inventario'].url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[11px] font-medium text-[#c5e155] underline underline-offset-2 hover:text-[#d4ec7e]"
+                  className="text-[13px] font-medium text-[#c5e155] underline underline-offset-2 hover:text-[#d4ec7e]"
                 >
                   Download
                 </a>

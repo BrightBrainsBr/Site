@@ -253,7 +253,7 @@ export function B2BOverviewTab({
       {/* Sub-threshold banner */}
       {total > 0 && total < MIN_EVALUATIONS && (
         <div className="rounded-[10px] border border-[rgba(234,179,8,0.2)] bg-[rgba(234,179,8,0.06)] px-4 py-3">
-          <p className="text-[13px] text-[#eab308]">
+          <p className="text-[15px] text-[#eab308]">
             ⚠️ Dados preliminares ({total}/{MIN_EVALUATIONS}) — Os gráficos
             ficam mais precisos a partir de {MIN_EVALUATIONS} avaliações
             completas.
@@ -276,8 +276,8 @@ export function B2BOverviewTab({
             >
               {k.value}
             </div>
-            <div className="mt-1.5 text-[13px] text-[#94a3b8]">{k.label}</div>
-            <div className="mt-0.5 text-[12px] text-[#64748b]">{k.sub}</div>
+            <div className="mt-1.5 text-[15px] text-[#94a3b8]">{k.label}</div>
+            <div className="mt-0.5 text-[14px] text-[#64748b]">{k.sub}</div>
           </div>
         ))}
       </div>
@@ -286,7 +286,7 @@ export function B2BOverviewTab({
       <div className="grid gap-3 lg:grid-cols-2">
         {/* Donut chart */}
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-          <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+          <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
             Distribuição de Risco
           </h3>
           {pieData.length > 0 ? (
@@ -324,7 +324,7 @@ export function B2BOverviewTab({
                 {pieData.map((d) => (
                   <div
                     key={d.name}
-                    className="flex items-center gap-2 text-[13px]"
+                    className="flex items-center gap-2 text-[15px]"
                   >
                     <span
                       className="h-2.5 w-2.5 shrink-0 rounded-sm"
@@ -350,14 +350,14 @@ export function B2BOverviewTab({
         {/* Stacked bar chart — monthly evolution */}
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-[15px] font-semibold text-[#e2e8f0]">
+            <h3 className="text-[17px] font-semibold text-[#e2e8f0]">
               Evolução Mensal{' '}
               {timelineMode === 'percent' ? '(%)' : '(contagem)'}
             </h3>
             <div className="flex gap-1">
               <button
                 onClick={() => setTimelineMode('percent')}
-                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors ${
                   timelineMode === 'percent'
                     ? 'bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
                     : 'text-[#64748b] hover:text-[#94a3b8]'
@@ -367,7 +367,7 @@ export function B2BOverviewTab({
               </button>
               <button
                 onClick={() => setTimelineMode('count')}
-                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors ${
                   timelineMode === 'count'
                     ? 'bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
                     : 'text-[#64748b] hover:text-[#94a3b8]'
@@ -449,7 +449,7 @@ export function B2BOverviewTab({
                   />
                 </BarChart>
               </ResponsiveContainer>
-              <div className="mt-2 flex justify-center gap-4 text-[12px] text-[#64748b]">
+              <div className="mt-2 flex justify-center gap-4 text-[14px] text-[#64748b]">
                 {Object.entries(TIMELINE_COLORS).map(([key, color]) => (
                   <span key={key} className="flex items-center gap-1.5">
                     <span
@@ -477,7 +477,7 @@ export function B2BOverviewTab({
           background: 'rgba(239,68,68,0.04)',
         }}
       >
-        <h3 className="mb-3 text-[15px] font-semibold text-[#ef4444]">
+        <h3 className="mb-3 text-[17px] font-semibold text-[#ef4444]">
           🚨 Alertas Ativos
         </h3>
         {aggregateAlerts.length > 0 ? (
@@ -497,7 +497,7 @@ export function B2BOverviewTab({
                       boxShadow: `0 0 6px ${dotColor}40`,
                     }}
                   />
-                  <span className="flex-1 text-[13px] text-[#e2e8f0]">
+                  <span className="flex-1 text-[15px] text-[#e2e8f0]">
                     {alert.text}
                   </span>
                 </div>

@@ -40,16 +40,26 @@ export async function POST(
   }
 
   const body = await request.json()
-  const { reportType, filters = {} } = body as {
-    reportType: 'gro-consolidado' | 'departamento' | 'csv'
-    filters?: ReportFilters
+  // Accept both `type` (frontend format) and `reportType` (legacy)
+  const rawType = (body.type ?? body.reportType) as string | undefined
+  const department = body.department as string | undefined
+  const filters: ReportFilters = {
+    ...(body.filters ?? {}),
+    department: department ?? (body.filters?.department as string | undefined),
   }
 
+  // Map frontend type values to internal keys
+  const typeMap: Record<string, string> = {
+    'gro-consolidado': 'gro-consolidado',
+    'por-departamento': 'departamento',
+    'csv-export': 'csv',
+    departamento: 'departamento',
+    csv: 'csv',
+  }
+  const reportType = rawType ? (typeMap[rawType] ?? rawType) : undefined
+
   if (!reportType) {
-    return NextResponse.json(
-      { error: 'reportType é obrigatório' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'type é obrigatório' }, { status: 400 })
   }
 
   const sb = createClient(
@@ -93,7 +103,7 @@ export async function POST(
     : evaluations
 
   if (reportType === 'csv') {
-    return buildCsvResponse(filtered)
+    return buildCsvResponse(filtered, companyId, sb)
   }
 
   if (reportType === 'departamento') {
@@ -103,13 +113,16 @@ export async function POST(
   return buildGroConsolidadoPdf(filtered, companyId, sb)
 }
 
-function buildCsvResponse(
+async function buildCsvResponse(
   evaluations: Array<{
     id: string
     scores: Record<string, number> | null
     employee_department: string | null
     created_at: string
-  }>
+  }>,
+  companyId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sb: SupabaseClient<any, any, any>
 ) {
   const scaleKeys = ['phq9', 'gad7', 'srq20', 'pss10', 'mbi', 'isi']
   const header = ['id', 'department', 'created_at', 'risk_level', ...scaleKeys]
@@ -132,12 +145,35 @@ function buildCsvResponse(
     )
   }
 
-  return new NextResponse(csvRows.join('\n'), {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="relatorio-${Date.now()}.csv"`,
-    },
+  const csvContent = '\uFEFF' + csvRows.join('\n') // BOM for Excel UTF-8
+  const csvBuffer = Buffer.from(csvContent, 'utf-8')
+  const filename = `relatorio-csv-${companyId}-${Date.now()}.csv`
+
+  const { error: uploadError } = await sb.storage
+    .from('nr1-inventories')
+    .upload(filename, csvBuffer, {
+      contentType: 'text/csv; charset=utf-8',
+      upsert: false,
+    })
+
+  if (uploadError) {
+    console.error('[b2b/reports] csv upload', uploadError)
+    return NextResponse.json(
+      { error: 'Erro ao fazer upload do CSV' },
+      { status: 500 }
+    )
+  }
+
+  const {
+    data: { publicUrl },
+  } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
+
+  const generatedAt = new Date().toISOString()
+  return NextResponse.json({
+    url: publicUrl,
+    filename,
+    generatedAt,
+    generated_at: generatedAt,
   })
 }
 
@@ -222,9 +258,12 @@ async function buildGroConsolidadoPdf(
     data: { publicUrl },
   } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
 
+  const generatedAt = new Date().toISOString()
   return NextResponse.json({
     url: publicUrl,
-    generated_at: new Date().toISOString(),
+    filename,
+    generatedAt,
+    generated_at: generatedAt,
   })
 }
 
@@ -318,8 +357,11 @@ async function buildDepartmentPdf(
     data: { publicUrl },
   } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
 
+  const generatedAt = new Date().toISOString()
   return NextResponse.json({
     url: publicUrl,
-    generated_at: new Date().toISOString(),
+    filename,
+    generatedAt,
+    generated_at: generatedAt,
   })
 }

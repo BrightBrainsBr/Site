@@ -210,36 +210,36 @@ export function B2BNR1FieldsComponent({
       <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
         <div className="mb-4 flex items-center gap-2">
           <User className="h-4 w-4 text-[#14B8A6]" />
-          <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
+          <h3 className="text-[15px] font-semibold text-[#E2E8F0]">
             Responsável SST
           </h3>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-[#94A3B8]">
+            <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
               Nome
             </label>
             <input
               value={sstName}
               onChange={(e) => setSstName(e.target.value)}
               placeholder="Nome do responsável"
-              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-[#94A3B8]">
+            <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
               Cargo / Função
             </label>
             <input
               value={sstRole}
               onChange={(e) => setSstRole(e.target.value)}
               placeholder="Ex: Engenheiro de Segurança"
-              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
             />
           </div>
         </div>
         <div className="mt-4">
-          <label className="mb-1 block text-[11px] font-medium text-[#94A3B8]">
+          <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
             Assinatura (imagem)
           </label>
           <div className="flex items-center gap-3">
@@ -261,7 +261,7 @@ export function B2BNR1FieldsComponent({
             <button
               onClick={() => signatureInputRef.current?.click()}
               disabled={uploadingSignature}
-              className="flex items-center gap-1.5 rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-2 text-[12px] font-medium text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E2E8F0] disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-2 text-[14px] font-medium text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E2E8F0] disabled:opacity-40"
             >
               {uploadingSignature ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -285,31 +285,31 @@ export function B2BNR1FieldsComponent({
       <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
         <div className="mb-4 flex items-center gap-2">
           <FileText className="h-4 w-4 text-[#14B8A6]" />
-          <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
+          <h3 className="text-[15px] font-semibold text-[#E2E8F0]">
             Dados da Empresa
           </h3>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-[#94A3B8]">
+            <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
               CNAE
             </label>
             <input
               value={cnae}
               onChange={(e) => setCnae(e.target.value)}
               placeholder="Ex: 6201-5/01"
-              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-[#94A3B8]">
+            <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
               Grau de Risco
             </label>
             <input
               value={riskGrade}
               onChange={(e) => setRiskGrade(e.target.value)}
               placeholder="Ex: 2"
-              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
             />
           </div>
         </div>
@@ -320,13 +320,13 @@ export function B2BNR1FieldsComponent({
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-[#14B8A6]" />
-            <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
+            <h3 className="text-[15px] font-semibold text-[#E2E8F0]">
               Campos NR-1
             </h3>
           </div>
           <button
             onClick={() => setShowPdfImport((v) => !v)}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-colors ${
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors ${
               showPdfImport
                 ? 'bg-[#14B8A6]/15 text-[#14B8A6]'
                 : 'border border-[rgba(255,255,255,0.1)] text-[#94A3B8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E2E8F0]'
@@ -350,7 +350,7 @@ export function B2BNR1FieldsComponent({
 
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-[#94A3B8]">
+            <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
               Descrição dos Processos de Trabalho
             </label>
             <textarea
@@ -358,11 +358,11 @@ export function B2BNR1FieldsComponent({
               onChange={(e) => setProcessDescriptions(e.target.value)}
               rows={4}
               placeholder="Descreva os processos de trabalho da empresa..."
-              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-[#94A3B8]">
+            <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
               Descrição das Atividades
             </label>
             <textarea
@@ -370,18 +370,18 @@ export function B2BNR1FieldsComponent({
               onChange={(e) => setActivities(e.target.value)}
               rows={4}
               placeholder="Descreva as atividades realizadas..."
-              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-[#94A3B8]">
+            <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
               Medidas Preventivas Existentes
             </label>
             <div className="mb-2 flex flex-wrap gap-2">
               {preventiveMeasures.map((measure, i) => (
                 <span
                   key={i}
-                  className="flex items-center gap-1.5 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#132540] px-3 py-1 text-[12px] text-[#E2E8F0]"
+                  className="flex items-center gap-1.5 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#132540] px-3 py-1 text-[14px] text-[#E2E8F0]"
                 >
                   {measure}
                   <button
@@ -393,7 +393,7 @@ export function B2BNR1FieldsComponent({
                 </span>
               ))}
               {preventiveMeasures.length === 0 && (
-                <span className="text-[11px] text-[#64748B]">
+                <span className="text-[13px] text-[#64748B]">
                   Nenhuma medida cadastrada
                 </span>
               )}
@@ -404,12 +404,12 @@ export function B2BNR1FieldsComponent({
                 onChange={(e) => setNewMeasure(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addMeasure()}
                 placeholder="Adicionar medida preventiva..."
-                className="flex-1 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+                className="flex-1 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
               />
               <button
                 onClick={addMeasure}
                 disabled={!newMeasure.trim()}
-                className="flex items-center gap-1 rounded-lg bg-[#0D9488] px-3 py-2 text-[12px] font-medium text-white disabled:opacity-40"
+                className="flex items-center gap-1 rounded-lg bg-[#0D9488] px-3 py-2 text-[14px] font-medium text-white disabled:opacity-40"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Adicionar
@@ -424,14 +424,14 @@ export function B2BNR1FieldsComponent({
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-[#F59E0B]" />
-            <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
+            <h3 className="text-[15px] font-semibold text-[#E2E8F0]">
               SOPs de Emergência
             </h3>
           </div>
           <button
             onClick={() => sopInputRef.current?.click()}
             disabled={uploadingSop}
-            className="flex items-center gap-1.5 rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[11px] font-medium text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E2E8F0] disabled:opacity-40"
+            className="flex items-center gap-1.5 rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[13px] font-medium text-[#94A3B8] transition-colors hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E2E8F0] disabled:opacity-40"
           >
             {uploadingSop ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -450,7 +450,7 @@ export function B2BNR1FieldsComponent({
         </div>
 
         {sops.length === 0 ? (
-          <p className="py-4 text-center text-[12px] text-[#64748B]">
+          <p className="py-4 text-center text-[14px] text-[#64748B]">
             Nenhum SOP de emergência cadastrado.
           </p>
         ) : (
@@ -463,10 +463,10 @@ export function B2BNR1FieldsComponent({
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-[#64748B]" />
                   <div>
-                    <p className="text-[12px] font-medium text-[#E2E8F0]">
+                    <p className="text-[14px] font-medium text-[#E2E8F0]">
                       {sop.name}
                     </p>
-                    <p className="text-[10px] text-[#64748B]">
+                    <p className="text-[12px] text-[#64748B]">
                       {new Date(sop.uploaded_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
@@ -476,14 +476,14 @@ export function B2BNR1FieldsComponent({
                     href={sop.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 rounded px-2 py-1 text-[11px] text-[#14B8A6] transition-colors hover:bg-[#14B8A6]/10"
+                    className="flex items-center gap-1 rounded px-2 py-1 text-[13px] text-[#14B8A6] transition-colors hover:bg-[#14B8A6]/10"
                   >
                     <Download className="h-3 w-3" />
                     Download
                   </a>
                   <button
                     onClick={() => removeSop(i)}
-                    className="flex items-center gap-1 rounded px-2 py-1 text-[11px] text-[#F87171] transition-colors hover:bg-[#F87171]/10"
+                    className="flex items-center gap-1 rounded px-2 py-1 text-[13px] text-[#F87171] transition-colors hover:bg-[#F87171]/10"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -497,14 +497,14 @@ export function B2BNR1FieldsComponent({
       {/* Save button */}
       <div className="flex items-center justify-end gap-3">
         {saveSuccess && (
-          <span className="text-[12px] font-medium text-[#34D399]">
+          <span className="text-[14px] font-medium text-[#34D399]">
             Salvo com sucesso!
           </span>
         )}
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 rounded-lg bg-[#0D9488] px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#14B8A6] disabled:opacity-40"
+          className="flex items-center gap-2 rounded-lg bg-[#0D9488] px-5 py-2.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#14B8A6] disabled:opacity-40"
         >
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" />

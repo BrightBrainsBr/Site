@@ -25,6 +25,7 @@ function getSiteUrl(): string {
   return raw
 }
 
+// eslint-disable-next-line complexity
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -51,11 +52,14 @@ export async function GET(
     })
   )
 
-  const { data: company } = await sb
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: company } = (await sb
     .from('companies')
-    .select('id, name, allowed_domains, departments')
+    .select(
+      'id, name, allowed_domains, departments, cnae, risk_grade, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, sst_responsible_name, sst_responsible_role, sst_signature_url, emergency_sop_urls'
+    )
     .eq('id', companyId)
-    .single()
+    .single()) as { data: Record<string, any> | null; error: unknown }
 
   const { data: evaluations } = await sb
     .from('mental_health_evaluations')
@@ -95,6 +99,17 @@ export async function GET(
     collaborators: {
       evaluations: evaluations ?? [],
       pending_invites: invitedOnly,
+    },
+    nr1: {
+      cnae: company?.cnae ?? null,
+      risk_grade: company?.risk_grade ?? null,
+      nr1_process_descriptions: company?.nr1_process_descriptions ?? null,
+      nr1_activities: company?.nr1_activities ?? null,
+      nr1_preventive_measures: company?.nr1_preventive_measures ?? null,
+      sst_responsible_name: company?.sst_responsible_name ?? null,
+      sst_responsible_role: company?.sst_responsible_role ?? null,
+      sst_signature_url: company?.sst_signature_url ?? null,
+      emergency_sop_urls: company?.emergency_sop_urls ?? null,
     },
   })
 }
@@ -323,6 +338,56 @@ export async function POST(
 
     await sb.from('companies').update({ departments }).eq('id', companyId)
     return NextResponse.json({ success: true })
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (body.action === 'update_nr1_fields') {
+    const allowed = [
+      'cnae',
+      'risk_grade',
+      'nr1_process_descriptions',
+      'nr1_activities',
+      'nr1_preventive_measures',
+      'sst_responsible_name',
+      'sst_responsible_role',
+      'sst_signature_url',
+      'emergency_sop_urls',
+    ]
+    const update: Record<string, unknown> = {}
+    for (const key of allowed) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (key in body) update[key] = body[key] as unknown
+    }
+    const { error } = await sb
+      .from('companies')
+      .update(update)
+      .eq('id', companyId)
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (body.action === 'upload_file') {
+    const { bucket, fileName } = body as {
+      bucket: string
+      fileName: string
+      contentType: string
+    }
+    const path = `${companyId}/${Date.now()}-${fileName}`
+    const { data, error } = await sb.storage
+      .from(bucket)
+      .createSignedUploadUrl(path)
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ signedUrl: data.signedUrl, fullPath: data.path })
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (body.action === 'get_public_url') {
+    const { bucket, path } = body as { bucket: string; path: string }
+    const { data } = sb.storage.from(bucket).getPublicUrl(path)
+    return NextResponse.json({ publicUrl: data.publicUrl })
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

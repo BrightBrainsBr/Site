@@ -176,13 +176,13 @@ export function B2BDashboardComponent({
           <div className="border-b border-[rgba(255,255,255,0.06)] px-4 py-4">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(197,225,85,0.15)]">
-                <span className="text-[16px]">🧠</span>
+                <span className="text-[18px]">🧠</span>
               </div>
               <div>
-                <div className="text-[15px] font-bold text-[#c5e155]">
+                <div className="text-[17px] font-bold text-[#c5e155]">
                   BrightMonitor
                 </div>
-                <div className="text-[10px] text-[#64748b]">Saúde Mental Corporativa</div>
+                <div className="text-[12px] text-[#64748b]">Saúde Mental Corporativa</div>
               </div>
             </div>
           </div>
@@ -191,13 +191,13 @@ export function B2BDashboardComponent({
         {/* Cycle selector */}
         {cycles.length > 0 && (
           <div className="border-b border-[rgba(255,255,255,0.06)] px-4 py-3">
-            <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+            <label className="mb-1 block text-[12px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">
               Ciclo
             </label>
             <select
               value={activeCycleId ?? ''}
               onChange={(e) => setCycleId(e.target.value)}
-              className="w-full rounded-md border border-[rgba(255,255,255,0.06)] bg-[#111b2e] px-2 py-1.5 text-[13px] text-[#e2e8f0] focus:border-[rgba(197,225,85,0.3)] focus:outline-none"
+              className="w-full rounded-md border border-[rgba(255,255,255,0.06)] bg-[#111b2e] px-2 py-1.5 text-[15px] text-[#e2e8f0] focus:border-[rgba(197,225,85,0.3)] focus:outline-none"
             >
               {cycles.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -210,7 +210,7 @@ export function B2BDashboardComponent({
 
         {/* Nav tabs */}
         <nav className="flex-1 overflow-y-auto px-2 py-3">
-          <div className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+          <div className="mb-1.5 px-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">
             Módulos
           </div>
           {visibleTabs.map((t) => (
@@ -220,13 +220,13 @@ export function B2BDashboardComponent({
                 void setActiveTab(t.id)
                 setSidebarOpen(false)
               }}
-              className={`mb-0.5 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[13px] transition-all ${
+              className={`mb-0.5 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[15px] transition-all ${
                 activeTab === t.id
                   ? 'bg-[rgba(197,225,85,0.15)] font-semibold text-[#c5e155]'
                   : 'font-normal text-[#94a3b8] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]'
               }`}
             >
-              <span className="text-[15px]">{t.icon}</span>
+              <span className="text-[17px]">{t.icon}</span>
               {t.label}
             </button>
           ))}
@@ -234,19 +234,19 @@ export function B2BDashboardComponent({
 
         {/* Footer */}
         <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-3">
-          <div className="truncate text-[11px] text-[#64748b]">
+          <div className="truncate text-[13px] text-[#64748b]">
             {companyName ?? 'Empresa'}
           </div>
-          <div className="mt-0.5 text-[10px] text-[#64748b]">
+          <div className="mt-0.5 text-[12px] text-[#64748b]">
             Atualizado: {updatedDate}
           </div>
           {hasValidGro && (
-            <span className="mt-1.5 inline-block rounded-full bg-[rgba(34,197,94,0.15)] px-2 py-0.5 text-[10px] font-semibold text-[#22c55e]">
+            <span className="mt-1.5 inline-block rounded-full bg-[rgba(34,197,94,0.15)] px-2 py-0.5 text-[12px] font-semibold text-[#22c55e]">
               ✓ GRO Emitido
             </span>
           )}
           {!hasValidGro && compliance && (
-            <span className="mt-1.5 inline-block rounded-full bg-[rgba(234,179,8,0.15)] px-2 py-0.5 text-[10px] font-semibold text-[#eab308]">
+            <span className="mt-1.5 inline-block rounded-full bg-[rgba(234,179,8,0.15)] px-2 py-0.5 text-[12px] font-semibold text-[#eab308]">
               ⚠ GRO Pendente
             </span>
           )}
@@ -283,7 +283,7 @@ export function B2BDashboardComponent({
             </button>
 
             <div className="hidden items-center gap-1.5 lg:flex">
-              <span className="text-[12px] text-[#64748b]">Empresa:</span>
+              <span className="text-[14px] text-[#64748b]">Empresa:</span>
               <span className="text-[14px] font-semibold text-[#c5e155]">
                 {companyName ?? 'Empresa'}
               </span>
@@ -307,10 +307,10 @@ export function B2BDashboardComponent({
                   <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#111b2e] py-2 shadow-xl">
                     {userEmail && (
                       <div className="border-b border-[rgba(255,255,255,0.06)] px-4 py-3">
-                        <p className="text-[10px] uppercase tracking-wider text-[#64748b]">
+                        <p className="text-[12px] uppercase tracking-wider text-[#64748b]">
                           Conectado como
                         </p>
-                        <p className="mt-0.5 truncate text-[13px] font-medium text-[#e2e8f0]">
+                        <p className="mt-0.5 truncate text-[15px] font-medium text-[#e2e8f0]">
                           {userEmail}
                         </p>
                       </div>
@@ -321,7 +321,7 @@ export function B2BDashboardComponent({
                           setIsMenuOpen(false)
                           router.push(localePath('/empresa/perfil'))
                         }}
-                        className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-[15px] text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
                       >
                         <User className="h-4 w-4" />
                         Meu Perfil
@@ -331,7 +331,7 @@ export function B2BDashboardComponent({
                           setIsMenuOpen(false)
                           void setActiveTab('settings')
                         }}
-                        className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-[15px] text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
                       >
                         <Settings className="h-4 w-4" />
                         Configurações
@@ -340,7 +340,7 @@ export function B2BDashboardComponent({
                     <div className="border-t border-[rgba(255,255,255,0.06)] pt-1">
                       <button
                         onClick={handleSignOut}
-                        className="flex w-full items-center gap-2.5 px-4 py-2 text-[13px] text-[#F87171] transition-colors hover:bg-[rgba(239,68,68,0.06)]"
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-[15px] text-[#F87171] transition-colors hover:bg-[rgba(239,68,68,0.06)]"
                       >
                         <LogOut className="h-4 w-4" />
                         Sair

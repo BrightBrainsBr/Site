@@ -64,7 +64,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748b]">
+      <div className="flex h-64 items-center justify-center text-[15px] text-[#64748b]">
         Carregando dados de percepção…
       </div>
     )
@@ -82,7 +82,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
             Percepção Organizacional
           </h2>
         </div>
-        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">
+        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">
           Fatores de risco identificados nas respostas abertas dos colaboradores
           — Ref. NR-1: 1.5.3.3 · Dados 100% agregados e anônimos
         </p>
@@ -90,13 +90,13 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
 
       {/* Info banner */}
       <div className="rounded-[14px] border border-[rgba(197,225,85,0.1)] bg-[rgba(197,225,85,0.04)] px-3.5 py-2.5">
-        <p className="text-[11px] leading-relaxed text-[#d4ec7e]">
+        <p className="text-[13px] leading-relaxed text-[#d4ec7e]">
           <strong>O que é esta aba:</strong> consolidação das respostas abertas
           dos formulários AEP (Q15 — &quot;Percepção Livre&quot;) e do Canal de
           Percepção de Riscos integrado ao formulário. Nenhum dado é rastreado
           individualmente — só padrões agregados por setor e tipo de fator.
         </p>
-        <p className="mt-1 text-[10px] text-[#64748b]">
+        <p className="mt-1 text-[12px] text-[#64748b]">
           Não é um canal de denúncias (a empresa mantém o seu próprio canal).
           Esta aba analisa o que os colaboradores percebem como fator de risco no
           trabalho.
@@ -104,7 +104,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
       </div>
 
       {!hasData ? (
-        <div className="flex h-40 items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[13px] text-[#64748b]">
+        <div className="flex h-40 items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] text-[15px] text-[#64748b]">
           Nenhum relato de percepção registrado ainda
         </div>
       ) : (
@@ -116,7 +116,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
               <div className="mt-1 font-mono text-[32px] font-bold leading-none tracking-tight text-[#c5e155]">
                 {percepcao.total}
               </div>
-              <div className="mt-1.5 text-[12px] text-[#94a3b8]">
+              <div className="mt-1.5 text-[14px] text-[#94a3b8]">
                 Respostas Abertas
               </div>
             </div>
@@ -125,7 +125,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
               <div className="mt-1 font-mono text-[32px] font-bold leading-none tracking-tight text-[#ef4444]">
                 {percepcao.urgentes}
               </div>
-              <div className="mt-1.5 text-[12px] text-[#94a3b8]">
+              <div className="mt-1.5 text-[14px] text-[#94a3b8]">
                 Urgência Alta
               </div>
             </div>
@@ -134,7 +134,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
               <div className="mt-1 truncate text-[18px] font-bold leading-none text-[#f97316]">
                 {percepcao.topSetor || '—'}
               </div>
-              <div className="mt-1.5 text-[12px] text-[#94a3b8]">
+              <div className="mt-1.5 text-[14px] text-[#94a3b8]">
                 Setor com Mais Sinais
               </div>
             </div>
@@ -143,18 +143,18 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
               <div className="mt-1 font-mono text-[32px] font-bold leading-none tracking-tight text-[#22c55e]">
                 100%
               </div>
-              <div className="mt-1.5 text-[12px] text-[#94a3b8]">Anonimato</div>
+              <div className="mt-1.5 text-[14px] text-[#94a3b8]">Anonimato</div>
             </div>
           </div>
 
           {/* Donut + Legend */}
           <div className="grid gap-3 lg:grid-cols-2">
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
                 Fatores de Risco Mencionados
               </h3>
               {pieData.length === 0 ? (
-                <div className="flex h-48 items-center justify-center text-[12px] text-[#64748b]">
+                <div className="flex h-48 items-center justify-center text-[14px] text-[#64748b]">
                   Sem dados para exibir
                 </div>
               ) : (
@@ -193,7 +193,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
             </div>
 
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
                 Detalhamento
               </h3>
               <div className="space-y-2">
@@ -207,15 +207,15 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
                         className="inline-block h-2.5 w-2.5 rounded-full"
                         style={{ backgroundColor: entry.color }}
                       />
-                      <span className="text-[12px] text-[#94a3b8]">
+                      <span className="text-[14px] text-[#94a3b8]">
                         {entry.name}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-semibold text-[#e2e8f0]">
+                      <span className="text-[14px] font-semibold text-[#e2e8f0]">
                         {entry.value}
                       </span>
-                      <span className="text-[11px] text-[#64748b]">
+                      <span className="text-[13px] text-[#64748b]">
                         {totalPie > 0
                           ? `${Math.round((entry.value / totalPie) * 100)}%`
                           : '0%'}
@@ -230,10 +230,10 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
           {/* Correlations */}
           {percepcao.correlations && percepcao.correlations.length > 0 && (
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
                 Correlação com Dados do Inventário
               </h3>
-              <p className="mb-3 text-[11px] text-[#94a3b8]">
+              <p className="mb-3 text-[13px] text-[#94a3b8]">
                 Padrões cruzados automaticamente com scores AEP/SRQ-20:
               </p>
               <div className="space-y-2">
@@ -248,7 +248,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
                       className="flex items-start gap-2 rounded-lg bg-[rgba(255,255,255,0.02)] px-3 py-2"
                     >
                       <span
-                        className="mt-0.5 shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold"
+                        className="mt-0.5 shrink-0 rounded-md px-2 py-0.5 text-[12px] font-semibold"
                         style={{
                           color: isHigh ? '#ef4444' : '#eab308',
                           backgroundColor: isHigh
@@ -261,7 +261,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
                       >
                         {isHigh ? 'Alta' : 'Média'}
                       </span>
-                      <span className="text-[11px] text-[#e2e8f0]">
+                      <span className="text-[13px] text-[#e2e8f0]">
                         {c.description}
                       </span>
                     </div>

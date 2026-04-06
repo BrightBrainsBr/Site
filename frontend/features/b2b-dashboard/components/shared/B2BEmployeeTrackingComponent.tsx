@@ -46,7 +46,7 @@ export function B2BEmployeeTrackingComponent({
   return (
     <div className="mx-auto max-w-4xl space-y-6 py-6">
       <div className="text-center">
-        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[rgba(245,158,11,0.15)] px-4 py-1.5 text-[13px] font-medium text-[#FBBF24]">
+        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[rgba(245,158,11,0.15)] px-4 py-1.5 text-[15px] font-medium text-[#FBBF24]">
           <svg
             className="h-4 w-4"
             fill="none"
@@ -65,7 +65,7 @@ export function B2BEmployeeTrackingComponent({
         <h2 className="text-[20px] font-bold text-[#E2E8F0]">
           Coleta de Dados em Andamento
         </h2>
-        <p className="mt-1 text-[13px] text-[#64748B]">
+        <p className="mt-1 text-[15px] text-[#64748B]">
           O dashboard será liberado quando pelo menos 30% dos colaboradores
           completarem a avaliação.
         </p>
@@ -75,10 +75,10 @@ export function B2BEmployeeTrackingComponent({
       <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
         <div className="mb-3 flex items-end justify-between">
           <div>
-            <p className="text-[13px] font-semibold text-[#E2E8F0]">
+            <p className="text-[15px] font-semibold text-[#E2E8F0]">
               Progresso Geral
             </p>
-            <p className="text-[12px] text-[#64748B]">
+            <p className="text-[14px] text-[#64748B]">
               {completed} de {total} funcionários completaram ({completionPct}%)
             </p>
           </div>
@@ -98,7 +98,7 @@ export function B2BEmployeeTrackingComponent({
             }}
           />
         </div>
-        <div className="mt-1.5 flex justify-between text-[10px] text-[#64748B]">
+        <div className="mt-1.5 flex justify-between text-[12px] text-[#64748B]">
           <span>0%</span>
           <span className="font-medium text-[#F59E0B]">30% mínimo</span>
           <span>100%</span>
@@ -108,7 +108,7 @@ export function B2BEmployeeTrackingComponent({
       {/* Per-department progress */}
       {byDepartment.length > 0 && (
         <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
-          <h3 className="mb-3 text-[13px] font-semibold text-[#E2E8F0]">
+          <h3 className="mb-3 text-[15px] font-semibold text-[#E2E8F0]">
             Progresso por Departamento
           </h3>
           <div className="space-y-2.5">
@@ -119,7 +119,7 @@ export function B2BEmployeeTrackingComponent({
                   : 0
               return (
                 <div key={dept.name}>
-                  <div className="mb-1 flex items-center justify-between text-[12px]">
+                  <div className="mb-1 flex items-center justify-between text-[14px]">
                     <span className="text-[#94A3B8]">{dept.name}</span>
                     <span className="text-[#64748B]">
                       {dept.completed}/{dept.total} ({pct}%)
@@ -141,20 +141,20 @@ export function B2BEmployeeTrackingComponent({
       {/* Employee table */}
       <div className="overflow-x-auto rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33]">
         <div className="px-5 pt-4">
-          <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
+          <h3 className="text-[15px] font-semibold text-[#E2E8F0]">
             Colaboradores
           </h3>
         </div>
-        <table className="mt-2 w-full min-w-[500px] border-collapse text-[12px]">
+        <table className="mt-2 w-full min-w-[500px] border-collapse text-[14px]">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.08)]">
-              <th className="px-5 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-5 py-2 text-left text-[12px] font-medium uppercase tracking-wider text-[#64748B]">
                 E-mail
               </th>
-              <th className="px-5 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-5 py-2 text-left text-[12px] font-medium uppercase tracking-wider text-[#64748B]">
                 Departamento
               </th>
-              <th className="px-5 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+              <th className="px-5 py-2 text-left text-[12px] font-medium uppercase tracking-wider text-[#64748B]">
                 Status
               </th>
             </tr>
@@ -167,7 +167,7 @@ export function B2BEmployeeTrackingComponent({
                   key={i}
                   className="border-b border-[rgba(255,255,255,0.04)] last:border-0"
                 >
-                  <td className="px-5 py-2.5 font-mono text-[12px] text-[#94A3B8]">
+                  <td className="px-5 py-2.5 font-mono text-[14px] text-[#94A3B8]">
                     {maskEmail(emp.email)}
                   </td>
                   <td className="px-5 py-2.5 text-[#94A3B8]">
@@ -175,7 +175,7 @@ export function B2BEmployeeTrackingComponent({
                   </td>
                   <td className="px-5 py-2.5">
                     <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                      className="rounded-full px-2 py-0.5 text-[12px] font-semibold"
                       style={{ backgroundColor: cfg.bg, color: cfg.text }}
                     >
                       {cfg.label}
@@ -187,7 +187,7 @@ export function B2BEmployeeTrackingComponent({
           </tbody>
         </table>
         {employees.length === 0 && (
-          <p className="py-8 text-center text-[13px] text-[#64748B]">
+          <p className="py-8 text-center text-[15px] text-[#64748B]">
             Nenhum colaborador cadastrado.
           </p>
         )}
@@ -197,7 +197,7 @@ export function B2BEmployeeTrackingComponent({
       <div className="flex justify-center">
         <button
           disabled
-          className="cursor-not-allowed rounded-lg bg-[rgba(255,255,255,0.06)] px-5 py-2.5 text-[13px] font-medium text-[#64748B]"
+          className="cursor-not-allowed rounded-lg bg-[rgba(255,255,255,0.06)] px-5 py-2.5 text-[15px] font-medium text-[#64748B]"
           title="Funcionalidade em breve"
         >
           Enviar lembrete (em breve)

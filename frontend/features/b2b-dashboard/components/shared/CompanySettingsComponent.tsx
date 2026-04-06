@@ -110,7 +110,7 @@ export function CompanySettingsComponent({
     <div className="mx-auto max-w-4xl space-y-5">
       <div className="flex items-center gap-2">
         <Settings className="h-5 w-5 text-[#14B8A6]" />
-        <h2 className="text-[16px] font-semibold text-[#E2E8F0]">
+        <h2 className="text-[18px] font-semibold text-[#E2E8F0]">
           Configurações {data?.company_name ? `— ${data.company_name}` : ''}
         </h2>
       </div>
@@ -139,7 +139,7 @@ export function CompanySettingsComponent({
                 setSubTab('admins')
                 setShowInvite(false)
               }}
-              className={`relative flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-[13px] font-medium transition-colors ${
+              className={`relative flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-[15px] font-medium transition-colors ${
                 subTab === 'admins'
                   ? 'bg-[#0E1E33] text-[#14B8A6] after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-[1px] after:bg-[#0E1E33]'
                   : 'text-[#64748B] hover:bg-[rgba(255,255,255,0.03)] hover:text-[#E2E8F0]'
@@ -149,7 +149,7 @@ export function CompanySettingsComponent({
               Administradores
               {(data?.users?.length ?? 0) > 0 && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] ${
+                  className={`rounded-full px-2 py-0.5 text-[12px] ${
                     subTab === 'admins'
                       ? 'bg-[#14B8A6]/15 text-[#14B8A6]'
                       : 'bg-[#132540] text-[#94A3B8]'
@@ -164,7 +164,7 @@ export function CompanySettingsComponent({
                 setSubTab('collaborators')
                 setShowInvite(false)
               }}
-              className={`relative flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-[13px] font-medium transition-colors ${
+              className={`relative flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-[15px] font-medium transition-colors ${
                 subTab === 'collaborators'
                   ? 'bg-[#0E1E33] text-[#14B8A6] after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-[1px] after:bg-[#0E1E33]'
                   : 'text-[#64748B] hover:bg-[rgba(255,255,255,0.03)] hover:text-[#E2E8F0]'
@@ -176,7 +176,7 @@ export function CompanySettingsComponent({
                 (data?.collaborators?.pending_invites?.length ?? 0) >
                 0 && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] ${
+                  className={`rounded-full px-2 py-0.5 text-[12px] ${
                     subTab === 'collaborators'
                       ? 'bg-[#14B8A6]/15 text-[#14B8A6]'
                       : 'bg-[#132540] text-[#94A3B8]'
@@ -191,7 +191,7 @@ export function CompanySettingsComponent({
 
           <button
             onClick={() => setShowInvite((v) => !v)}
-            className={`mb-1 mr-3 flex shrink-0 items-center gap-1.5 self-end rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors sm:mb-0 sm:self-auto ${
+            className={`mb-1 mr-3 flex shrink-0 items-center gap-1.5 self-end rounded-lg px-3 py-1.5 text-[14px] font-medium transition-colors sm:mb-0 sm:self-auto ${
               showInvite
                 ? 'bg-[#14B8A6]/15 text-[#14B8A6]'
                 : 'text-[#94A3B8] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#E2E8F0]'
@@ -240,50 +240,46 @@ export function CompanySettingsComponent({
         </div>
       </div>
 
-      {/* NR-1 Section */}
-      {mode === 'b2b' && (
-        <>
-          <div className="flex items-center gap-3 pt-2">
-            <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-[#14B8A6]" />
-              <span className="text-[13px] font-semibold text-[#E2E8F0]">
-                Dados NR-1 da Empresa
-              </span>
-            </div>
-            <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
-          </div>
-          <B2BNR1FieldsComponent
-            companyId={companyId}
-            companyData={data?.nr1 ?? {
-              nr1_process_descriptions: null,
-              nr1_activities: null,
-              nr1_preventive_measures: null,
-              sst_responsible_name: null,
-              sst_responsible_role: null,
-              sst_signature_url: null,
-              cnae: null,
-              risk_grade: null,
-              emergency_sop_urls: null,
-            }}
-            onSave={async (nr1Data) => {
-              const res = await fetch(`${apiBase}/${companyId}/settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  action: 'update_nr1_fields',
-                  ...nr1Data,
-                }),
-              })
-              if (!res.ok) {
-                const err = await res.json().catch(() => ({}))
-                throw new Error((err as { error?: string }).error || 'Failed to save')
-              }
-              await fetchSettings()
-            }}
-          />
-        </>
-      )}
+      {/* NR-1 Section — shown for all modes (b2b and portal admins both need this) */}
+      <div className="flex items-center gap-3 pt-2">
+        <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-[#14B8A6]" />
+          <span className="text-[15px] font-semibold text-[#E2E8F0]">
+            Dados NR-1 da Empresa
+          </span>
+        </div>
+        <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
+      </div>
+      <B2BNR1FieldsComponent
+        companyId={companyId}
+        companyData={data?.nr1 ?? {
+          nr1_process_descriptions: null,
+          nr1_activities: null,
+          nr1_preventive_measures: null,
+          sst_responsible_name: null,
+          sst_responsible_role: null,
+          sst_signature_url: null,
+          cnae: null,
+          risk_grade: null,
+          emergency_sop_urls: null,
+        }}
+        onSave={async (nr1Data) => {
+          const res = await fetch(`${apiBase}/${companyId}/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'update_nr1_fields',
+              ...nr1Data,
+            }),
+          })
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            throw new Error((err as { error?: string }).error || 'Failed to save')
+          }
+          await fetchSettings()
+        }}
+      />
     </div>
   )
 }
@@ -341,16 +337,16 @@ function AllowedDomainsSection({
     <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
       <div className="mb-1 flex items-center gap-2">
         <Mail className="h-4 w-4 text-[#14B8A6]" />
-        <h3 className="text-[13px] font-semibold text-[#E2E8F0]">
+        <h3 className="text-[15px] font-semibold text-[#E2E8F0]">
           Domínios de Email Permitidos
         </h3>
       </div>
-      <p className="mb-1.5 text-[11px] text-[#64748B]">
+      <p className="mb-1.5 text-[13px] text-[#64748B]">
         Funcionários com e-mail destes domínios podem se cadastrar como{' '}
         <span className="font-semibold text-[#94A3B8]">colaboradores</span>{' '}
         automaticamente para realizar a avaliação.
       </p>
-      <p className="mb-4 text-[10px] text-[#4a6580]">
+      <p className="mb-4 text-[12px] text-[#4a6580]">
         Para conceder acesso administrativo ao dashboard, utilize o convite de
         administrador na seção abaixo.
       </p>
@@ -359,7 +355,7 @@ function AllowedDomainsSection({
         {localDomains.map((d) => (
           <span
             key={d}
-            className="flex items-center gap-1.5 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#132540] px-3 py-1 text-[12px] text-[#E2E8F0]"
+            className="flex items-center gap-1.5 rounded-full border border-[rgba(255,255,255,0.1)] bg-[#132540] px-3 py-1 text-[14px] text-[#E2E8F0]"
           >
             @{d}
             <button
@@ -372,7 +368,7 @@ function AllowedDomainsSection({
           </span>
         ))}
         {localDomains.length === 0 && (
-          <span className="text-[11px] text-[#64748B]">
+          <span className="text-[13px] text-[#64748B]">
             Nenhum domínio cadastrado
           </span>
         )}
@@ -384,12 +380,12 @@ function AllowedDomainsSection({
           onChange={(e) => setNewDomain(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && add()}
           placeholder="empresa.com.br"
-          className="w-56 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+          className="w-56 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
         />
         <button
           onClick={add}
           disabled={saving || !newDomain.trim()}
-          className="rounded-lg bg-[#0D9488] px-4 py-2 text-[12px] font-semibold text-white disabled:opacity-40"
+          className="rounded-lg bg-[#0D9488] px-4 py-2 text-[14px] font-semibold text-white disabled:opacity-40"
         >
           {saving ? '...' : 'Adicionar'}
         </button>
@@ -430,23 +426,23 @@ function AdminUsersTable({
   return (
     <div>
       {users.length === 0 ? (
-        <p className="py-8 text-center text-[12px] text-[#64748B]">
+        <p className="py-8 text-center text-[14px] text-[#64748B]">
           Nenhum administrador vinculado.
         </p>
       ) : (
-        <table className="w-full text-[12px]">
+        <table className="w-full text-[14px]">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.08)]">
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+              <th className="px-3 py-2 text-left text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Email
               </th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+              <th className="px-3 py-2 text-left text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Papel
               </th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+              <th className="px-3 py-2 text-left text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Desde
               </th>
-              <th className="px-3 py-2 text-right text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]" />
+              <th className="px-3 py-2 text-right text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]" />
             </tr>
           </thead>
           <tbody>
@@ -466,7 +462,7 @@ function AdminUsersTable({
                   <button
                     onClick={() => remove(u.user_id)}
                     disabled={removing === u.user_id}
-                    className="inline-flex items-center gap-1 text-[11px] text-[#F87171] transition-colors hover:text-[#EF4444] disabled:opacity-40"
+                    className="inline-flex items-center gap-1 text-[13px] text-[#F87171] transition-colors hover:text-[#EF4444] disabled:opacity-40"
                   >
                     <Trash2 className="h-3 w-3" />
                     {removing === u.user_id ? '...' : 'Remover'}
@@ -638,7 +634,7 @@ function CollaboratorsSection({
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-[#132540] px-2 py-0.5 text-[10px] text-[#94A3B8]">
+          <span className="rounded-full bg-[#132540] px-2 py-0.5 text-[12px] text-[#94A3B8]">
             {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -648,37 +644,37 @@ function CollaboratorsSection({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome, email ou departamento..."
-            className="w-72 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] py-2 pl-8 pr-3 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+            className="w-72 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] py-2 pl-8 pr-3 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
           />
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <p className="py-8 text-center text-[12px] text-[#64748B]">
+        <p className="py-8 text-center text-[14px] text-[#64748B]">
           {search
             ? 'Nenhum colaborador encontrado.'
             : 'Nenhum colaborador registrado.'}
         </p>
       ) : (
-        <table className="w-full text-[12px]">
+        <table className="w-full text-[14px]">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.08)]">
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+              <th className="px-3 py-2 text-left text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Nome
               </th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+              <th className="px-3 py-2 text-left text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Email
               </th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+              <th className="px-3 py-2 text-left text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Departamento
               </th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+              <th className="px-3 py-2 text-left text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Status
               </th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
+              <th className="px-3 py-2 text-left text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]">
                 Data
               </th>
-              <th className="px-3 py-2 text-right text-[10px] font-medium uppercase tracking-[0.4px] text-[#64748B]" />
+              <th className="px-3 py-2 text-right text-[12px] font-medium uppercase tracking-[0.4px] text-[#64748B]" />
             </tr>
           </thead>
           <tbody>
@@ -707,7 +703,7 @@ function CollaboratorsSection({
                   </td>
                   <td className="px-3 py-2.5">
                     <span
-                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium"
                       style={{
                         background: `${st.color}15`,
                         color: st.color,
@@ -731,7 +727,7 @@ function CollaboratorsSection({
                           onClick={() => void resendInvite(c.email!)}
                           disabled={resending === c.email}
                           title="Reenviar convite"
-                          className="inline-flex items-center gap-1 text-[11px] text-[#14B8A6] transition-colors hover:text-[#0D9488] disabled:opacity-40"
+                          className="inline-flex items-center gap-1 text-[13px] text-[#14B8A6] transition-colors hover:text-[#0D9488] disabled:opacity-40"
                         >
                           <RefreshCw className="h-3 w-3" />
                           {resending === c.email ? '...' : 'Reenviar'}
@@ -741,7 +737,7 @@ function CollaboratorsSection({
                             onClick={() => void revokeInvite(inviteId)}
                             disabled={revoking === inviteId}
                             title="Revogar convite"
-                            className="inline-flex items-center gap-1 text-[11px] text-[#F87171] transition-colors hover:text-[#EF4444] disabled:opacity-40"
+                            className="inline-flex items-center gap-1 text-[13px] text-[#F87171] transition-colors hover:text-[#EF4444] disabled:opacity-40"
                           >
                             <XCircle className="h-3 w-3" />
                             {revoking === inviteId ? '...' : 'Revogar'}
@@ -775,7 +771,7 @@ function StatCard({
       style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="text-[20px] font-bold text-[#E2E8F0]">{value}</div>
-      <div className="text-[11px] text-[#64748B]">{label}</div>
+      <div className="text-[13px] text-[#64748B]">{label}</div>
     </div>
   )
 }
