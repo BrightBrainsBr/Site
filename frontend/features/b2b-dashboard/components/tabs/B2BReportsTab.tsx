@@ -89,10 +89,10 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
       {/* Section header */}
       <div className="mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-[18px]">📄</span>
-          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Relatórios</h2>
+          <span className="text-[20px]">📄</span>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">Relatórios</h2>
         </div>
-        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Geração de relatórios com filtros e download</p>
+        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">Geração de relatórios com filtros e download</p>
       </div>
 
       {/* Filter bar */}
@@ -126,10 +126,10 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
               key={card.type}
               className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4"
             >
-              <h3 className="text-[14px] font-semibold text-[#e2e8f0]">
+              <h3 className="text-[15px] font-semibold text-[#e2e8f0]">
                 {card.title}
               </h3>
-              <p className="mt-1 text-[11px] text-[#64748b]">
+              <p className="mt-1 text-[12px] text-[#64748b]">
                 {card.description}
               </p>
               <div className="mt-4 flex items-center gap-2">
@@ -165,10 +165,10 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
         <div className="rounded-[14px] border border-[rgba(197,225,85,0.3)] bg-[#0c1425] p-4 sm:col-span-2 lg:col-span-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-[14px] font-semibold text-[#c5e155]">
+              <h3 className="text-[15px] font-semibold text-[#c5e155]">
                 Inventário de Riscos NR-1
               </h3>
-              <p className="mt-1 text-[11px] text-[#64748b]">
+              <p className="mt-1 text-[12px] text-[#64748b]">
                 Documento oficial de inventário de riscos psicossociais
                 conforme NR-1. Gera PDF completo com matriz de risco, plano de
                 ação e recomendações.

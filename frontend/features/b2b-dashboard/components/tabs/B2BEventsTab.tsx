@@ -171,10 +171,10 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
       {/* Section header */}
       <div className="mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-[18px]">🚨</span>
-          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Eventos & Análise de Nexo Causal</h2>
+          <span className="text-[20px]">🚨</span>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">Eventos & Análise de Nexo Causal</h2>
         </div>
-        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Ref. NR-1: 1.5.5.5 — Registro de materialização de riscos e vinculação CID-10</p>
+        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">Ref. NR-1: 1.5.5.5 — Registro de materialização de riscos e vinculação CID-10</p>
       </div>
 
       {/* KPI cards */}
@@ -200,11 +200,11 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             key={kpi.label}
             className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-3"
           >
-            <span className="text-[11px] font-medium text-[#94a3b8]">
+            <span className="text-[12px] font-medium text-[#94a3b8]">
               {kpi.label}
             </span>
             <p
-              className="mt-1 text-[22px] font-bold"
+              className="mt-1 text-[26px] font-bold"
               style={{ color: kpi.color }}
             >
               {kpi.value}
@@ -263,7 +263,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
       {/* PDF extraction preview */}
       {extractedEvents && (
         <div className="rounded-[14px] border border-[rgba(96,165,250,0.3)] bg-[#0c1425] p-4">
-          <h3 className="mb-2 text-[13px] font-semibold text-[#60A5FA]">
+          <h3 className="mb-2 text-[15px] font-semibold text-[#60A5FA]">
             Eventos extraídos do PDF — Revise antes de confirmar
           </h3>
           <div className="mb-3 max-h-60 space-y-1 overflow-y-auto">
@@ -301,7 +301,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
       {/* Create / Edit form */}
       {showForm && (
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
-          <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+          <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
             {editingId ? 'Editar Evento' : 'Novo Evento'}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -436,7 +436,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
 
       {/* Event list */}
       <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+        <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
           Registro de Eventos
         </h3>
         {events.length === 0 ? (
@@ -556,7 +556,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
       {/* Correlações Identificadas */}
       <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
         <div className="mb-3 flex items-center gap-2">
-          <h3 className="text-[13px] font-semibold text-[#e2e8f0]">
+          <h3 className="text-[15px] font-semibold text-[#e2e8f0]">
             Correlações Identificadas
           </h3>
           <div className="group relative">

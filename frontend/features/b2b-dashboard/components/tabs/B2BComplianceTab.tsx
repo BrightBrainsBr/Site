@@ -53,10 +53,10 @@ export function B2BComplianceTab({
       {/* Section header */}
       <div className="mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-[18px]">✅</span>
-          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Compliance</h2>
+          <span className="text-[20px]">✅</span>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">Compliance</h2>
         </div>
-        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Portaria MTE 1.419/2024 — Status de conformidade por requisito</p>
+        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">Portaria MTE 1.419/2024 — Status de conformidade por requisito</p>
       </div>
 
       {/* Score header */}
@@ -66,16 +66,16 @@ export function B2BComplianceTab({
       >
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
           <div className="text-center sm:text-left">
-            <p className="text-[11px] uppercase tracking-wider text-[#64748b]">
+            <p className="text-[12px] uppercase tracking-wider text-[#64748b]">
               Conformidade NR-1
             </p>
-            <p className="mt-1 font-mono text-[36px] font-bold leading-none text-[#c5e155]">
+            <p className="mt-1 font-mono text-[40px] font-bold leading-none text-[#c5e155]">
               {conformeCount}
-              <span className="text-[18px] font-normal text-[#64748b]">
+              <span className="text-[20px] font-normal text-[#64748b]">
                 /{totalItems}
               </span>
             </p>
-            <p className="mt-0.5 text-[13px] text-[#94a3b8]">
+            <p className="mt-0.5 text-[14px] text-[#94a3b8]">
               itens conformes
             </p>
           </div>
@@ -101,7 +101,7 @@ export function B2BComplianceTab({
         className="rounded-[14px] border border-[rgba(255,255,255,0.06)] p-4"
         style={{ background: 'rgba(255,255,255,0.03)' }}
       >
-        <h3 className="mb-4 text-[13px] font-semibold text-[#e2e8f0]">
+        <h3 className="mb-4 text-[15px] font-semibold text-[#e2e8f0]">
           Checklist de Conformidade
         </h3>
         {items.length > 0 ? (
@@ -124,7 +124,7 @@ export function B2BComplianceTab({
                       <span className="shrink-0 rounded bg-[rgba(255,255,255,0.06)] px-1.5 py-0.5 font-mono text-[10px] text-[#c5e155]">
                         {item.ref}
                       </span>
-                      <p className="text-[13px] text-[#e2e8f0]">
+                      <p className="text-[14px] text-[#e2e8f0]">
                         {item.description}
                       </p>
                     </div>

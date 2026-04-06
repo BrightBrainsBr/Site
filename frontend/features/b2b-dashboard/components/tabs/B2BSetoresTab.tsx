@@ -34,18 +34,39 @@ const RISK_PT_MAP: Record<string, RiskLevel> = {
   critico: 'critical',
 }
 
-function scoreColor(value: number | null): string {
+function normalizedScoreColor(value: number | null): string {
   if (value === null) return '#64748b'
-  const normalized = value
-  if (normalized < 40) return '#22c55e'
-  if (normalized < 60) return '#eab308'
-  if (normalized < 80) return '#f97316'
+  if (value >= 70) return '#22c55e'
+  if (value >= 60) return '#eab308'
+  if (value >= 45) return '#f97316'
   return '#ef4444'
 }
 
-function dominantRisk(
-  rb: Record<RiskLevel, number>
-): RiskLevel {
+function srq20Color(value: number | null): string {
+  if (value === null) return '#64748b'
+  if (value >= 12) return '#ef4444'
+  if (value >= 8) return '#f97316'
+  if (value >= 5) return '#eab308'
+  return '#22c55e'
+}
+
+function aepColor(value: number | null): string {
+  if (value === null) return '#64748b'
+  if (value >= 29) return '#ef4444'
+  if (value >= 20) return '#f97316'
+  if (value >= 12) return '#eab308'
+  return '#22c55e'
+}
+
+function phqGadColor(value: number | null): string {
+  if (value === null) return '#64748b'
+  if (value >= 15) return '#ef4444'
+  if (value >= 10) return '#f97316'
+  if (value >= 5) return '#eab308'
+  return '#22c55e'
+}
+
+function dominantRisk(rb: Record<RiskLevel, number>): RiskLevel {
   if (rb.critical > 0) return 'critical'
   if (rb.elevated > 0) return 'elevated'
   if (rb.moderate > 0) return 'moderate'
@@ -69,6 +90,23 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
   }, [])
 
   const departments = data?.departments ?? []
+
+  const hasPhq9 = useMemo(
+    () => departments.some((d) => d.phq9Avg != null),
+    [departments]
+  )
+  const hasGad7 = useMemo(
+    () => departments.some((d) => d.gad7Avg != null),
+    [departments]
+  )
+  const hasSrq20 = useMemo(
+    () => departments.some((d) => d.srq20Avg != null),
+    [departments]
+  )
+  const hasAep = useMemo(
+    () => departments.some((d) => d.aepAvg != null),
+    [departments]
+  )
 
   const availableDepartments = useMemo(
     () => departments.map((d) => d.name),
@@ -152,18 +190,24 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
       <div className="space-y-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[18px]">🏢</span>
-            <h2 className="text-[18px] font-bold text-[#e2e8f0]">Mapa de Riscos por Setor</h2>
+            <span className="text-[20px]">🏢</span>
+            <h2 className="text-[20px] font-bold text-[#e2e8f0]">
+              Mapa de Riscos por Setor
+            </h2>
           </div>
-          <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Ref. NR-1: 1.5.7.3.2 — Inventário consolidado por grupo de exposição</p>
+          <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">
+            Ref. NR-1: 1.5.7.3.2 — Inventário consolidado por grupo de
+            exposição
+          </p>
         </div>
         <div className="flex flex-col items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-6 py-16 text-center">
           <span className="text-[32px]">🏢</span>
-          <h3 className="mt-3 text-[14px] font-semibold text-[#e2e8f0]">
+          <h3 className="mt-3 text-[16px] font-semibold text-[#e2e8f0]">
             Nenhum setor com avaliações neste ciclo
           </h3>
-          <p className="mt-2 max-w-md text-[13px] text-[#94a3b8]">
-            O mapa de riscos por setor é gerado automaticamente a partir das avaliações dos colaboradores. Mínimo de 10 avaliações recomendado.
+          <p className="mt-2 max-w-md text-[14px] text-[#94a3b8]">
+            O mapa de riscos por setor é gerado automaticamente a partir das
+            avaliações dos colaboradores. Mínimo de 10 avaliações recomendado.
           </p>
         </div>
       </div>
@@ -173,7 +217,7 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
   const sortButton = (field: SortField, label: string) => (
     <button
       onClick={() => handleSort(field)}
-      className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+      className={`rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
         sortField === field
           ? 'border border-[rgba(197,225,85,0.3)] bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
           : 'border border-[rgba(255,255,255,0.06)] bg-transparent text-[#94a3b8] hover:bg-[rgba(255,255,255,0.06)]'
@@ -194,53 +238,65 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
 
       <div>
         <div className="flex items-center gap-2">
-          <span className="text-[18px]">🏢</span>
-          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Mapa de Riscos por Setor</h2>
+          <span className="text-[20px]">🏢</span>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">
+            Mapa de Riscos por Setor
+          </h2>
         </div>
-        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Ref. NR-1: 1.5.7.3.2 — Inventário consolidado por grupo de exposição</p>
+        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">
+          Ref. NR-1: 1.5.7.3.2 — Inventário consolidado por grupo de exposição
+        </p>
       </div>
 
       <div className="overflow-x-auto rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)]">
         <div className="flex flex-wrap items-center gap-2 px-4 py-3">
-          <span className="text-[11px] font-medium text-[#64748b]">
+          <span className="text-[12px] font-medium text-[#64748b]">
             Ordenar por:
           </span>
           {sortButton('score', 'Score Global')}
-          {sortButton('phq9', 'PHQ-9')}
-          {sortButton('gad7', 'GAD-7')}
-          {sortButton('srq20', 'SRQ-20')}
-          {sortButton('aep', 'AEP')}
+          {hasPhq9 && sortButton('phq9', 'PHQ-9')}
+          {hasGad7 && sortButton('gad7', 'GAD-7')}
+          {hasSrq20 && sortButton('srq20', 'SRQ-20')}
+          {hasAep && sortButton('aep', 'AEP')}
           {sortButton('actions', 'Ações Pendentes')}
         </div>
 
-        <table className="w-full min-w-[900px] border-collapse text-[12px]">
+        <table className="w-full min-w-[700px] border-collapse text-[13px]">
           <thead>
             <tr className="border-b border-[rgba(255,255,255,0.06)] border-t border-t-[rgba(255,255,255,0.04)]">
-              <th className="px-4 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
                 Setor
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              <th className="px-3 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
                 Colabs
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              <th className="px-3 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
                 Risco
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              <th className="px-3 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
                 Score
               </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
-                PHQ-9
-              </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
-                GAD-7
-              </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
-                SRQ-20
-              </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
-                AEP/56
-              </th>
-              <th className="px-2 py-2 text-center text-[10px] font-medium uppercase tracking-wider text-[#64748b]">
+              {hasPhq9 && (
+                <th className="px-3 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
+                  PHQ-9
+                </th>
+              )}
+              {hasGad7 && (
+                <th className="px-3 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
+                  GAD-7
+                </th>
+              )}
+              {hasSrq20 && (
+                <th className="px-3 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
+                  SRQ-20
+                </th>
+              )}
+              {hasAep && (
+                <th className="px-3 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
+                  AEP/56
+                </th>
+              )}
+              <th className="px-3 py-2.5 text-center text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
                 Ações
               </th>
             </tr>
@@ -254,15 +310,15 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
                   key={d.name}
                   className="border-b border-[rgba(255,255,255,0.04)] transition-colors hover:bg-[rgba(255,255,255,0.02)] last:border-0"
                 >
-                  <td className="px-4 py-2.5 text-[12px] font-medium text-[#e2e8f0]">
+                  <td className="px-4 py-3 text-[14px] font-medium text-[#e2e8f0]">
                     {d.name}
                   </td>
-                  <td className="px-2 py-2.5 text-center text-[#94a3b8]">
+                  <td className="px-3 py-3 text-center text-[13px] text-[#94a3b8]">
                     {d.n}
                   </td>
-                  <td className="px-2 py-2.5 text-center">
+                  <td className="px-3 py-3 text-center">
                     <span
-                      className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                      className="inline-block rounded-md px-2.5 py-1 text-[11px] font-semibold"
                       style={{
                         backgroundColor: `${riskCfg.color}20`,
                         color: riskCfg.color,
@@ -271,44 +327,52 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
                       {riskCfg.label}
                     </span>
                   </td>
-                  <td className="px-2 py-2.5 text-center">
+                  <td className="px-3 py-3 text-center">
                     <span
-                      className="inline-flex h-[22px] w-[42px] items-center justify-center rounded-md text-[11px] font-bold"
+                      className="inline-flex h-[26px] w-[46px] items-center justify-center rounded-md text-[13px] font-bold"
                       style={{
-                        backgroundColor: `${scoreColor(d.avgScore)}15`,
-                        color: scoreColor(d.avgScore),
+                        backgroundColor: `${normalizedScoreColor(d.avgScore)}15`,
+                        color: normalizedScoreColor(d.avgScore),
                       }}
                     >
                       {d.avgScore.toFixed(1)}
                     </span>
                   </td>
-                  <td className="px-2 py-2.5 text-center">
-                    <span style={{ color: scoreColor(d.phq9Avg) }}>
-                      {d.phq9Avg?.toFixed(1) ?? '–'}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2.5 text-center">
-                    <span style={{ color: scoreColor(d.gad7Avg) }}>
-                      {d.gad7Avg?.toFixed(1) ?? '–'}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2.5 text-center">
-                    <span style={{ color: scoreColor(d.srq20Avg) }}>
-                      {d.srq20Avg?.toFixed(1) ?? '–'}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2.5 text-center">
-                    <span style={{ color: scoreColor(d.aepAvg) }}>
-                      {d.aepAvg?.toFixed(1) ?? '–'}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2.5 text-center">
+                  {hasPhq9 && (
+                    <td className="px-3 py-3 text-center text-[13px]">
+                      <span style={{ color: phqGadColor(d.phq9Avg) }}>
+                        {d.phq9Avg?.toFixed(1) ?? '–'}
+                      </span>
+                    </td>
+                  )}
+                  {hasGad7 && (
+                    <td className="px-3 py-3 text-center text-[13px]">
+                      <span style={{ color: phqGadColor(d.gad7Avg) }}>
+                        {d.gad7Avg?.toFixed(1) ?? '–'}
+                      </span>
+                    </td>
+                  )}
+                  {hasSrq20 && (
+                    <td className="px-3 py-3 text-center text-[13px]">
+                      <span style={{ color: srq20Color(d.srq20Avg) }}>
+                        {d.srq20Avg?.toFixed(1) ?? '–'}
+                      </span>
+                    </td>
+                  )}
+                  {hasAep && (
+                    <td className="px-3 py-3 text-center text-[13px]">
+                      <span style={{ color: aepColor(d.aepAvg) }}>
+                        {d.aepAvg?.toFixed(1) ?? '–'}
+                      </span>
+                    </td>
+                  )}
+                  <td className="px-3 py-3 text-center">
                     {d.pendingActions > 0 ? (
-                      <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[rgba(245,158,11,0.15)] px-1.5 text-[10px] font-bold text-[#FBBF24]">
+                      <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-md bg-[rgba(245,158,11,0.15)] px-2 text-[12px] font-bold text-[#FBBF24]">
                         {d.pendingActions}
                       </span>
                     ) : (
-                      <span className="text-[#64748b]">–</span>
+                      <span className="text-[13px] text-[#64748b]">–</span>
                     )}
                   </td>
                 </tr>
@@ -318,7 +382,7 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
         </table>
 
         {sortedDepts.length === 0 && (
-          <p className="py-12 text-center text-[13px] text-[#64748b]">
+          <p className="py-12 text-center text-[14px] text-[#64748b]">
             Nenhum setor encontrado com os filtros selecionados.
           </p>
         )}

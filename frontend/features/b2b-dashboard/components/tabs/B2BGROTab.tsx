@@ -54,10 +54,30 @@ const SCALE_DISPLAY: Record<string, { label: string; max: number }> = {
 }
 
 const SRQ_RANGES = [
-  { label: 'Negativo', range: '< 8', color: '#22c55e', key: 'negative' as const },
-  { label: 'Moderado', range: '8-11', color: '#eab308', key: 'moderate' as const },
-  { label: 'Elevado', range: '12-16', color: '#f97316', key: 'elevated' as const },
-  { label: 'Crítico', range: '17-20', color: '#ef4444', key: 'critical' as const },
+  {
+    label: 'Negativo',
+    range: '< 8',
+    color: '#22c55e',
+    key: 'negative' as const,
+  },
+  {
+    label: 'Moderado',
+    range: '8-11',
+    color: '#eab308',
+    key: 'moderate' as const,
+  },
+  {
+    label: 'Elevado',
+    range: '12-16',
+    color: '#f97316',
+    key: 'elevated' as const,
+  },
+  {
+    label: 'Crítico',
+    range: '17-20',
+    color: '#ef4444',
+    key: 'critical' as const,
+  },
 ]
 
 const MATRIX_COLORS = [
@@ -104,7 +124,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center text-[13px] text-[#64748b]">
+      <div className="flex h-64 items-center justify-center text-[14px] text-[#64748b]">
         Carregando dados GRO…
       </div>
     )
@@ -127,12 +147,12 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2">
-          <span className="text-[18px]">⚖️</span>
-          <h2 className="text-[18px] font-bold text-[#e2e8f0]">
+          <span className="text-[20px]">⚖️</span>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">
             GRO Psicossocial
           </h2>
         </div>
-        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">
+        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">
           Gerenciamento de Riscos Ocupacionais — Fatores Psicossociais e
           Ergonomia Cognitiva
         </p>
@@ -141,11 +161,13 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
       {noData ? (
         <div className="flex flex-col items-center justify-center rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] px-6 py-16 text-center">
           <span className="text-[32px]">⚖️</span>
-          <h3 className="mt-3 text-[14px] font-semibold text-[#e2e8f0]">
+          <h3 className="mt-3 text-[16px] font-semibold text-[#e2e8f0]">
             Nenhum dado GRO disponível
           </h3>
-          <p className="mt-2 max-w-md text-[13px] text-[#94a3b8]">
-            Os indicadores de GRO Psicossocial são gerados automaticamente a partir das avaliações dos colaboradores. Mínimo de 10 avaliações recomendado.
+          <p className="mt-2 max-w-md text-[14px] text-[#94a3b8]">
+            Os indicadores de GRO Psicossocial são gerados automaticamente a
+            partir das avaliações dos colaboradores. Mínimo de 10 avaliações
+            recomendado.
           </p>
         </div>
       ) : (
@@ -154,11 +176,11 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
           <div className="grid gap-3 lg:grid-cols-2">
             {/* Radar chart */}
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 Escalas Clínicas — Média Geral
               </h3>
               {hasScaleData ? (
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="100%" height={280}>
                   <RadarChart
                     data={radarData}
                     cx="50%"
@@ -168,10 +190,10 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                     <PolarGrid stroke="rgba(255,255,255,0.06)" />
                     <PolarAngleAxis
                       dataKey="scale"
-                      tick={{ fontSize: 11, fill: '#94a3b8' }}
+                      tick={{ fontSize: 12, fill: '#94a3b8' }}
                     />
                     <PolarRadiusAxis
-                      tick={{ fontSize: 9, fill: '#64748b' }}
+                      tick={{ fontSize: 10, fill: '#64748b' }}
                       axisLine={false}
                     />
                     <Radar
@@ -180,21 +202,21 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                       stroke="#c5e155"
                       fill="rgba(197,225,85,0.15)"
                       strokeWidth={2}
-                      dot={{ fill: '#c5e155', r: 3 }}
+                      dot={{ fill: '#c5e155', r: 4 }}
                     />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: '#111b2e',
                         border: '1px solid rgba(255,255,255,0.06)',
                         borderRadius: '8px',
-                        fontSize: '12px',
+                        fontSize: '13px',
                         color: '#e2e8f0',
                       }}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-[260px] items-center justify-center text-[12px] text-[#64748b]">
+                <div className="flex h-[280px] items-center justify-center text-[13px] text-[#64748b]">
                   Sem dados de escalas clínicas
                 </div>
               )}
@@ -202,11 +224,11 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
 
             {/* AEP Dimensions — horizontal bars */}
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 AEP — Dimensões (Média Empresa)
               </h3>
               {hasAepData ? (
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="100%" height={280}>
                   <BarChart
                     data={aepData}
                     layout="vertical"
@@ -215,15 +237,15 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                     <XAxis
                       type="number"
                       domain={[0, 12]}
-                      tick={{ fontSize: 10, fill: '#64748b' }}
+                      tick={{ fontSize: 11, fill: '#64748b' }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis
                       dataKey="dimension"
                       type="category"
-                      width={110}
-                      tick={{ fontSize: 11, fill: '#94a3b8' }}
+                      width={120}
+                      tick={{ fontSize: 12, fill: '#94a3b8' }}
                       axisLine={false}
                       tickLine={false}
                     />
@@ -232,11 +254,11 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                         backgroundColor: '#111b2e',
                         border: '1px solid rgba(255,255,255,0.06)',
                         borderRadius: '8px',
-                        fontSize: '12px',
+                        fontSize: '13px',
                         color: '#e2e8f0',
                       }}
                     />
-                    <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={28}>
+                    <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={30}>
                       {aepData.map((entry, i) => (
                         <Cell key={i} fill={entry.fill} />
                       ))}
@@ -244,7 +266,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-[260px] items-center justify-center text-[12px] text-[#64748b]">
+                <div className="flex h-[280px] items-center justify-center text-[13px] text-[#64748b]">
                   Sem dados AEP
                 </div>
               )}
@@ -254,7 +276,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
           {/* SRQ-20 Distribution */}
           {hasSrqData && (
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 SRQ-20 (OMS) — Distribuição de Rastreamento
               </h3>
               <div className="mb-3 grid grid-cols-2 gap-2.5 md:grid-cols-4">
@@ -268,18 +290,18 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                     }}
                   >
                     <div
-                      className="font-mono text-[22px] font-bold leading-none tracking-tight"
+                      className="font-mono text-[26px] font-bold leading-none tracking-tight"
                       style={{ color: r.color }}
                     >
                       {gro?.srq20Distribution[r.key] ?? 0}
                     </div>
-                    <div className="mt-1 text-[10px] text-[#94a3b8]">
+                    <div className="mt-1.5 text-[12px] text-[#94a3b8]">
                       SRQ {r.range} ({r.label})
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="rounded-lg bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[11px] text-[#64748b]">
+              <div className="rounded-lg bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[12px] text-[#64748b]">
                 📎 O SRQ-20 da OMS é o instrumento recomendado pelo Ministério
                 da Saúde para vigilância de transtornos mentais comuns em
                 ambiente ocupacional. Ponto de corte: ≥ 8 (Mari & Williams,
@@ -291,12 +313,12 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
           {/* Probability × Severity Matrix */}
           {hasMatrix && (
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 Matriz Probabilidade × Severidade — Consolidado
               </h3>
               <div
                 className="grid gap-0.5"
-                style={{ gridTemplateColumns: '80px repeat(4, 1fr)' }}
+                style={{ gridTemplateColumns: '90px repeat(4, 1fr)' }}
               >
                 {/* Headers */}
                 <div />
@@ -308,7 +330,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                 ].map((h) => (
                   <div
                     key={h}
-                    className="rounded p-2 text-center text-[10px] font-semibold text-[#94a3b8]"
+                    className="rounded p-2 text-center text-[11px] font-semibold text-[#94a3b8]"
                     style={{ background: 'rgba(255,255,255,0.03)' }}
                   >
                     {h}
@@ -320,19 +342,19 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   (rowLabel, rowIdx) => (
                     <div key={rowIdx} className="contents">
                       <div
-                        className="flex items-center text-[10px] font-semibold text-[#94a3b8]"
+                        className="flex items-center text-[11px] font-semibold text-[#94a3b8]"
                         style={{ padding: '8px' }}
                       >
                         {rowLabel}
                       </div>
                       {[0, 1, 2, 3].map((colIdx) => {
-                        const value =
-                          matrix[rowIdx]?.[colIdx] ?? 0
-                        const color = MATRIX_COLORS[rowIdx]?.[colIdx] ?? '#64748b'
+                        const value = matrix[rowIdx]?.[colIdx] ?? 0
+                        const color =
+                          MATRIX_COLORS[rowIdx]?.[colIdx] ?? '#64748b'
                         return (
                           <div
                             key={`cell-${rowIdx}-${colIdx}`}
-                            className="rounded p-2.5 text-center font-mono text-[14px] font-bold"
+                            className="rounded p-2.5 text-center font-mono text-[15px] font-bold"
                             style={{
                               background: `${color}20`,
                               color,
@@ -346,7 +368,7 @@ export function B2BGROTab({ companyId, cycleId }: B2BGROTabProps) {
                   )
                 )}
               </div>
-              <div className="mt-2 text-center text-[10px] text-[#64748b]">
+              <div className="mt-2 text-center text-[11px] text-[#64748b]">
                 Número de colaboradores por célula da matriz · Ref. NR-1:
                 1.5.4.4.2
               </div>

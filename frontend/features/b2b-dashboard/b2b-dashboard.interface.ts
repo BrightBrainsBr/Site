@@ -89,6 +89,11 @@ export interface B2BAlertData {
   riskLevel: string
   department: string | null
   domainScores?: Record<string, number>
+  srq20Score?: number
+  srq20Risk?: string
+  aepScore?: number
+  aepRisk?: string
+  reasons?: string[]
 }
 
 export interface B2BAlertsData {

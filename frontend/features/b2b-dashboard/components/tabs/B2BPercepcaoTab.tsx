@@ -77,12 +77,12 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2">
-          <span className="text-[18px]">💬</span>
-          <h2 className="text-[18px] font-bold text-[#e2e8f0]">
+          <span className="text-[20px]">💬</span>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">
             Percepção Organizacional
           </h2>
         </div>
-        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">
+        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">
           Fatores de risco identificados nas respostas abertas dos colaboradores
           — Ref. NR-1: 1.5.3.3 · Dados 100% agregados e anônimos
         </p>
@@ -113,44 +113,44 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
           <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-4 text-center">
               <div className="text-[22px]">💬</div>
-              <div className="mt-1 font-mono text-[28px] font-bold leading-none tracking-tight text-[#c5e155]">
+              <div className="mt-1 font-mono text-[32px] font-bold leading-none tracking-tight text-[#c5e155]">
                 {percepcao.total}
               </div>
-              <div className="mt-1 text-[11px] text-[#94a3b8]">
+              <div className="mt-1.5 text-[12px] text-[#94a3b8]">
                 Respostas Abertas
               </div>
             </div>
             <div className="rounded-[14px] border border-[rgba(239,68,68,0.15)] bg-[rgba(239,68,68,0.04)] p-4 text-center">
               <div className="text-[22px]">⚠️</div>
-              <div className="mt-1 font-mono text-[28px] font-bold leading-none tracking-tight text-[#ef4444]">
+              <div className="mt-1 font-mono text-[32px] font-bold leading-none tracking-tight text-[#ef4444]">
                 {percepcao.urgentes}
               </div>
-              <div className="mt-1 text-[11px] text-[#94a3b8]">
+              <div className="mt-1.5 text-[12px] text-[#94a3b8]">
                 Urgência Alta
               </div>
             </div>
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-4 text-center">
               <div className="text-[22px]">📍</div>
-              <div className="mt-1 truncate text-[16px] font-bold leading-none text-[#f97316]">
+              <div className="mt-1 truncate text-[18px] font-bold leading-none text-[#f97316]">
                 {percepcao.topSetor || '—'}
               </div>
-              <div className="mt-1 text-[11px] text-[#94a3b8]">
+              <div className="mt-1.5 text-[12px] text-[#94a3b8]">
                 Setor com Mais Sinais
               </div>
             </div>
             <div className="rounded-[14px] border border-[rgba(34,197,94,0.15)] bg-[rgba(34,197,94,0.04)] p-4 text-center">
               <div className="text-[22px]">🔒</div>
-              <div className="mt-1 font-mono text-[28px] font-bold leading-none tracking-tight text-[#22c55e]">
+              <div className="mt-1 font-mono text-[32px] font-bold leading-none tracking-tight text-[#22c55e]">
                 100%
               </div>
-              <div className="mt-1 text-[11px] text-[#94a3b8]">Anonimato</div>
+              <div className="mt-1.5 text-[12px] text-[#94a3b8]">Anonimato</div>
             </div>
           </div>
 
           {/* Donut + Legend */}
           <div className="grid gap-3 lg:grid-cols-2">
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 Fatores de Risco Mencionados
               </h3>
               {pieData.length === 0 ? (
@@ -193,7 +193,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
             </div>
 
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 Detalhamento
               </h3>
               <div className="space-y-2">
@@ -230,7 +230,7 @@ export function B2BPercepcaoTab({ companyId, cycleId }: B2BPercepcaoTabProps) {
           {/* Correlations */}
           {percepcao.correlations && percepcao.correlations.length > 0 && (
             <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-              <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+              <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
                 Correlação com Dados do Inventário
               </h3>
               <p className="mb-3 text-[11px] text-[#94a3b8]">

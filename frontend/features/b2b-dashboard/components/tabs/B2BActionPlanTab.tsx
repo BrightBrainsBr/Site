@@ -154,10 +154,10 @@ export function B2BActionPlanTab({
       {/* Section header */}
       <div className="mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-[18px]">🔄</span>
-          <h2 className="text-[18px] font-bold text-[#e2e8f0]">Plano de Ação (PDCA)</h2>
+          <span className="text-[20px]">🔄</span>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">Plano de Ação (PDCA)</h2>
         </div>
-        <p className="mt-0.5 pl-[26px] text-[12px] text-[#64748b]">Ref. NR-1: 1.5.5.2 — Medidas de prevenção com responsáveis, prazos e status</p>
+        <p className="mt-0.5 pl-[28px] text-[13px] text-[#64748b]">Ref. NR-1: 1.5.5.2 — Medidas de prevenção com responsáveis, prazos e status</p>
       </div>
 
       {/* Status counters */}
@@ -179,10 +179,10 @@ export function B2BActionPlanTab({
                 : 'border-[rgba(255,255,255,0.06)] bg-[#0c1425] hover:border-[rgba(255,255,255,0.12)]'
             }`}
           >
-            <span className="text-[11px] font-medium text-[#94a3b8]">
+            <span className="text-[12px] font-medium text-[#94a3b8]">
               {cfg.label}
             </span>
-            <p className="mt-1 text-[22px] font-bold" style={{ color: cfg.color }}>
+            <p className="mt-1 text-[26px] font-bold" style={{ color: cfg.color }}>
               {statusCounts[key] ?? 0}
             </p>
           </button>
@@ -212,7 +212,7 @@ export function B2BActionPlanTab({
       {/* Create / Edit form */}
       {showForm && (
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
-          <h3 className="mb-3 text-[13px] font-semibold text-[#e2e8f0]">
+          <h3 className="mb-3 text-[15px] font-semibold text-[#e2e8f0]">
             {editingId ? 'Editar Ação' : 'Nova Ação'}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -394,10 +394,10 @@ export function B2BActionPlanTab({
                   )}
 
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-medium text-[#e2e8f0]">
+                    <p className="text-[14px] font-medium text-[#e2e8f0]">
                       {plan.description}
                     </p>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#64748b]">
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-[#64748b]">
                       {plan.department && <span>{plan.department}</span>}
                       {plan.responsible && (
                         <span>Resp: {plan.responsible}</span>
