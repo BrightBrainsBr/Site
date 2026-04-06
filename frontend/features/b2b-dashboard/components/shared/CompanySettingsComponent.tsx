@@ -132,7 +132,7 @@ export function CompanySettingsComponent({
       <div className="overflow-hidden rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33]">
         {/* Tab header bar */}
         <div className="flex flex-col gap-2 border-b border-[rgba(255,255,255,0.08)] px-1 pt-1 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-0.5 overflow-x-auto">
+          <div className="flex gap-0.5">
             <button
               onClick={() => {
                 setSubTab('admins')

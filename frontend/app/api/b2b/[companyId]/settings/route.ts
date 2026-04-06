@@ -227,6 +227,27 @@ export async function POST(
             results.push({ email, ok: false, error: insertErr.message })
             continue
           }
+
+          // Send invite email — if user already exists, silently skip
+          const { error: authInviteErr } =
+            await sb.auth.admin.inviteUserByEmail(email, {
+              redirectTo,
+              data: {
+                needs_password_setup: true,
+                invite_role: 'collaborator',
+              },
+            })
+          if (
+            authInviteErr &&
+            !authInviteErr.message?.toLowerCase().includes('already') &&
+            !authInviteErr.message?.toLowerCase().includes('registered')
+          ) {
+            console.warn(
+              `[b2b/settings] invite email failed for ${email}:`,
+              authInviteErr.message
+            )
+          }
+
           results.push({ email, ok: true })
         }
       } catch (err) {
