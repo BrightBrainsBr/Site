@@ -134,11 +134,29 @@ const EVENT_TYPE_CONFIG: Record<
     color: '#F59E0B',
     bg: 'rgba(245,158,11,0.15)',
   },
+  incidente: {
+    label: 'Incidente',
+    color: '#A78BFA',
+    bg: 'rgba(167,139,250,0.15)',
+  },
+  atestado: {
+    label: 'Atestado',
+    color: '#2DD4BF',
+    bg: 'rgba(45,212,191,0.15)',
+  },
   outro: {
     label: 'Outro',
     color: '#94A3B8',
     bg: 'rgba(148,163,184,0.15)',
   },
+}
+
+const KNOWN_EVENT_TYPES = new Set(Object.keys(EVENT_TYPE_CONFIG))
+
+function normalizeEventType(raw: string): EventType {
+  const lower = raw?.toLowerCase().trim() ?? ''
+  if (KNOWN_EVENT_TYPES.has(lower)) return lower as EventType
+  return 'outro'
 }
 
 const EMPTY_EVENT: CreateEventInput = {
@@ -156,7 +174,88 @@ interface B2BEventsTabProps {
   cycleId: string | null
 }
 
-function PdfProgressBanner({
+interface ExtractedEvent extends CreateEventInput {
+  _idx: number
+}
+
+function flattenExtractedEvents(jobs: PdfJobDetail[]): ExtractedEvent[] {
+  const out: ExtractedEvent[] = []
+  let idx = 0
+  for (const job of jobs.filter((j) => j.status === 'completed')) {
+    for (const ev of job.result?.events ?? []) {
+      out.push({
+        _idx: idx++,
+        event_date: (ev.event_date as string) ?? '',
+        event_type: normalizeEventType((ev.event_type as string) ?? ''),
+        cid_code: (ev.cid_code as string) ?? '',
+        description: (ev.description as string) ?? '',
+        department: (ev.department as string) ?? '',
+        days_lost: typeof ev.days_lost === 'number' ? ev.days_lost : undefined,
+        source: 'pdf_import',
+      })
+    }
+  }
+  return out
+}
+
+function PdfProcessingState({
+  jobs,
+  isUploading,
+  onDismiss,
+}: {
+  jobs: PdfJobDetail[]
+  isUploading: boolean
+  onDismiss: () => void
+}) {
+  return (
+    <div className="rounded-xl border border-[rgba(96,165,250,0.25)] bg-[rgba(96,165,250,0.06)] px-4 py-3">
+      <div className="mb-2 flex items-center gap-2">
+        <svg className="h-4 w-4 animate-spin text-[#60A5FA]" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <span className="text-[14px] font-semibold text-[#60A5FA]">
+          {isUploading ? 'Enviando arquivos…' : 'Processando PDFs com IA…'}
+        </span>
+        <button onClick={onDismiss} className="ml-auto text-[#64748b] hover:text-[#94a3b8]" title="Cancelar">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="mb-2 h-1 w-full overflow-hidden rounded-full bg-[rgba(96,165,250,0.15)]">
+        <div className="h-full animate-pulse rounded-full bg-[#60A5FA]" style={{ width: '60%' }} />
+      </div>
+      {jobs.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {jobs.map((job) => (
+            <div key={job.id} className="flex items-center gap-2 text-[13px] text-[#64748b]">
+              {(job.status === 'pending' || job.status === 'processing') && (
+                <svg className="h-3 w-3 animate-spin text-[#60A5FA]" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {job.status === 'completed' && (
+                <svg className="h-3 w-3 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {job.status === 'failed' && (
+                <svg className="h-3 w-3 text-[#F87171]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              <span>{job.file_name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ExtractedEventsPanel({
   jobs,
   isUploading,
   isAllComplete,
@@ -175,97 +274,20 @@ function PdfProgressBanner({
     isUploading ||
     jobs.some((j) => j.status === 'pending' || j.status === 'processing')
 
-  const completedJobs = jobs.filter((j) => j.status === 'completed')
   const failedJobs = jobs.filter((j) => j.status === 'failed')
-  const totalEvents = completedJobs.reduce(
-    (acc, j) => acc + (j.result?.events?.length ?? 0),
-    0
-  )
   const allFailed = jobs.length > 0 && failedJobs.length === jobs.length
+  const extractedEvents = flattenExtractedEvents(jobs)
 
-  const handleConfirm = useCallback(() => {
-    const events: CreateEventInput[] = []
-    for (const job of completedJobs) {
-      for (const ev of job.result?.events ?? []) {
-        events.push({
-          event_date: (ev.event_date as string) ?? '',
-          event_type: ((ev.event_type as string) ?? 'outro') as EventType,
-          cid_code: (ev.cid_code as string) ?? '',
-          description: (ev.description as string) ?? '',
-          department: (ev.department as string) ?? '',
-          days_lost:
-            typeof ev.days_lost === 'number' ? ev.days_lost : undefined,
-          source: 'pdf_import',
-        })
-      }
-    }
-    onConfirm(events)
-  }, [completedJobs, onConfirm])
+  const [selected, setSelected] = useState<Set<number>>(() => new Set(extractedEvents.map((e) => e._idx)))
+  const [expanded, setExpanded] = useState(true)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setSelected(new Set(extractedEvents.map((e) => e._idx)))
+  }, [extractedEvents.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isProcessing) {
-    return (
-      <div className="rounded-xl border border-[rgba(96,165,250,0.25)] bg-[rgba(96,165,250,0.06)] px-4 py-3">
-        <div className="mb-2 flex items-center gap-2">
-          <svg
-            className="h-4 w-4 animate-spin text-[#60A5FA]"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
-          <span className="text-[14px] font-semibold text-[#60A5FA]">
-            {isUploading
-              ? 'Enviando arquivos…'
-              : 'Processando PDFs com IA…'}
-          </span>
-          <button
-            onClick={onDismiss}
-            className="ml-auto text-[#64748b] hover:text-[#94a3b8]"
-            title="Cancelar"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        {/* Animated progress bar */}
-        <div className="mb-2 h-1 w-full overflow-hidden rounded-full bg-[rgba(96,165,250,0.15)]">
-          <div className="h-full animate-pulse rounded-full bg-[#60A5FA]" style={{ width: '60%' }} />
-        </div>
-        {jobs.length > 0 && (
-          <div className="mt-2 space-y-1">
-            {jobs.map((job) => (
-              <div key={job.id} className="flex items-center gap-2 text-[13px] text-[#64748b]">
-                {(job.status === 'pending' || job.status === 'processing') && (
-                  <svg className="h-3 w-3 animate-spin text-[#60A5FA]" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                )}
-                {job.status === 'completed' && (
-                  <svg className="h-3 w-3 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-                <span>{job.file_name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    )
+    return <PdfProcessingState jobs={jobs} isUploading={isUploading} onDismiss={onDismiss} />
   }
 
   if (!isAllComplete || jobs.length === 0) return null
@@ -298,46 +320,88 @@ function PdfProgressBanner({
     )
   }
 
-  const hasEvents = totalEvents > 0
+  const hasEvents = extractedEvents.length > 0
+  const selectedCount = selected.size
+  const allSelected = selectedCount === extractedEvents.length
 
-  return (
-    <div
-      className={`rounded-xl border px-4 py-3 ${
-        hasEvents
-          ? 'border-[rgba(74,222,128,0.25)] bg-[rgba(74,222,128,0.06)]'
-          : 'border-[rgba(251,191,36,0.25)] bg-[rgba(251,191,36,0.06)]'
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        {hasEvents ? (
-          <svg className="h-4 w-4 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        ) : (
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(extractedEvents.map((e) => e._idx)))
+    }
+  }
+
+  const toggleOne = (idx: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(idx)) next.delete(idx)
+      else next.add(idx)
+      return next
+    })
+  }
+
+  const handleConfirmSelected = () => {
+    setConfirmError(null)
+    const eventsToConfirm = extractedEvents
+      .filter((e) => selected.has(e._idx))
+      .map(({ _idx: _, ...rest }) => rest)
+    if (eventsToConfirm.length === 0) return
+    onConfirm(eventsToConfirm)
+  }
+
+  if (!hasEvents) {
+    return (
+      <div className="rounded-xl border border-[rgba(251,191,36,0.25)] bg-[rgba(251,191,36,0.06)] px-4 py-3">
+        <div className="flex items-center gap-2">
           <svg className="h-4 w-4 text-[#FBBF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
+          <span className="text-[14px] font-semibold text-[#FBBF24]">
+            Nenhum evento encontrado nos PDF{jobs.length !== 1 ? 's' : ''} enviados
+          </span>
+          <button onClick={onDismiss} className="ml-auto text-[#64748b] hover:text-[#94a3b8]">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {failedJobs.length > 0 && (
+          <div className="mt-2 space-y-0.5">
+            {failedJobs.map((job) => (
+              <div key={job.id} className="text-[12px] text-[#F87171]">
+                <span className="font-medium">{job.file_name}:</span>{' '}
+                {job.error_message ?? 'Erro ao processar'}
+              </div>
+            ))}
+          </div>
         )}
-        <span className={`text-[14px] font-semibold ${hasEvents ? 'text-[#4ADE80]' : 'text-[#FBBF24]'}`}>
-          {hasEvents
-            ? `${totalEvents} evento${totalEvents !== 1 ? 's' : ''} extraído${totalEvents !== 1 ? 's' : ''} de ${completedJobs.length} PDF${completedJobs.length !== 1 ? 's' : ''}`
-            : `Nenhum evento encontrado nos PDF${jobs.length !== 1 ? 's' : ''} enviados`}
-        </span>
-        <div className="ml-auto flex items-center gap-2">
-          {failedJobs.length > 0 && (
-            <span className="text-[13px] text-[#F87171]">
-              {failedJobs.length} falhou
-            </span>
-          )}
-          {hasEvents && (
-            <button
-              onClick={handleConfirm}
-              disabled={bulkCreatePending}
-              className="rounded-lg bg-[rgba(74,222,128,0.15)] px-3 py-1 text-[13px] font-semibold text-[#4ADE80] transition-colors hover:bg-[rgba(74,222,128,0.25)] disabled:opacity-50"
-            >
-              {bulkCreatePending ? 'Importando…' : `Confirmar ${totalEvents} evento${totalEvents !== 1 ? 's' : ''}`}
-            </button>
-          )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-[14px] border border-[rgba(74,222,128,0.2)] bg-[#0c1425] overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-3 border-b border-[rgba(255,255,255,0.06)] px-4 py-3">
+        <svg className="h-5 w-5 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div className="flex-1">
+          <span className="text-[15px] font-semibold text-[#4ADE80]">
+            {extractedEvents.length} evento{extractedEvents.length !== 1 ? 's' : ''} extraído{extractedEvents.length !== 1 ? 's' : ''}
+          </span>
+          <span className="ml-2 text-[13px] text-[#64748b]">
+            — Revise e confirme os eventos abaixo
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setExpanded((p) => !p)}
+            className="rounded-lg border border-[rgba(255,255,255,0.1)] px-2.5 py-1 text-[12px] text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
+          >
+            {expanded ? 'Recolher' : 'Expandir'}
+          </button>
           <button onClick={onDismiss} className="text-[#64748b] hover:text-[#94a3b8]">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -345,15 +409,137 @@ function PdfProgressBanner({
           </button>
         </div>
       </div>
-      {failedJobs.length > 0 && (
-        <div className="mt-2 space-y-0.5">
-          {failedJobs.map((job) => (
-            <div key={job.id} className="text-[12px] text-[#F87171]">
-              <span className="font-medium">{job.file_name}:</span>{' '}
-              {job.error_message ?? 'Erro ao processar'}
+
+      {expanded && (
+        <>
+          {/* Select all + actions bar */}
+          <div className="flex items-center gap-3 border-b border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-2">
+            <label className="flex cursor-pointer items-center gap-2 text-[13px] text-[#94a3b8]">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleAll}
+                className="h-3.5 w-3.5 rounded border-[rgba(255,255,255,0.2)] bg-transparent accent-[#4ADE80]"
+              />
+              {allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+            </label>
+            <span className="text-[12px] text-[#475569]">
+              {selectedCount} de {extractedEvents.length} selecionado{selectedCount !== 1 ? 's' : ''}
+            </span>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={handleConfirmSelected}
+                disabled={bulkCreatePending || selectedCount === 0}
+                className="rounded-lg bg-[rgba(74,222,128,0.15)] px-3 py-1.5 text-[13px] font-semibold text-[#4ADE80] transition-colors hover:bg-[rgba(74,222,128,0.25)] disabled:opacity-40"
+              >
+                {bulkCreatePending
+                  ? 'Importando…'
+                  : `Confirmar ${selectedCount} evento${selectedCount !== 1 ? 's' : ''}`}
+              </button>
             </div>
-          ))}
-        </div>
+          </div>
+
+          {confirmError && (
+            <div className="border-b border-[rgba(248,113,113,0.2)] bg-[rgba(248,113,113,0.06)] px-4 py-2 text-[13px] text-[#F87171]">
+              Erro ao confirmar: {confirmError}
+            </div>
+          )}
+
+          {/* Event list */}
+          <div className="max-h-[400px] overflow-y-auto">
+            {extractedEvents.map((ev) => {
+              const tCfg = EVENT_TYPE_CONFIG[ev.event_type] ?? EVENT_TYPE_CONFIG.outro
+              const isSelected = selected.has(ev._idx)
+              return (
+                <div
+                  key={ev._idx}
+                  onClick={() => toggleOne(ev._idx)}
+                  className={`flex cursor-pointer items-start gap-3 border-b border-[rgba(255,255,255,0.04)] px-4 py-2.5 transition-colors ${
+                    isSelected
+                      ? 'bg-[rgba(74,222,128,0.04)]'
+                      : 'bg-transparent opacity-50'
+                  } hover:bg-[rgba(255,255,255,0.03)]`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleOne(ev._idx)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1 h-3.5 w-3.5 shrink-0 rounded border-[rgba(255,255,255,0.2)] bg-transparent accent-[#4ADE80]"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {ev.event_date && (
+                        <span className="text-[13px] font-medium text-[#94a3b8]">
+                          {/^\d{4}-\d{2}-\d{2}$/.test(ev.event_date)
+                            ? new Date(ev.event_date + 'T12:00:00').toLocaleDateString('pt-BR')
+                            : ev.event_date}
+                        </span>
+                      )}
+                      <span
+                        className="whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                        style={{ color: tCfg.color, backgroundColor: tCfg.bg }}
+                      >
+                        {tCfg.label}
+                      </span>
+                      {ev.cid_code && (
+                        <span className="rounded bg-[rgba(197,225,85,0.1)] px-1.5 py-0.5 font-mono text-[11px] font-semibold text-[#c5e155]">
+                          {ev.cid_code}
+                        </span>
+                      )}
+                      {ev.department && (
+                        <span className="text-[12px] text-[#475569]">
+                          {ev.department}
+                        </span>
+                      )}
+                      {typeof ev.days_lost === 'number' && ev.days_lost > 0 && (
+                        <span className="text-[12px] text-[#F59E0B]">
+                          {ev.days_lost}d perdidos
+                        </span>
+                      )}
+                    </div>
+                    {ev.description && (
+                      <p className="mt-0.5 text-[13px] leading-snug text-[#64748b] line-clamp-2">
+                        {ev.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Failed PDFs */}
+          {failedJobs.length > 0 && (
+            <div className="border-t border-[rgba(248,113,113,0.15)] bg-[rgba(248,113,113,0.04)] px-4 py-2">
+              {failedJobs.map((job) => (
+                <div key={job.id} className="text-[12px] text-[#F87171]">
+                  <span className="font-medium">{job.file_name}:</span>{' '}
+                  {job.error_message ?? 'Erro ao processar'}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Bottom action bar */}
+          <div className="flex items-center justify-between border-t border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-2.5">
+            <button
+              onClick={onDismiss}
+              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[13px] text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
+            >
+              Descartar tudo
+            </button>
+            <button
+              onClick={handleConfirmSelected}
+              disabled={bulkCreatePending || selectedCount === 0}
+              className="rounded-lg bg-[#4ADE80] px-4 py-1.5 text-[13px] font-semibold text-[#0c1425] transition-colors hover:bg-[#22C55E] disabled:opacity-40"
+            >
+              {bulkCreatePending
+                ? 'Importando…'
+                : `Confirmar ${selectedCount} evento${selectedCount !== 1 ? 's' : ''}`}
+            </button>
+          </div>
+        </>
       )}
     </div>
   )
@@ -441,7 +627,14 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
   const handlePdfConfirm = useCallback(
     (events: CreateEventInput[]) => {
       if (!events.length) return
-      bulkCreate.mutate(events, { onSuccess: reset })
+      bulkCreate.mutate(events, {
+        onSuccess: () => {
+          reset()
+        },
+        onError: (err) => {
+          console.error('[events] bulk create failed:', err)
+        },
+      })
     },
     [bulkCreate, reset]
   )
@@ -536,9 +729,9 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
         </select>
       </div>
 
-      {/* PDF processing progress banner */}
+      {/* PDF extraction review panel */}
       {hasPdfActivity && (
-        <PdfProgressBanner
+        <ExtractedEventsPanel
           jobs={pdfJobs}
           isUploading={uploadJobs.isPending}
           isAllComplete={isAllComplete}
@@ -718,7 +911,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
               </thead>
               <tbody>
                 {events.map((ev) => {
-                  const tCfg = EVENT_TYPE_CONFIG[ev.event_type]
+                  const tCfg = EVENT_TYPE_CONFIG[ev.event_type] ?? EVENT_TYPE_CONFIG.outro
                   return (
                     <tr
                       key={ev.id}

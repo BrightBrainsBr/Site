@@ -150,7 +150,7 @@ export type UpdateActionPlanInput = Partial<CreateActionPlanInput> & {
 
 // --- Events & Nexo ---
 
-export type EventType = 'afastamento' | 'relato_canal' | 'acidente' | 'outro'
+export type EventType = 'afastamento' | 'relato_canal' | 'acidente' | 'incidente' | 'atestado' | 'outro'
 
 export interface B2BEvent {
   id: string
