@@ -13,6 +13,7 @@ import {
 
 export const runtime = 'nodejs'
 
+// eslint-disable-next-line complexity
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
@@ -69,20 +70,42 @@ export async function GET(
     return NextResponse.json({ error: 'Erro ao buscar dados' }, { status: 500 })
   }
 
-  const byDept = new Map<string, { scores: number[]; risks: RiskLevel[] }>()
+  interface DeptData {
+    scores: number[]
+    risks: RiskLevel[]
+    phq9: number[]
+    gad7: number[]
+    srq20: number[]
+    aep: number[]
+  }
+
+  const byDept = new Map<string, DeptData>()
 
   for (const row of rows ?? []) {
     const dept = row.employee_department ?? 'Sem departamento'
     if (!byDept.has(dept)) {
-      byDept.set(dept, { scores: [], risks: [] })
+      byDept.set(dept, {
+        scores: [],
+        risks: [],
+        phq9: [],
+        gad7: [],
+        srq20: [],
+        aep: [],
+      })
     }
     const entry = byDept.get(dept)!
-    const norm = computeNormalizedScore(
-      row.scores as Record<string, number> | null
-    )
+    const rawScores = row.scores as Record<string, number> | null
+    const norm = computeNormalizedScore(rawScores)
     if (norm != null) {
       entry.scores.push(norm)
       entry.risks.push(getRiskLevel(norm))
+    }
+    if (rawScores) {
+      if (typeof rawScores.phq9 === 'number') entry.phq9.push(rawScores.phq9)
+      if (typeof rawScores.gad7 === 'number') entry.gad7.push(rawScores.gad7)
+      if (typeof rawScores.srq20 === 'number') entry.srq20.push(rawScores.srq20)
+      if (typeof rawScores.aep_total === 'number')
+        entry.aep.push(rawScores.aep_total)
     }
   }
 
@@ -109,6 +132,23 @@ export async function GET(
     Array.from(prevByDept.entries()).forEach(([k, v]) => {
       prevByDept.set(k, { n: v.n, avg: v.n > 0 ? v.avg / v.n : 0 })
     })
+  }
+
+  const { data: actionPlans } = await sb
+    .from('b2b_action_plans')
+    .select('department, status')
+    .eq('company_id', companyId)
+    .neq('status', 'concluido')
+
+  const pendingByDept = new Map<string, number>()
+  for (const ap of actionPlans ?? []) {
+    const dept = ap.department ?? 'Sem departamento'
+    pendingByDept.set(dept, (pendingByDept.get(dept) ?? 0) + 1)
+  }
+
+  function avg(arr: number[]): number | null {
+    if (arr.length === 0) return null
+    return Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10
   }
 
   const departments = Array.from(byDept.entries()).map(([name, data]) => {
@@ -141,6 +181,11 @@ export async function GET(
       avgScore,
       riskBreakdown,
       trend,
+      phq9Avg: avg(data.phq9),
+      gad7Avg: avg(data.gad7),
+      srq20Avg: avg(data.srq20),
+      aepAvg: avg(data.aep),
+      pendingActions: pendingByDept.get(name) ?? 0,
     }
   })
 

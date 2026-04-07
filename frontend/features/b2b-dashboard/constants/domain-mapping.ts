@@ -17,6 +17,8 @@ export const DOMAIN_DISPLAY_NAMES: Record<string, string> = {
   nms: 'Neuro (NMS)',
   alsfrs: 'ALS (ALSFRS)',
   snapiv: 'TDAH Infantil (SNAP-IV)',
+  srq20: 'SRQ-20 (OMS)',
+  aep_total: 'AEP Global',
 }
 
 export const DOMAIN_MAX_SCORES: Record<string, number> = {
@@ -36,4 +38,6 @@ export const DOMAIN_MAX_SCORES: Record<string, number> = {
   snapiv: 54,
   spin: 12,
   auditc: 12,
+  srq20: 20,
+  aep_total: 56,
 }

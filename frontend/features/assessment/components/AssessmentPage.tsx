@@ -3,7 +3,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { generateTestFormData } from '../helpers/generate-test-data'
+import {
+  generateB2BTestFormData,
+  generateTestFormData,
+} from '../helpers/generate-test-data'
 import {
   clearFormData,
   loadCurrentStep,
@@ -19,9 +22,12 @@ import type {
   StepComponentProps,
 } from './assessment.interface'
 import { INITIAL_FORM_DATA } from './assessment.interface'
-import { ALL_STEPS } from './constants/steps'
+import { ALL_STEPS, B2B_STEPS } from './constants/steps'
 import { ProgressBar } from './ProgressBar'
 import {
+  AEPStep,
+  B2BConsentsStep,
+  CanalPercepcaoStep,
   ClinicalProfileStep,
   FamilyHistoryStep,
   GenericScaleStep,
@@ -32,6 +38,7 @@ import {
   PersonalDataStep,
   PriorReportsStep,
   SCALE_STEP_CONFIGS,
+  SRQ20Step,
   SummaryStep,
   SupplementsStep,
   SymptomsStep,
@@ -42,6 +49,12 @@ import {
 
 const IS_DEV = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
 
+function getLocalePrefix(): string {
+  if (typeof window === 'undefined') return '/pt-BR'
+  const parts = window.location.pathname.split('/')
+  return parts[1] && parts[1].includes('-') ? `/${parts[1]}` : '/pt-BR'
+}
+
 function AccessGate({
   onUnlock,
 }: {
@@ -50,6 +63,11 @@ function AccessGate({
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showCodeInput, setShowCodeInput] = useState(false)
+
+  const locale = getLocalePrefix()
+  const loginPath = `${locale}/empresa/login`
+  const signupPath = `${locale}/signup`
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,45 +106,84 @@ function AccessGate({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <form
-        onSubmit={(e) => void handleSubmit(e)}
-        className="w-full max-w-sm space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-8 shadow-xl backdrop-blur-sm"
-      >
+    <div className="flex min-h-screen items-center justify-center px-4 bg-zinc-950">
+      <div className="w-full max-w-sm space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-8 shadow-xl backdrop-blur-sm">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-light.svg"
           alt="Bright Brains"
-          className="mx-auto mb-2 h-9 w-auto"
+          className="mx-auto mb-1 h-9 w-auto"
         />
-        <h2 className="text-center text-lg font-semibold text-zinc-100">
-          Acesso Restrito
-        </h2>
-        <p className="text-center text-xs text-zinc-500">
-          Digite o código de acesso para continuar
+
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-zinc-100">
+            Avaliação BrightMonitor
+          </h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            Este formulário é exclusivo para colaboradores convidados.
+          </p>
+        </div>
+
+        {/* Primary CTAs — login flow for invited employees */}
+        <div className="space-y-2.5">
+          <a
+            href={loginPath}
+            className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 py-3 text-sm font-bold text-zinc-900 transition-opacity hover:opacity-90"
+          >
+            Fazer Login
+          </a>
+          <a
+            href={signupPath}
+            className="flex w-full items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800/50 py-3 text-sm font-medium text-zinc-200 transition-colors hover:border-zinc-500 hover:text-white"
+          >
+            Criar conta
+          </a>
+        </div>
+
+        <p className="text-center text-xs text-zinc-600">
+          Acesse com o e-mail para o qual recebeu o convite da empresa.
         </p>
-        <input
-          type="text"
-          value={code}
-          onChange={(e) => {
-            setCode(e.target.value)
-            setError(false)
-          }}
-          placeholder="Código de acesso"
-          autoFocus
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-3 text-center text-sm text-white placeholder-zinc-500 transition-colors focus:border-lime-400 focus:outline-none focus:ring-1 focus:ring-lime-400/30"
-        />
-        {error && (
-          <p className="text-center text-xs text-red-400">Código inválido</p>
+
+        {/* Secondary: access code for generic/B2C entry */}
+        {!showCodeInput ? (
+          <button
+            type="button"
+            onClick={() => setShowCodeInput(true)}
+            className="w-full text-center text-xs text-zinc-600 underline underline-offset-2 hover:text-zinc-400"
+          >
+            Tenho um código de acesso
+          </button>
+        ) : (
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3">
+            <div className="flex items-center gap-2 text-xs text-zinc-500">
+              <div className="h-px flex-1 bg-zinc-700" />
+              <span>ou use um código</span>
+              <div className="h-px flex-1 bg-zinc-700" />
+            </div>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value)
+                setError(false)
+              }}
+              placeholder="Código de acesso"
+              autoFocus
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-3 text-center text-sm text-white placeholder-zinc-500 transition-colors focus:border-lime-400 focus:outline-none focus:ring-1 focus:ring-lime-400/30"
+            />
+            {error && (
+              <p className="text-center text-xs text-red-400">Código inválido</p>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg border border-zinc-600 bg-zinc-800 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-zinc-700 disabled:opacity-50"
+            >
+              {loading ? 'Verificando...' : 'Verificar código'}
+            </button>
+          </form>
         )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 py-3 text-sm font-bold text-zinc-900 transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          {loading ? 'Verificando...' : 'Entrar'}
-        </button>
-      </form>
+      </div>
     </div>
   )
 }
@@ -196,6 +253,16 @@ export function AssessmentPage() {
   }, [])
 
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE !== 'true') return
+    const devCompanyId = new URLSearchParams(window.location.search).get('company_id')
+    if (devCompanyId) {
+      setCompanyContext((prev) =>
+        prev.company_id === devCompanyId ? prev : { company_id: devCompanyId }
+      )
+    }
+  }, [])
+
+  useEffect(() => {
     if (!authorized) return
     if (isLoaded) return
     const loaded = loadFormData()
@@ -223,9 +290,12 @@ export function AssessmentPage() {
     saveCurrentStep(currentStepIndex)
   }, [currentStepIndex, isLoaded])
 
+  const isB2B = !!companyContext.company_id
+  const stepSource = isB2B ? B2B_STEPS : ALL_STEPS
+
   const visibleSteps = useMemo(
-    () => ALL_STEPS.filter((step) => step.show(data)),
-    [data]
+    () => stepSource.filter((step) => step.show(data)),
+    [data, stepSource]
   )
 
   useEffect(() => {
@@ -270,15 +340,16 @@ export function AssessmentPage() {
   }
 
   const handleTestFill = useCallback(() => {
-    const testData = generateTestFormData()
+    const testData = isB2B ? generateB2BTestFormData() : generateTestFormData()
     setData(testData)
-    const stepsForData = ALL_STEPS.filter((s) => s.show(testData))
-    const uploadsIdx = stepsForData.findIndex((s) => s.id === 'uploads')
-    if (uploadsIdx >= 0) {
-      setCurrentStepIndex(uploadsIdx)
+    const stepsForData = stepSource.filter((s) => s.show(testData))
+    const targetId = isB2B ? 'resumo' : 'uploads'
+    const targetIdx = stepsForData.findIndex((s) => s.id === targetId)
+    if (targetIdx >= 0) {
+      setCurrentStepIndex(targetIdx)
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+  }, [isB2B, stepSource])
 
   if (!authorized) {
     if (!sessionChecked) {
@@ -364,6 +435,14 @@ export function AssessmentPage() {
         return <PriorReportsStep {...stepProps} />
       case 'wearables':
         return <WearablesStep {...stepProps} />
+      case 'srq20':
+        return <SRQ20Step {...stepProps} />
+      case 'aep':
+        return <AEPStep {...stepProps} />
+      case 'canal_percepcao':
+        return <CanalPercepcaoStep {...stepProps} />
+      case 'b2b_consents':
+        return <B2BConsentsStep {...stepProps} />
       case 'resumo':
         return <SummaryStep {...stepProps} />
       default: {

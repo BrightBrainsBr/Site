@@ -144,7 +144,7 @@ export function BulkInviteComponent({
 
   return (
     <div className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] p-4">
-      <p className="mb-3 text-[11px] text-[#64748B]">
+      <p className="mb-3 text-[13px] text-[#64748B]">
         {role === 'admin'
           ? 'Envie convites por email para administradores acessarem o dashboard.'
           : 'Convide colaboradores para realizarem a avaliação. Aceita email único, múltiplos separados por vírgula/enter, ou CSV.'}
@@ -156,7 +156,7 @@ export function BulkInviteComponent({
           onChange={(e) => setText(e.target.value)}
           placeholder="email@empresa.com, outro@empresa.com&#10;ou um por linha..."
           rows={3}
-          className="w-full resize-none rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-3 py-2 text-[12px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+          className="w-full resize-none rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
         />
 
         <div className="flex flex-wrap items-center gap-2">
@@ -164,7 +164,7 @@ export function BulkInviteComponent({
             <select
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-3 py-2 text-[12px] text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none"
+              className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-3 py-2 text-[14px] text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none"
             >
               <option value="">Departamento (opcional)</option>
               {departments.map((d) => (
@@ -178,7 +178,7 @@ export function BulkInviteComponent({
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-1.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-3 py-2 text-[12px] text-[#94A3B8] transition-colors hover:border-[#14B8A6] hover:text-[#E2E8F0]"
+            className="flex items-center gap-1.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-3 py-2 text-[14px] text-[#94A3B8] transition-colors hover:border-[#14B8A6] hover:text-[#E2E8F0]"
           >
             <Upload className="h-3.5 w-3.5" />
             Importar CSV
@@ -194,7 +194,7 @@ export function BulkInviteComponent({
           <button
             onClick={handleInvite}
             disabled={loading || emailCount === 0}
-            className="w-full rounded-lg bg-[#0D9488] px-4 py-2 text-[12px] font-semibold text-white disabled:opacity-40 sm:ml-auto sm:w-auto"
+            className="w-full rounded-lg bg-[#0D9488] px-4 py-2 text-[14px] font-semibold text-white disabled:opacity-40 sm:ml-auto sm:w-auto"
           >
             {loading
               ? 'Enviando...'
@@ -206,12 +206,12 @@ export function BulkInviteComponent({
       {result && (
         <div className="mt-3 space-y-1">
           {result.ok > 0 && (
-            <p className="text-[12px] text-[#34D399]">
+            <p className="text-[14px] text-[#34D399]">
               {result.ok} convite(s) enviado(s) com sucesso.
             </p>
           )}
           {result.failed > 0 && (
-            <p className="text-[12px] text-[#F87171]">
+            <p className="text-[14px] text-[#F87171]">
               {result.failed} falha(s): {result.errors.join(', ')}
             </p>
           )}

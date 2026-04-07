@@ -16,3 +16,18 @@ export { PHQ9_QUESTIONS } from './phq9'
 export { PSS10_OPTIONS, PSS10_QUESTIONS } from './pss10'
 export { SNAPIV_OPTIONS, SNAPIV_QUESTIONS } from './snapiv'
 export { SPIN_OPTIONS, SPIN_QUESTIONS } from './spin'
+export {
+  SRQ20_QUESTIONS,
+  SRQ20_RANGES,
+  SRQ20_CATEGORY_MAP,
+  SRQ20_SUICIDAL_INDICES,
+} from './srq20'
+export type { SRQ20Question } from './srq20'
+export {
+  AEP_QUESTIONS,
+  AEP_REVERSE_INDICES,
+  AEP_LIKERT_OPTIONS,
+  AEP_RANGES,
+  AEP_CATEGORY_DEFINITIONS,
+} from './aep'
+export type { AEPQuestion, AEPCategoryDefinition } from './aep'

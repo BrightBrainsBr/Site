@@ -6,7 +6,12 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { getB2BUser, resolveCycle } from '../../lib/getB2BUser'
-import { computeNormalizedScore, getRiskLevel } from '../../lib/riskUtils'
+import {
+  computeNormalizedScore,
+  getAEPRiskLevel,
+  getRiskLevel,
+  getSRQ20RiskLevel,
+} from '../../lib/riskUtils'
 
 export const runtime = 'nodejs'
 
@@ -15,6 +20,7 @@ function anonymizeId(id: string): string {
   return `COL-${hash.slice(-4).toUpperCase()}`
 }
 
+// eslint-disable-next-line complexity
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
@@ -57,14 +63,31 @@ export async function GET(
     riskLevel: string
     department: string | null
     domainScores?: Record<string, number>
+    srq20Score?: number
+    srq20Risk?: string
+    aepScore?: number
+    aepRisk?: string
+    reasons: string[]
   }> = []
 
   for (const row of rows ?? []) {
     const scores = row.scores as Record<string, number> | null
     const norm = computeNormalizedScore(scores)
-    if (norm == null || norm >= 60) continue
+    const srq20 = scores?.srq20
+    const aepTotal = scores?.aep_total
 
-    const riskLevel = getRiskLevel(norm)
+    const normAlert = norm != null && norm < 60
+    const srq20Alert = typeof srq20 === 'number' && srq20 >= 8
+    const aepAlert = typeof aepTotal === 'number' && aepTotal >= 29
+
+    if (!normAlert && !srq20Alert && !aepAlert) continue
+
+    const riskLevel =
+      norm != null
+        ? getRiskLevel(norm)
+        : srq20Alert
+          ? getSRQ20RiskLevel(srq20)
+          : 'elevated'
     const domainScores: Record<string, number> = {}
     if (scores) {
       for (const [k, v] of Object.entries(scores)) {
@@ -72,12 +95,24 @@ export async function GET(
       }
     }
 
+    const reasons: string[] = []
+    if (normAlert) reasons.push('score_geral_baixo')
+    if (srq20Alert) reasons.push('srq20_elevado')
+    if (aepAlert) reasons.push('aep_elevado')
+
     alerts.push({
       id: anonymizeId(row.id),
       riskLevel,
       department: row.employee_department ?? null,
       domainScores:
         Object.keys(domainScores).length > 0 ? domainScores : undefined,
+      srq20Score: typeof srq20 === 'number' ? srq20 : undefined,
+      srq20Risk:
+        typeof srq20 === 'number' ? getSRQ20RiskLevel(srq20) : undefined,
+      aepScore: typeof aepTotal === 'number' ? aepTotal : undefined,
+      aepRisk:
+        typeof aepTotal === 'number' ? getAEPRiskLevel(aepTotal) : undefined,
+      reasons,
     })
   }
 

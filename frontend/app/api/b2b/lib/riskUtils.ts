@@ -17,6 +17,14 @@ const SCALE_MAX: Record<string, number> = {
   snapiv: 54,
   spin: 12,
   auditc: 12,
+  srq20: 20,
+  aep_total: 56,
+  aep_pressure: 12,
+  aep_autonomy: 8,
+  aep_breaks: 8,
+  aep_relationships: 12,
+  aep_cognitive: 8,
+  aep_environment: 8,
 }
 
 export type RiskLevel = 'critical' | 'elevated' | 'moderate' | 'low'
@@ -25,6 +33,20 @@ export function getRiskLevel(score0to100: number): RiskLevel {
   if (score0to100 < 45) return 'critical'
   if (score0to100 < 60) return 'elevated'
   if (score0to100 < 70) return 'moderate'
+  return 'low'
+}
+
+export function getSRQ20RiskLevel(score: number): RiskLevel {
+  if (score >= 17) return 'critical'
+  if (score >= 12) return 'elevated'
+  if (score >= 8) return 'moderate'
+  return 'low'
+}
+
+export function getAEPRiskLevel(score: number): RiskLevel {
+  if (score >= 43) return 'critical'
+  if (score >= 29) return 'elevated'
+  if (score >= 15) return 'moderate'
   return 'low'
 }
 
@@ -60,4 +82,6 @@ export const DOMAIN_KEYS = [
   'snapiv',
   'spin',
   'auditc',
+  'srq20',
+  'aep_total',
 ] as const

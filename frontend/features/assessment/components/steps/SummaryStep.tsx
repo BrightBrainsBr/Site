@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { computeAllScores } from '../../helpers/compute-scores'
 import { clearFormData } from '../../services/localStorage'
@@ -9,6 +9,60 @@ import { InfoBox, SectionTitle } from '../fields'
 import { StepNavigation } from '../StepNavigation'
 
 type Phase = 'review' | 'submitting' | 'submitted'
+
+interface LaudoStatus {
+  status: string
+  laudo_pdf_url?: string | null
+}
+
+function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
+  const [laudo, setLaudo] = useState<LaudoStatus | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    if (!enabled || !evaluationId) return
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/assessment/laudo-status?id=${evaluationId}`)
+        if (!res.ok) return
+        const data = (await res.json()) as LaudoStatus
+        setLaudo(data)
+        if (data.laudo_pdf_url || data.status === 'error') {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+        }
+      } catch {
+        // silently ignore polling errors
+      }
+    }
+
+    void poll()
+    intervalRef.current = setInterval(() => void poll(), 12_000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [evaluationId, enabled])
+
+  return laudo
+}
+
+const PROFILE_LABELS: Record<string, string> = {
+  adulto: 'Adulto (Psiquiatria Geral)',
+  infantil: 'Infantil / Adolescente',
+  neuro: 'Neurológico',
+  executivo: 'Executivo',
+  longevidade: 'Longevidade',
+}
+
+const B2B_SCALE_LABELS: { key: string; label: string; max?: number }[] = [
+  { key: 'srq20', label: 'SRQ-20 — Saúde Mental Geral', max: 20 },
+  { key: 'phq9', label: 'PHQ-9 — Depressão', max: 27 },
+  { key: 'gad7', label: 'GAD-7 — Ansiedade', max: 21 },
+  { key: 'pss10', label: 'PSS-10 — Estresse', max: 40 },
+  { key: 'mbi', label: 'MBI — Burnout', max: 132 },
+  { key: 'isi', label: 'ISI — Qualidade do Sono', max: 28 },
+  { key: 'aep_total', label: 'AEP — Fatores Psicossociais', max: 56 },
+]
 
 export function SummaryStep({
   data,
@@ -19,6 +73,7 @@ export function SummaryStep({
   const [error, setError] = useState<string | null>(null)
   const [evaluationId, setEvaluationId] = useState<string | null>(null)
   const isCorporate = !!companyContext?.company_id
+  const laudo = useLaudoPolling(evaluationId, isCorporate && phase === 'submitted')
 
   const scores = computeAllScores(data)
 
@@ -105,6 +160,9 @@ export function SummaryStep({
           ...(companyContext?.code_id
             ? { code_id: companyContext.code_id }
             : {}),
+          b2b_anonymized_consent: data.b2b_anonymized_consent === true,
+          b2c_consent: data.b2c_consent === true,
+          b2c_contact_consent: data.b2c_contact_consent === true,
         }),
       })
 
@@ -139,24 +197,70 @@ export function SummaryStep({
       {phase === 'review' && (
         <>
           <div className="mb-6 space-y-3">
+            {/* Personal data — always shown */}
             <SummaryCard
-              title="Paciente"
+              title="Dados Pessoais"
               items={[
                 `Nome: ${data.nome || '—'}`,
                 `Nascimento: ${data.nascimento || '—'}`,
-                `Perfil: ${data.publico || '—'}`,
-              ]}
+                data.email ? `E-mail: ${data.email}` : null,
+                data.sexo ? `Sexo: ${data.sexo}` : null,
+                isCorporate && companyContext?.department
+                  ? `Setor: ${companyContext.department}`
+                  : null,
+              ].filter(Boolean) as string[]}
             />
-            <SummaryCard
-              title="Queixa Principal"
-              items={[data.queixaPrincipal || '(não informado)']}
-            />
+
+            {isCorporate ? (
+              /* B2B: show scale scores */
+              <B2BScalesSummary scores={scores} />
+            ) : (
+              /* B2C: show clinical profile data */
+              <>
+                {(data.publico || data.queixaPrincipal) && (
+                  <SummaryCard
+                    title="Perfil Clínico"
+                    items={[
+                      data.publico
+                        ? `Perfil: ${PROFILE_LABELS[data.publico] ?? data.publico}`
+                        : null,
+                      data.queixaPrincipal
+                        ? `Queixa: ${data.queixaPrincipal}`
+                        : null,
+                      data.tempoSintomas
+                        ? `Tempo dos sintomas: ${data.tempoSintomas}`
+                        : null,
+                    ].filter(Boolean) as string[]}
+                  />
+                )}
+                {data.sintomasAtuais.length > 0 && (
+                  <SummaryCard
+                    title="Sintomas Relatados"
+                    items={[`${data.sintomasAtuais.length} sintoma(s) selecionado(s)`, ...data.sintomasAtuais.slice(0, 4)]}
+                  />
+                )}
+                <B2CScalesSummary scores={scores} />
+              </>
+            )}
+
             {data.medicamentos.length > 0 && (
               <SummaryCard
                 title="Medicamentos"
                 items={data.medicamentos.map(
                   (m) => `${m.nome} ${m.dose} — ${m.tempo}`
                 )}
+              />
+            )}
+
+            {isCorporate && data.canal_percepcao?.descricao?.trim() && (
+              <SummaryCard
+                title="Canal de Percepção"
+                items={[
+                  data.canal_percepcao.urgencia
+                    ? `Urgência: ${data.canal_percepcao.urgencia}`
+                    : null,
+                  `Relato: ${data.canal_percepcao.descricao.slice(0, 100)}${data.canal_percepcao.descricao.length > 100 ? '…' : ''}`,
+                ].filter(Boolean) as string[]}
               />
             )}
           </div>
@@ -210,35 +314,68 @@ export function SummaryStep({
               O que acontece agora?
             </p>
             {isCorporate ? (
-              <ol className="mx-auto max-w-md space-y-2 text-left text-xs text-zinc-400">
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                    1
-                  </span>
-                  O sistema está gerando um relatório simplificado com
-                  inteligência artificial
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                    2
-                  </span>
-                  O relatório será disponibilizado no painel da sua empresa
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                    3
-                  </span>
-                  Seus dados individuais são confidenciais — a empresa recebe
-                  apenas indicadores agregados
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
-                    4
-                  </span>
-                  O RH poderá entrar em contato para agendar acompanhamento, se
-                  necessário
-                </li>
-              </ol>
+              <div className="mx-auto max-w-md space-y-3 text-left">
+                <ol className="space-y-2 text-xs text-zinc-400">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                      1
+                    </span>
+                    A IA está gerando seu Laudo Individual BrightMonitor
+                    (pode levar 1-3 min)
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                      2
+                    </span>
+                    Seus dados individuais são confidenciais — a empresa recebe
+                    apenas indicadores agregados
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
+                      3
+                    </span>
+                    O RH poderá entrar em contato para agendar acompanhamento,
+                    se necessário
+                  </li>
+                </ol>
+
+                {/* Laudo PDF polling status */}
+                <div className="mt-4 rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-4">
+                  {!laudo || !laudo.laudo_pdf_url ? (
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+                      <div>
+                        <p className="text-xs font-medium text-zinc-300">
+                          Gerando Laudo Individual…
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Aguarde enquanto processamos sua avaliação
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">📄</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-lime-400">
+                          Laudo Individual Pronto
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Seu relatório foi gerado com sucesso
+                        </p>
+                      </div>
+                      <a
+                        href={laudo.laudo_pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 rounded-lg bg-lime-400/15 px-3 py-1.5 text-xs font-semibold text-lime-400 transition-colors hover:bg-lime-400/25"
+                      >
+                        Baixar PDF
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
             ) : (
               <ol className="mx-auto max-w-md space-y-2 text-left text-xs text-zinc-400">
                 <li className="flex items-start gap-2">
@@ -317,6 +454,63 @@ function SummaryCard({ title, items }: { title: string; items: string[] }) {
           {item}
         </p>
       ))}
+    </div>
+  )
+}
+
+function B2BScalesSummary({ scores }: { scores: Record<string, number> }) {
+  const filled = B2B_SCALE_LABELS.filter(({ key }) => scores[key] !== undefined)
+  if (filled.length === 0) return null
+
+  return (
+    <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 px-4 py-3">
+      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        Escalas Preenchidas ({filled.length}/{B2B_SCALE_LABELS.length})
+      </h4>
+      <div className="space-y-1.5">
+        {filled.map(({ key, label, max }) => {
+          const score = scores[key]!
+          const pct = max ? Math.round((score / max) * 100) : null
+          return (
+            <div key={key} className="flex items-center justify-between gap-2">
+              <span className="text-xs text-zinc-400">{label}</span>
+              <span className="shrink-0 font-mono text-xs font-medium text-zinc-200">
+                {score}{max ? `/${max}` : ''}{pct !== null ? ` (${pct}%)` : ''}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function B2CScalesSummary({ scores }: { scores: Record<string, number> }) {
+  const b2cKeys = [
+    { key: 'phq9', label: 'PHQ-9 (Depressão)', max: 27 },
+    { key: 'gad7', label: 'GAD-7 (Ansiedade)', max: 21 },
+    { key: 'isi', label: 'ISI (Sono)', max: 28 },
+    { key: 'mbi', label: 'MBI (Burnout)', max: 132 },
+    { key: 'pss10', label: 'PSS-10 (Estresse)', max: 40 },
+  ]
+  const filled = b2cKeys.filter(({ key }) => scores[key] !== undefined)
+  if (filled.length === 0) return null
+
+  return (
+    <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 px-4 py-3">
+      <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        Escalas Clínicas ({filled.length} respondida{filled.length !== 1 ? 's' : ''})
+      </h4>
+      <div className="space-y-1.5">
+        {filled.map(({ key, label, max }) => (
+          <div key={key} className="flex items-center justify-between gap-2">
+            <span className="text-xs text-zinc-400">{label}</span>
+            <span className="shrink-0 font-mono text-xs font-medium text-zinc-200">
+              {scores[key]}/{max}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

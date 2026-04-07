@@ -42,7 +42,7 @@ export default function PortalLayout({
     <NuqsAdapter>
       <ReactQueryProvider>
         <div
-          className={`${syne.variable} ${dmSans.variable} ${jetBrainsMono.variable} min-h-screen bg-[#060e1a] text-[#cce6f7] antialiased`}
+          className={`${syne.variable} ${dmSans.variable} ${jetBrainsMono.variable} min-h-screen bg-[#060d1a] text-[#e2e8f0] antialiased`}
           style={{ fontFamily: 'var(--font-sans-portal), sans-serif' }}
         >
           <main>{children}</main>

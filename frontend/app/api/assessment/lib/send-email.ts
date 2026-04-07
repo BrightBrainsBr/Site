@@ -84,6 +84,56 @@ export async function sendReportEmail(opts: {
   )
 }
 
+export async function sendB2BLaudoEmail(opts: {
+  patientName: string
+  pdfUrl: string
+  evaluationId: string
+  companyName: string
+}): Promise<boolean> {
+  const date = formatDate()
+  const subject = `[BrightMonitor] Laudo Individual — ${opts.patientName} — ${opts.companyName} — ${date}`
+  return postWebhook(
+    REPORT_WEBHOOK_URL,
+    {
+      event: 'b2b_laudo_ready',
+      subject,
+      generated_at: new Date().toISOString(),
+      evaluation_id: opts.evaluationId,
+      patient_name: opts.patientName,
+      company_name: opts.companyName,
+      report_pdf_url: opts.pdfUrl,
+    },
+    'b2b-laudo'
+  )
+}
+
+export async function sendB2CConsentLead(opts: {
+  patientName: string
+  patientEmail?: string
+  patientPhone?: string
+  evaluationId: string
+  companyName: string
+  contactConsent: boolean
+}): Promise<boolean> {
+  const date = formatDate()
+  const subject = `[Lead B2C] Colaborador optou por consulta — ${opts.patientName} — ${opts.companyName} — ${date}`
+  return postWebhook(
+    REPORT_WEBHOOK_URL,
+    {
+      event: 'b2c_consent_lead',
+      subject,
+      generated_at: new Date().toISOString(),
+      evaluation_id: opts.evaluationId,
+      patient_name: opts.patientName,
+      patient_email: opts.patientEmail ?? null,
+      patient_phone: opts.patientPhone ?? null,
+      company_name: opts.companyName,
+      contact_consent: opts.contactConsent,
+    },
+    'b2c-consent-lead'
+  )
+}
+
 export async function sendErrorEmail(opts: {
   patientName: string
   evaluationId: string

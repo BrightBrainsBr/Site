@@ -151,6 +151,23 @@ export interface AssessmentFormData {
   familiaDetalhes: string
   infoAdicional: string
 
+  // B2B NR-1 fields
+  srq20_answers?: number[]
+  aep_answers?: number[]
+  aep_percepcao_livre?: string
+  canal_percepcao?: {
+    urgencia: string
+    tipo: string
+    frequencia: string
+    setor: string
+    impacto: string
+    descricao: string
+    sugestao: string
+  } | null
+  b2b_anonymized_consent?: boolean
+  b2c_consent?: boolean
+  b2c_contact_consent?: boolean
+
   [key: string]: unknown
 }
 

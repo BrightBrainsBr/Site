@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import Anthropic from '@anthropic-ai/sdk'
+import { wrapAnthropic } from 'langsmith/wrappers/anthropic'
 import { PDFDocument } from 'pdf-lib'
 
 import type { AssessmentFormData } from '~/features/assessment/components/assessment.interface'
@@ -582,7 +583,9 @@ export async function runReportStage1(
 ): Promise<string> {
   const rid = requestId ?? crypto.randomUUID().slice(0, 8)
   const t0 = Date.now()
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const client = wrapAnthropic(
+    new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  )
   const patientData = buildReportPromptData(formData, scores)
   const fullData = patientData + extractedDocsText
   const userPrompt = `${STAGE_1_USER_PREFIX}${fullData}`
@@ -624,7 +627,9 @@ export async function runReportStage2(
 ): Promise<string> {
   const rid = requestId ?? crypto.randomUUID().slice(0, 8)
   const t0 = Date.now()
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  const client = wrapAnthropic(
+    new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+  )
   const patientData = buildReportPromptData(formData, scores)
   const userPrompt = `${STAGE_2_USER_PREFIX}DADOS DO PACIENTE:\n${patientData}\n\n---\nANÁLISE CLÍNICA (seções 1-5):\n${stage1Output}`
 

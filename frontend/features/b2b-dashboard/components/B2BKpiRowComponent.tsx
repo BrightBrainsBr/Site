@@ -51,7 +51,7 @@ export function B2BKpiRowComponent({
       borderColor: '#0D9488',
     },
     {
-      label: 'Conformidade NR-1',
+      label: 'Conformidade',
       value: coveragePct != null ? `${coveragePct}%` : '–',
       valueColor: '#34D399',
       sub: groIssued

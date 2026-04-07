@@ -2,7 +2,7 @@
 'use client'
 
 import type { ScaleStepProps } from '../assessment.interface'
-import { ScaleQuestionField, SectionTitle } from '../fields'
+import { InfoBox, ScaleQuestionField, SectionTitle } from '../fields'
 import { StepNavigation } from '../StepNavigation'
 
 export function GenericScaleStep({
@@ -17,6 +17,7 @@ export function GenericScaleStep({
   title,
   subtitle,
   badge,
+  info,
 }: ScaleStepProps) {
   const scores = (data[scaleKey] as (number | null)[]) ?? []
   const answered = scores.filter((v) => v !== null).length
@@ -37,6 +38,12 @@ export function GenericScaleStep({
         badge={badge}
         required
       />
+
+      {info && (
+        <div className="mb-4">
+          <InfoBox variant="info">{info}</InfoBox>
+        </div>
+      )}
 
       <div className="mt-4 space-y-3">
         {questions.map((q, i) => (

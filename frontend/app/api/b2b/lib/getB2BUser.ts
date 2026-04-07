@@ -8,13 +8,24 @@ export async function getB2BUser(
   request: NextRequest,
   companyId: string
 ): Promise<
-  | { ok: true; companyId: string; userId: string; isPortalAdmin?: boolean }
+  | {
+      ok: true
+      companyId: string
+      userId: string
+      /** Set when the caller is portal code–authenticated (not a Supabase auth user UUID). */
+      isPortalAdmin?: boolean
+    }
   | { ok: false; status: number; body: object }
 > {
   const cookieStore = await cookies()
   const portalSession = cookieStore.get('portal_session')
   if (portalSession?.value) {
-    return { ok: true, companyId, userId: 'portal-admin', isPortalAdmin: true }
+    return {
+      ok: true,
+      companyId,
+      userId: 'portal-admin',
+      isPortalAdmin: true,
+    }
   }
 
   try {
@@ -38,7 +49,7 @@ export async function getB2BUser(
         .maybeSingle()
 
       if (!cuError && cu) {
-        return { ok: true, companyId, userId: user.id }
+        return { ok: true, companyId, userId: user.id, isPortalAdmin: false }
       }
     }
   } catch {

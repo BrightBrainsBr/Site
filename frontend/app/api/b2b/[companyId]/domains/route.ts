@@ -24,6 +24,8 @@ const DOMAIN_LABELS: Record<string, string> = {
   snapiv: 'TDAH Infantil (SNAP-IV)',
   spin: 'Fobia Social (SPIN)',
   auditc: 'Álcool (AUDIT-C)',
+  srq20: 'Saúde Mental (SRQ-20)',
+  aep_total: 'Riscos Ergonômicos (AEP)',
 }
 
 export const runtime = 'nodejs'

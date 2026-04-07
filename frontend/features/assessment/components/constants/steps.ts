@@ -2,6 +2,21 @@
 
 import type { StepDefinition } from '../assessment.interface'
 
+export const B2B_STEPS: StepDefinition[] = [
+  { id: 'welcome', label: 'Início', show: () => true },
+  { id: 'dados', label: 'Dados Pessoais', show: () => true },
+  { id: 'srq20', label: 'SRQ-20', show: () => true },
+  { id: 'phq9', label: 'PHQ-9 — Depressão', show: () => true },
+  { id: 'gad7', label: 'GAD-7 — Ansiedade', show: () => true },
+  { id: 'pss10', label: 'PSS-10 — Estresse', show: () => true },
+  { id: 'mbi', label: 'MBI — Burnout', show: () => true },
+  { id: 'isi', label: 'ISI — Sono', show: () => true },
+  { id: 'aep', label: 'AEP', show: () => true },
+  { id: 'canal_percepcao', label: 'Canal de Percepção', show: () => true },
+  { id: 'b2b_consents', label: 'Consentimentos', show: () => true },
+  { id: 'resumo', label: 'Resumo & Envio', show: () => true },
+]
+
 export const ALL_STEPS: StepDefinition[] = [
   { id: 'welcome', label: 'Início', show: () => true },
   { id: 'dados', label: 'Dados Pessoais', show: () => true },
