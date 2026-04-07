@@ -23,6 +23,7 @@ export async function GET(
   const cycleParam = searchParams.get('cycle')
   const statusFilter = searchParams.get('status')
   const departmentFilter = searchParams.get('department')
+  const aiGeneratedFilter = searchParams.get('ai_generated')
 
   const auth = await getB2BUser(request, companyId)
   if (!auth.ok) {
@@ -54,6 +55,11 @@ export async function GET(
   }
   if (departmentFilter) {
     query = query.eq('department', departmentFilter)
+  }
+  if (aiGeneratedFilter === 'true') {
+    query = query.eq('ai_generated', true)
+  } else if (aiGeneratedFilter === 'false') {
+    query = query.eq('ai_generated', false)
   }
 
   const { data: items, error } = await query
@@ -138,6 +144,7 @@ export async function POST(
         deadline: item.deadline ?? null,
         notes: item.notes ?? null,
         ai_generated: true,
+        ai_review_pending: true,
         created_by: auth.ok ? auth.userId : null,
       }))
 

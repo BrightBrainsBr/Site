@@ -45,6 +45,7 @@ export async function PATCH(
     'responsible',
     'deadline',
     'notes',
+    'ai_review_pending',
   ]
   const updates: Record<string, unknown> = {
     updated_at: new Date().toISOString(),

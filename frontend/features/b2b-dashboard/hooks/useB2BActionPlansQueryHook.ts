@@ -10,6 +10,7 @@ interface ActionPlansFilters {
   status?: string
   department?: string
   cycle?: string
+  ai_generated?: 'true' | 'false'
 }
 
 async function fetchActionPlans(
@@ -24,6 +25,8 @@ async function fetchActionPlans(
   if (filters?.department)
     url.searchParams.set('department', filters.department)
   if (filters?.cycle) url.searchParams.set('cycle', filters.cycle)
+  if (filters?.ai_generated !== undefined)
+    url.searchParams.set('ai_generated', filters.ai_generated)
   const res = await fetch(url.toString())
   if (!res.ok) throw new Error('Failed to fetch action plans')
   const body = await res.json()

@@ -54,14 +54,14 @@ const PROFILE_LABELS: Record<string, string> = {
   longevidade: 'Longevidade',
 }
 
-const B2B_SCALE_LABELS: { key: string; label: string; max?: number }[] = [
-  { key: 'srq20', label: 'SRQ-20 — Saúde Mental Geral', max: 20 },
-  { key: 'phq9', label: 'PHQ-9 — Depressão', max: 27 },
-  { key: 'gad7', label: 'GAD-7 — Ansiedade', max: 21 },
-  { key: 'pss10', label: 'PSS-10 — Estresse', max: 40 },
-  { key: 'mbi', label: 'MBI — Burnout', max: 132 },
-  { key: 'isi', label: 'ISI — Qualidade do Sono', max: 28 },
-  { key: 'aep_total', label: 'AEP — Fatores Psicossociais', max: 56 },
+const B2B_SCALE_LABELS: { key: string; label: string }[] = [
+  { key: 'srq20', label: 'SRQ-20 — Saúde Mental Geral' },
+  { key: 'phq9', label: 'PHQ-9 — Depressão' },
+  { key: 'gad7', label: 'GAD-7 — Ansiedade' },
+  { key: 'pss10', label: 'PSS-10 — Estresse' },
+  { key: 'mbi', label: 'MBI — Burnout' },
+  { key: 'isi', label: 'ISI — Qualidade do Sono' },
+  { key: 'aep_total', label: 'AEP — Fatores Psicossociais' },
 ]
 
 export function SummaryStep({
@@ -468,18 +468,20 @@ function B2BScalesSummary({ scores }: { scores: Record<string, number> }) {
         Escalas Preenchidas ({filled.length}/{B2B_SCALE_LABELS.length})
       </h4>
       <div className="space-y-1.5">
-        {filled.map(({ key, label, max }) => {
-          const score = scores[key]!
-          const pct = max ? Math.round((score / max) * 100) : null
-          return (
-            <div key={key} className="flex items-center justify-between gap-2">
-              <span className="text-xs text-zinc-400">{label}</span>
-              <span className="shrink-0 font-mono text-xs font-medium text-zinc-200">
-                {score}{max ? `/${max}` : ''}{pct !== null ? ` (${pct}%)` : ''}
-              </span>
-            </div>
-          )
-        })}
+        {filled.map(({ key, label }) => (
+          <div key={key} className="flex items-center justify-between gap-2">
+            <span className="text-xs text-zinc-400">{label}</span>
+            <svg
+              className="h-4 w-4 shrink-0 text-lime-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        ))}
       </div>
     </div>
   )

@@ -13,9 +13,9 @@ import { CID_CODES_NR1 } from '../../constants/cid-codes'
 import { useB2BDepartments } from '../../hooks/useB2BDepartments'
 import { useB2BEventsMutationHook } from '../../hooks/useB2BEventsMutationHook'
 import { useB2BEventsQueryHook } from '../../hooks/useB2BEventsQueryHook'
-import { useB2BPercepcaoQueryHook } from '../../hooks/useB2BPercepcaoQueryHook'
 import type { PdfJobDetail } from '../../hooks/useB2BPdfJobsHook'
 import { useB2BPdfJobsHook } from '../../hooks/useB2BPdfJobsHook'
+import { useB2BPercepcaoQueryHook } from '../../hooks/useB2BPercepcaoQueryHook'
 import { B2BPdfUploadModal } from '../shared/B2BPdfUploadModal'
 
 function CIDSearchSelect({
@@ -35,7 +35,10 @@ function CIDSearchSelect({
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false)
       }
     }
@@ -210,40 +213,110 @@ function PdfProcessingState({
   return (
     <div className="rounded-xl border border-[rgba(96,165,250,0.25)] bg-[rgba(96,165,250,0.06)] px-4 py-3">
       <div className="mb-2 flex items-center gap-2">
-        <svg className="h-4 w-4 animate-spin text-[#60A5FA]" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        <svg
+          className="h-4 w-4 animate-spin text-[#60A5FA]"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
         </svg>
         <span className="text-[14px] font-semibold text-[#60A5FA]">
           {isUploading ? 'Enviando arquivos…' : 'Processando PDFs com IA…'}
         </span>
-        <button onClick={onDismiss} className="ml-auto text-[#64748b] hover:text-[#94a3b8]" title="Cancelar">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <button
+          onClick={onDismiss}
+          className="ml-auto text-[#64748b] hover:text-[#94a3b8]"
+          title="Cancelar"
+        >
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
       <div className="mb-2 h-1 w-full overflow-hidden rounded-full bg-[rgba(96,165,250,0.15)]">
-        <div className="h-full animate-pulse rounded-full bg-[#60A5FA]" style={{ width: '60%' }} />
+        <div
+          className="h-full animate-pulse rounded-full bg-[#60A5FA]"
+          style={{ width: '60%' }}
+        />
       </div>
       {jobs.length > 0 && (
         <div className="mt-2 space-y-1">
           {jobs.map((job) => (
-            <div key={job.id} className="flex items-center gap-2 text-[13px] text-[#64748b]">
+            <div
+              key={job.id}
+              className="flex items-center gap-2 text-[13px] text-[#64748b]"
+            >
               {(job.status === 'pending' || job.status === 'processing') && (
-                <svg className="h-3 w-3 animate-spin text-[#60A5FA]" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <svg
+                  className="h-3 w-3 animate-spin text-[#60A5FA]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
               )}
               {job.status === 'completed' && (
-                <svg className="h-3 w-3 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="h-3 w-3 text-[#4ADE80]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               )}
               {job.status === 'failed' && (
-                <svg className="h-3 w-3 text-[#F87171]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="h-3 w-3 text-[#F87171]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               )}
               <span>{job.file_name}</span>
@@ -278,7 +351,9 @@ function ExtractedEventsPanel({
   const allFailed = jobs.length > 0 && failedJobs.length === jobs.length
   const extractedEvents = flattenExtractedEvents(jobs)
 
-  const [selected, setSelected] = useState<Set<number>>(() => new Set(extractedEvents.map((e) => e._idx)))
+  const [selected, setSelected] = useState<Set<number>>(
+    () => new Set(extractedEvents.map((e) => e._idx))
+  )
   const [expanded, setExpanded] = useState(true)
   const [confirmError, setConfirmError] = useState<string | null>(null)
 
@@ -287,7 +362,13 @@ function ExtractedEventsPanel({
   }, [extractedEvents.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isProcessing) {
-    return <PdfProcessingState jobs={jobs} isUploading={isUploading} onDismiss={onDismiss} />
+    return (
+      <PdfProcessingState
+        jobs={jobs}
+        isUploading={isUploading}
+        onDismiss={onDismiss}
+      />
+    )
   }
 
   if (!isAllComplete || jobs.length === 0) return null
@@ -296,15 +377,38 @@ function ExtractedEventsPanel({
     return (
       <div className="rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.06)] px-4 py-3">
         <div className="mb-2 flex items-center gap-2">
-          <svg className="h-4 w-4 text-[#F87171]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-4 w-4 text-[#F87171]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span className="text-[14px] font-semibold text-[#F87171]">
             Falha ao processar PDF{jobs.length !== 1 ? 's' : ''}
           </span>
-          <button onClick={onDismiss} className="ml-auto text-[#64748b] hover:text-[#94a3b8]">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={onDismiss}
+            className="ml-auto text-[#64748b] hover:text-[#94a3b8]"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -354,15 +458,39 @@ function ExtractedEventsPanel({
     return (
       <div className="rounded-xl border border-[rgba(251,191,36,0.25)] bg-[rgba(251,191,36,0.06)] px-4 py-3">
         <div className="flex items-center gap-2">
-          <svg className="h-4 w-4 text-[#FBBF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-4 w-4 text-[#FBBF24]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <span className="text-[14px] font-semibold text-[#FBBF24]">
-            Nenhum evento encontrado nos PDF{jobs.length !== 1 ? 's' : ''} enviados
+            Nenhum evento encontrado nos PDF{jobs.length !== 1 ? 's' : ''}{' '}
+            enviados
           </span>
-          <button onClick={onDismiss} className="ml-auto text-[#64748b] hover:text-[#94a3b8]">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={onDismiss}
+            className="ml-auto text-[#64748b] hover:text-[#94a3b8]"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -384,12 +512,24 @@ function ExtractedEventsPanel({
     <div className="rounded-[14px] border border-[rgba(74,222,128,0.2)] bg-[#0c1425] overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-[rgba(255,255,255,0.06)] px-4 py-3">
-        <svg className="h-5 w-5 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg
+          className="h-5 w-5 text-[#4ADE80]"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
         <div className="flex-1">
           <span className="text-[15px] font-semibold text-[#4ADE80]">
-            {extractedEvents.length} evento{extractedEvents.length !== 1 ? 's' : ''} extraído{extractedEvents.length !== 1 ? 's' : ''}
+            {extractedEvents.length} evento
+            {extractedEvents.length !== 1 ? 's' : ''} extraído
+            {extractedEvents.length !== 1 ? 's' : ''}
           </span>
           <span className="ml-2 text-[13px] text-[#64748b]">
             — Revise e confirme os eventos abaixo
@@ -402,9 +542,22 @@ function ExtractedEventsPanel({
           >
             {expanded ? 'Recolher' : 'Expandir'}
           </button>
-          <button onClick={onDismiss} className="text-[#64748b] hover:text-[#94a3b8]">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={onDismiss}
+            className="text-[#64748b] hover:text-[#94a3b8]"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -424,7 +577,8 @@ function ExtractedEventsPanel({
               {allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
             </label>
             <span className="text-[12px] text-[#475569]">
-              {selectedCount} de {extractedEvents.length} selecionado{selectedCount !== 1 ? 's' : ''}
+              {selectedCount} de {extractedEvents.length} selecionado
+              {selectedCount !== 1 ? 's' : ''}
             </span>
             <div className="ml-auto flex items-center gap-2">
               <button
@@ -448,7 +602,8 @@ function ExtractedEventsPanel({
           {/* Event list */}
           <div className="max-h-[400px] overflow-y-auto">
             {extractedEvents.map((ev) => {
-              const tCfg = EVENT_TYPE_CONFIG[ev.event_type] ?? EVENT_TYPE_CONFIG.outro
+              const tCfg =
+                EVENT_TYPE_CONFIG[ev.event_type] ?? EVENT_TYPE_CONFIG.outro
               const isSelected = selected.has(ev._idx)
               return (
                 <div
@@ -472,7 +627,9 @@ function ExtractedEventsPanel({
                       {ev.event_date && (
                         <span className="text-[13px] font-medium text-[#94a3b8]">
                           {/^\d{4}-\d{2}-\d{2}$/.test(ev.event_date)
-                            ? new Date(ev.event_date + 'T12:00:00').toLocaleDateString('pt-BR')
+                            ? new Date(
+                                ev.event_date + 'T12:00:00'
+                              ).toLocaleDateString('pt-BR')
                             : ev.event_date}
                         </span>
                       )}
@@ -555,8 +712,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
   const { uploadJobs, pollQuery, isAllComplete, reset } =
     useB2BPdfJobsHook(companyId)
   const pdfJobs: PdfJobDetail[] = pollQuery.data?.jobs ?? []
-  const hasPdfActivity =
-    uploadJobs.isPending || pdfJobs.length > 0
+  const hasPdfActivity = uploadJobs.isPending || pdfJobs.length > 0
 
   const { data: deptData } = useB2BDepartments(companyId, cycleId)
   const { data: eventsData, isLoading } = useB2BEventsQueryHook(companyId, {
@@ -653,9 +809,14 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
       <div className="mb-4">
         <div className="flex items-center gap-2">
           <span className="text-[20px]">🚨</span>
-          <h2 className="text-[20px] font-bold text-[#e2e8f0]">Eventos & Análise de Nexo Causal</h2>
+          <h2 className="text-[20px] font-bold text-[#e2e8f0]">
+            Eventos & Análise de Nexo Causal
+          </h2>
         </div>
-        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">Ref. NR-1: 1.5.5.5 — Registro de materialização de riscos e vinculação CID-10</p>
+        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">
+          Ref. NR-1: 1.5.5.5 — Registro de materialização de riscos e vinculação
+          CID-10
+        </p>
       </div>
 
       {/* KPI cards */}
@@ -709,7 +870,7 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
           onClick={() => setShowUploadModal(true)}
           className="rounded-lg bg-[rgba(96,165,250,0.15)] border border-[rgba(96,165,250,0.3)] px-4 py-2 text-[14px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.25)]"
         >
-          Upload PDF (lote)
+          Upload PDF
         </button>
 
         {/* Type filter */}
@@ -719,13 +880,16 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
           className="ml-auto rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-1.5 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
         >
           <option value="">Todos os tipos</option>
-          {(Object.entries(EVENT_TYPE_CONFIG) as [EventType, { label: string }][]).map(
-            ([k, v]) => (
-              <option key={k} value={k}>
-                {v.label}
-              </option>
-            )
-          )}
+          {(
+            Object.entries(EVENT_TYPE_CONFIG) as [
+              EventType,
+              { label: string },
+            ][]
+          ).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v.label}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -911,7 +1075,8 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
               </thead>
               <tbody>
                 {events.map((ev) => {
-                  const tCfg = EVENT_TYPE_CONFIG[ev.event_type] ?? EVENT_TYPE_CONFIG.outro
+                  const tCfg =
+                    EVENT_TYPE_CONFIG[ev.event_type] ?? EVENT_TYPE_CONFIG.outro
                   return (
                     <tr
                       key={ev.id}
@@ -923,7 +1088,10 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
                       <td className="py-2.5">
                         <span
                           className="whitespace-nowrap rounded-full px-2 py-0.5 text-[12px] font-semibold"
-                          style={{ color: tCfg.color, backgroundColor: tCfg.bg }}
+                          style={{
+                            color: tCfg.color,
+                            backgroundColor: tCfg.bg,
+                          }}
                         >
                           {tCfg.label}
                         </span>
