@@ -16,12 +16,24 @@ import {
 } from '../prompts/action-plan-generator.prompts'
 import { fetchGroAggregation } from './action-plan-generator.storage'
 
+function normalizePriority(v: string): 'alta' | 'media' | 'baixa' {
+  const normalized = v
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+  if (normalized === 'alta' || normalized === 'critica') return 'alta'
+  if (normalized === 'media') return 'media'
+  if (normalized === 'baixa') return 'baixa'
+  return 'media'
+}
+
 const actionPlanSchema = z.object({
   plans: z.array(
     z.object({
       description: z.string(),
       department: z.string().optional(),
-      priority: z.enum(['alta', 'media', 'baixa']),
+      priority: z.string().transform(normalizePriority),
       responsible: z.string().optional(),
       deadline: z.string().optional(),
       notes: z.string().optional(),

@@ -7,16 +7,17 @@ Com base nos dados do GRO (Gerenciamento de Riscos Ocupacionais) psicossocial, g
 
 Regras:
 - Cada plano deve ter descrição clara e acionável
-- Prioridade baseada na severidade dos dados (alta = risco crítico, media = risco moderado, baixa = melhoria)
+- Use EXATAMENTE estes valores para prioridade: "alta", "media", "baixa" (sem acentos)
 - Sugira responsáveis genéricos quando apropriado (RH, Gestor, SESMT, Comitê SST)
-- Prazos sugeridos devem ser realistas (30, 60, 90, 180 dias)
+- Prazos sugeridos devem ser realistas no formato YYYY-MM-DD (30, 60, 90, 180 dias a partir de hoje)
 - Gere entre 5 e 10 planos de ação
 - Foque em intervenções baseadas em evidências
 - Considere dimensões AEP (pressão, autonomia, pausas, relações, cognitiva, ambiente)
 - Se um departamento específico foi solicitado, foque nele
 - Quando não há dados de avaliações ainda, gere um plano de ação de implantação inicial da NR-1 com ações obrigatórias de conformidade
 
-Responda APENAS com JSON válido no formato especificado.`
+Responda APENAS com JSON válido. Formato obrigatório:
+{"plans": [{"description": "...", "department": "...", "priority": "alta|media|baixa", "responsible": "...", "deadline": "YYYY-MM-DD", "notes": "..."}]}`
 
 export function buildGroContextMessage(ctx: GROContext, department?: string): string {
   const lines: string[] = [
