@@ -1,5 +1,7 @@
 // frontend/features/b2b-dashboard/hooks/useB2BActionPlansMutationHook.ts
 
+// frontend/features/b2b-dashboard/hooks/useB2BActionPlansMutationHook.ts
+
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import type {
@@ -85,6 +87,39 @@ export function useB2BActionPlansMutationHook(
     onSuccess: invalidate,
   })
 
+  const acceptPlan = useMutation<B2BActionPlan, Error, string>({
+    mutationFn: (planId) =>
+      patchJSON(`${basePath}/${planId}${cycleQuery}`, {
+        ai_review_pending: false,
+      }),
+    onSuccess: invalidate,
+  })
+
+  const rejectPlan = useMutation<{ success: boolean }, Error, string>({
+    mutationFn: (planId) => deleteFetch(`${basePath}/${planId}`),
+    onSuccess: invalidate,
+  })
+
+  const acceptAllAIPending = useMutation<void, Error, string[]>({
+    mutationFn: async (planIds) => {
+      await Promise.all(
+        planIds.map((id) =>
+          patchJSON(`${basePath}/${id}${cycleQuery}`, {
+            ai_review_pending: false,
+          })
+        )
+      )
+    },
+    onSuccess: invalidate,
+  })
+
+  const rejectAllAIPending = useMutation<void, Error, string[]>({
+    mutationFn: async (planIds) => {
+      await Promise.all(planIds.map((id) => deleteFetch(`${basePath}/${id}`)))
+    },
+    onSuccess: invalidate,
+  })
+
   const generatePlans = useMutation<
     B2BActionPlan[],
     Error,
@@ -100,5 +135,14 @@ export function useB2BActionPlansMutationHook(
     onSuccess: invalidate,
   })
 
-  return { createPlan, updatePlan, deletePlan, generatePlans }
+  return {
+    createPlan,
+    updatePlan,
+    deletePlan,
+    acceptPlan,
+    rejectPlan,
+    acceptAllAIPending,
+    rejectAllAIPending,
+    generatePlans,
+  }
 }

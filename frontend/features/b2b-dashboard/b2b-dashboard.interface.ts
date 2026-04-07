@@ -136,16 +136,19 @@ export interface B2BActionPlan {
   deadline?: string
   notes?: string
   ai_generated: boolean
+  ai_review_pending: boolean
+  created_by?: string | null
   created_at: string
 }
 
 export type CreateActionPlanInput = Omit<
   B2BActionPlan,
-  'id' | 'company_id' | 'created_at' | 'ai_generated'
+  'id' | 'company_id' | 'created_at' | 'ai_generated' | 'ai_review_pending' | 'created_by'
 >
 
 export type UpdateActionPlanInput = Partial<CreateActionPlanInput> & {
   planId: string
+  ai_review_pending?: boolean
 }
 
 // --- Events & Nexo ---

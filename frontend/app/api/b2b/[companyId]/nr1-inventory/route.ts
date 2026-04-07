@@ -5,10 +5,125 @@ import { jsPDF } from 'jspdf'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { LOGO_PNG_RAW } from '../../../assessment/generate-pdf/pdf-helpers'
 import { getB2BUser, resolveCycle } from '../../lib/getB2BUser'
 import { computeNormalizedScore, getRiskLevel } from '../../lib/riskUtils'
 
 export const runtime = 'nodejs'
+
+// ─── Dashboard Dark Theme Palette (RGB) ───────────────────────────────────────
+const C = {
+  pageBg: [12, 20, 37] as [number, number, number],
+  cardBg: [17, 27, 46] as [number, number, number],
+  textPrimary: [226, 232, 240] as [number, number, number],
+  textSecondary: [148, 163, 184] as [number, number, number],
+  textMuted: [100, 116, 139] as [number, number, number],
+  lime: [197, 225, 85] as [number, number, number],
+  border: [40, 50, 70] as [number, number, number],
+}
+
+const PAGE_W = 210
+const MARGIN = 16
+const CONTENT_W = PAGE_W - MARGIN * 2
+
+function initPage(doc: jsPDF) {
+  doc.setFillColor(...C.pageBg)
+  doc.rect(0, 0, PAGE_W, 297, 'F')
+}
+
+function drawPageHeader(
+  doc: jsPDF,
+  companyName: string,
+  reportTitle: string,
+  subtitle?: string
+) {
+  // Navy header background
+  doc.setFillColor(...C.cardBg)
+  doc.rect(0, 0, PAGE_W, 26, 'F')
+
+  // Lime bottom stripe
+  doc.setFillColor(...C.lime)
+  doc.rect(0, 26, PAGE_W, 2, 'F')
+
+  // Logo
+  try {
+    doc.addImage(LOGO_PNG_RAW, 'PNG', MARGIN, 5, 16, 16)
+  } catch {
+    // logo optional
+  }
+
+  // Brand text
+  doc.setFontSize(13)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...C.lime)
+  doc.text('BRIGHT PRECISION', MARGIN + 20, 13)
+
+  doc.setFontSize(7)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...C.textSecondary)
+  doc.text('Bright Brains · Instituto da Mente', MARGIN + 20, 18)
+
+  // Title
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(16)
+  doc.setTextColor(...C.textPrimary)
+  doc.text(reportTitle, MARGIN, 40)
+
+  // Subtitle row
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(...C.textSecondary)
+  doc.text(`Empresa: ${companyName}`, MARGIN, 48)
+  if (subtitle) doc.text(subtitle, MARGIN, 54)
+
+  doc.setTextColor(...C.textMuted)
+  doc.text(
+    `Data: ${new Date().toLocaleDateString('pt-BR')}`,
+    PAGE_W - MARGIN,
+    48,
+    {
+      align: 'right',
+    }
+  )
+
+  // Subtle separator line
+  doc.setDrawColor(...C.border)
+  doc.setLineWidth(0.2)
+  doc.line(MARGIN, 58, PAGE_W - MARGIN, 58)
+}
+
+function drawFooter(doc: jsPDF, pageNum?: number) {
+  const ph = doc.internal.pageSize.getHeight()
+  doc.setDrawColor(...C.border)
+  doc.setLineWidth(0.2)
+  doc.line(MARGIN, ph - 12, PAGE_W - MARGIN, ph - 12)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...C.textMuted)
+  doc.text('BrightMonitor · Saúde Mental Corporativa', MARGIN, ph - 6)
+
+  if (pageNum !== undefined) {
+    doc.text(`Página ${pageNum}`, PAGE_W - MARGIN, ph - 6, { align: 'right' })
+  }
+}
+
+function safeString(val: unknown): string {
+  if (typeof val === 'string') return val
+  if (Array.isArray(val)) return val.join(', ')
+  if (typeof val === 'object' && val !== null) {
+    try {
+      const text = (val as any).text || (val as any).value
+      if (text && typeof text === 'string') return text
+      return JSON.stringify(val)
+    } catch {
+      return 'Não informado'
+    }
+  }
+  return val != null
+    ? String(val as string | number | boolean)
+    : 'Não informado'
+}
 
 const SCALE_MAX: Record<string, number> = {
   phq9: 27,
@@ -132,64 +247,67 @@ function buildInventoryPdf(
   companyName: string
 ): ArrayBuffer {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-  const pageWidth = doc.internal.pageSize.getWidth()
-  const margin = 20
-  const contentWidth = pageWidth - margin * 2
-  let y = margin
+  let pageNum = 1
 
-  doc.setFontSize(14)
-  doc.setFont('helvetica', 'bold')
-  doc.text('INVENTÁRIO DE RISCOS PSICOSSOCIAIS – NR-1', pageWidth / 2, y, {
-    align: 'center',
-  })
-  y += 8
+  initPage(doc)
+  drawPageHeader(doc, companyName, 'INVENTÁRIO DE RISCOS PSICOSSOCIAIS – NR-1')
 
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.text(`Empresa: ${companyName}`, margin, y)
-  y += 5
-  doc.text(
-    `Data de Geração: ${new Date().toLocaleDateString('pt-BR')}`,
-    margin,
-    y
-  )
-  y += 10
-
-  doc.setDrawColor(0)
-  doc.line(margin, y, pageWidth - margin, y)
-  y += 8
+  let y = 68
 
   const allFields = [...automated, ...companyFields]
 
   for (const field of allFields) {
     if (y > 260) {
+      drawFooter(doc, pageNum)
       doc.addPage()
-      y = margin
+      pageNum++
+      initPage(doc)
+      drawPageHeader(
+        doc,
+        companyName,
+        'INVENTÁRIO DE RISCOS PSICOSSOCIAIS – NR-1 (cont.)'
+      )
+      y = 68
     }
 
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
-    doc.text(field.label, margin, y)
-    y += 5
+    doc.setTextColor(...C.textPrimary)
+    doc.text(field.label, MARGIN, y)
+    y += 6
 
     doc.setFont('helvetica', 'normal')
-    const lines = doc.splitTextToSize(field.value, contentWidth)
-    doc.text(lines, margin, y)
-    y += lines.length * 4.5 + 6
+    doc.setFontSize(9)
+    doc.setTextColor(...C.textSecondary)
+    const lines = doc.splitTextToSize(safeString(field.value), CONTENT_W)
+    doc.text(lines, MARGIN, y)
+    y += lines.length * 5 + 8
   }
 
   y += 5
   if (y > 260) {
+    drawFooter(doc, pageNum)
     doc.addPage()
-    y = margin
+    pageNum++
+    initPage(doc)
+    drawPageHeader(
+      doc,
+      companyName,
+      'INVENTÁRIO DE RISCOS PSICOSSOCIAIS – NR-1 (cont.)'
+    )
+    y = 68
   }
+
   doc.setFontSize(8)
   doc.setFont('helvetica', 'italic')
+  doc.setTextColor(...C.textMuted)
   doc.text(
     'Documento gerado automaticamente pelo sistema BrightMonitor conforme NR-1 (Portaria MTP nº 4.219/2022).',
-    margin,
+    MARGIN,
     y
   )
+
+  drawFooter(doc, pageNum)
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   return doc.output('arraybuffer') as ArrayBuffer
@@ -257,17 +375,18 @@ export async function POST(
   const companyFields: InventoryField[] = [
     {
       label: '7. Descrição dos Processos de Trabalho',
-      value: company.nr1_process_descriptions ?? 'Não informado',
+      value: safeString(company.nr1_process_descriptions),
     },
     {
       label: '8. Atividades da Empresa',
       value:
-        company.nr1_activities ??
-        `CNAE: ${company.cnae ?? 'N/I'} | Grau de Risco: ${company.risk_grade ?? 'N/I'}`,
+        safeString(company.nr1_activities) !== 'Não informado'
+          ? safeString(company.nr1_activities)
+          : `CNAE: ${company.cnae ?? 'N/I'} | Grau de Risco: ${company.risk_grade ?? 'N/I'}`,
     },
     {
       label: '9. Medidas Preventivas Implementadas',
-      value: company.nr1_preventive_measures ?? 'Não informado',
+      value: safeString(company.nr1_preventive_measures),
     },
   ]
 

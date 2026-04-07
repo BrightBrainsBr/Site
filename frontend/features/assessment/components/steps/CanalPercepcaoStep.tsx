@@ -37,21 +37,6 @@ const IMPACTO_OPTIONS = [
   { label: 'Crítico', value: 'critico' },
 ] as const
 
-const DEFAULT_SETORES = [
-  'Administrativo',
-  'Comercial',
-  'Financeiro',
-  'Jurídico',
-  'Marketing',
-  'Operações',
-  'RH',
-  'TI',
-  'Produção',
-  'Logística',
-  'Atendimento',
-  'Outro',
-] as const
-
 interface CanalPercepcao {
   urgencia: string
   tipo: string
@@ -97,7 +82,6 @@ export function CanalPercepcaoStep({
   setData,
   onPrev,
   onNext,
-  companyContext,
 }: StepComponentProps) {
   const canal: CanalPercepcao = (data.canal_percepcao as CanalPercepcao) ?? { ...EMPTY_CANAL }
 
@@ -105,17 +89,10 @@ export function CanalPercepcaoStep({
     setData({ ...data, canal_percepcao: { ...canal, [field]: value } })
   }
 
-  const departments = companyContext?.departments ?? []
-  const setorList: string[] =
-    departments.length > 0
-      ? [...departments, 'Outro']
-      : [...DEFAULT_SETORES]
-
   const isValid =
     canal.urgencia !== '' &&
     canal.tipo !== '' &&
     canal.frequencia !== '' &&
-    canal.setor !== '' &&
     canal.impacto !== '' &&
     canal.descricao.trim().length > 0
 
@@ -242,34 +219,6 @@ export function CanalPercepcaoStep({
                   )}
                 >
                   {opt.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Setor / Departamento — column buttons */}
-        <div>
-          <FieldLabel
-            label="Setor / Departamento"
-            hint="Selecionar o setor ajuda o RH a cruzar com o Inventário de Riscos. Não identifica você."
-          />
-          <div className="flex flex-col gap-2">
-            {setorList.map((s) => {
-              const active = canal.setor === s
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => update('setor', s)}
-                  className={twMerge(
-                    'w-full rounded-lg border px-4 py-2.5 text-center text-sm transition-colors',
-                    active
-                      ? 'border-lime-400 bg-lime-400/10 font-semibold text-lime-400'
-                      : 'border-zinc-700 bg-zinc-800/20 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300'
-                  )}
-                >
-                  {s}
                 </button>
               )
             })}

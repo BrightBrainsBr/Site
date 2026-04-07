@@ -223,12 +223,12 @@ function drawHeader(doc: jsPDF, evalId: string, today: string) {
   doc.setFontSize(5.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_M)
   doc.text(`Emiss\u00E3o: ${today}`, PW - MX, 17, { align: 'right' })
 
-  // CONFIDENCIAL badge (red)
+  // CONFIDENCIAL badge — centered, muted gray
   doc.setFontSize(5.5); doc.setFont('helvetica', 'bold')
   const bt = 'CONFIDENCIAL \u2014 LGPD'
-  const bw = doc.getTextWidth(bt) + 6; const bx = PW - MX - bw
-  sf(doc, [140, 28, 28]); doc.roundedRect(bx, 18.5, bw, 5, 1, 1, 'F')
-  st(doc, WHITE); doc.text(bt, bx + 3, 22)
+  const bw = doc.getTextWidth(bt) + 8; const bx = (PW - bw) / 2
+  sf(doc, [70, 85, 105]); doc.roundedRect(bx, 18.5, bw, 5, 1, 1, 'F')
+  st(doc, WHITE); doc.text(bt, bx + bw / 2, 22, { align: 'center' })
 
   fr(doc, 0, HDR_H - 2, PW, 2, LIME)
 }
@@ -244,12 +244,17 @@ function drawFooter(doc: jsPDF, today: string, pageNum: number) {
 // ── Section heading ──────────────────────────────────────────────────────────
 
 function secHead(doc: jsPDF, title: string, ref: string | null, y: number): number {
-  doc.setFontSize(13); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
-  doc.text(title, MX, y); y += 3
-  fr(doc, MX, y, CW, 0.8, LIME); y += 5
+  // Light background bar behind the title for visual separation
+  fr(doc, MX - 2, y - 4, CW + 4, 13, [237, 242, 250])
+  doc.setFontSize(14); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+  doc.text(title, MX + 2, y + 5); y += 10
+  fr(doc, MX, y, CW, 1.2, LIME); y += 6
   if (ref) {
     doc.setFontSize(7.5); doc.setFont('helvetica', 'italic'); st(doc, TXT_L)
-    doc.text(ref, MX, y); y += 5
+    for (const l of doc.splitTextToSize(ref, CW) as string[]) {
+      doc.text(l, MX, y); y += 4.5
+    }
+    y += 2
   }
   return y
 }
@@ -506,32 +511,112 @@ function pdcaTable(doc: jsPDF, rows: PdcaRow[], y: number, ens: (y: number, n: n
 
 // ── Body text renderer ───────────────────────────────────────────────────────
 
+function cleanText(s: string): string {
+  return s
+    .replace(/`([^`]*)`/g, '$1')      // strip inline code backticks
+    .replace(/\u2264/g, '<=')         // ≤ → <=
+    .replace(/\u2265/g, '>=')         // ≥ → >=
+    .replace(/\u00B7|\u2022/g, '-')   // middle dots to dash for safety
+    .trim()
+}
+
+function isFullBoldLine(s: string): boolean {
+  const t = s.trim()
+  return t.startsWith('**') && t.endsWith('**') && t.slice(2, -2).indexOf('**') === -1
+}
+
 function bodyText(doc: jsPDF, content: string, y: number, ens: (y: number, n: number) => number): number {
+  let prevWasParagraph = false
+
   for (const raw of content.split('\n')) {
     const line = raw.trim()
-    if (!line) { y += 2; continue }
+
+    if (!line) {
+      y += prevWasParagraph ? 4 : 2
+      prevWasParagraph = false
+      continue
+    }
+
+    // Skip level 1/2 headings (already handled by secHead)
     if (/^#{1,2}\s/.test(line)) continue
     // Skip markdown table rows and separator lines
     if (/^\|/.test(line) || /^\|?[-:]+\|/.test(line)) continue
     // Skip horizontal rules
-    if (/^-{3,}$/.test(line) || /^\*{3,}$/.test(line)) { y += 4; continue }
+    if (/^-{3,}$/.test(line) || /^\*{3,}$/.test(line)) { y += 5; continue }
 
+    // ### Sub-heading
     if (line.startsWith('### ')) {
-      y = ens(y, 11); doc.setFontSize(9); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
-      doc.text(line.replace(/^###\s+/, '').replace(/\*\*/g, ''), MX, y); y += 6; continue
+      y = ens(y, 14)
+      y += 3
+      const heading = cleanText(line.replace(/^###\s+/, '').replace(/\*\*/g, ''))
+      // small lime accent bar
+      fr(doc, MX, y - 1, 3, 7, LIME)
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+      doc.text(heading, MX + 6, y + 4)
+      y += 10
+      prevWasParagraph = false
+      continue
+    }
+
+    // #### or ##### treated as bold label
+    if (/^#{4,}\s/.test(line)) {
+      const heading = cleanText(line.replace(/^#+\s+/, '').replace(/\*\*/g, ''))
+      y = ens(y, 8)
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
+      doc.text(heading, MX, y); y += 6
+      prevWasParagraph = false
+      continue
     }
 
     const isBullet = /^[-•*]\s/.test(line)
-    const plain = line.replace(/^[-•*]\s+/, '').replace(/\*\*/g, '').replace(/^#+\s*/, '').trim()
+    let plain = line.replace(/^[-•*]\s+/, '').replace(/^#+\s*/, '').trim()
+    plain = cleanText(plain)
     if (!plain) continue
-    const prefix = isBullet ? '\u2022 ' : ''
-    const indent = isBullet ? 5 : 0
-    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_B)
-    for (const wl of doc.splitTextToSize(prefix + plain, CW - indent - 2) as string[]) {
-      y = ens(y, 6); doc.text(wl, MX + indent, y); y += 5
+
+    const isBold = isFullBoldLine(plain)
+    const displayText = plain.replace(/^\*\*/, '').replace(/\*\*$/, '').replace(/\*\*/g, '')
+
+    const prefix = isBullet ? '\u2022  ' : ''
+    const indent = isBullet ? 6 : 0
+    const wrapW = CW - indent - 4
+
+    if (!isBullet && isBold) {
+      // Bold paragraph label — slightly bigger, dark navy
+      y = ens(y, 9)
+      y += 2
+      doc.setFontSize(9.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_H)
+      for (const wl of doc.splitTextToSize(displayText, wrapW) as string[]) {
+        y = ens(y, 7); doc.text(wl, MX, y); y += 6
+      }
+      prevWasParagraph = false
+    } else {
+      // Normal paragraph or bullet
+      const fs = isBullet ? 8.5 : 9
+      doc.setFontSize(fs); st(doc, TXT_B)
+
+      const hasInlineBold = /\*\*/.test(plain)
+      if (hasInlineBold && !isBullet) {
+        // Render line with bold spans stripped, whole line in bold
+        doc.setFont('helvetica', 'bold')
+        const stripped = displayText.replace(/\*\*/g, '')
+        for (const wl of doc.splitTextToSize(stripped, wrapW) as string[]) {
+          y = ens(y, 7); doc.text(wl, MX, y); y += 5.5
+        }
+      } else {
+        doc.setFont('helvetica', 'normal')
+        const wrapped = doc.splitTextToSize(prefix + displayText, wrapW) as string[]
+        for (let i = 0; i < wrapped.length; i++) {
+          y = ens(y, 7)
+          doc.text(wrapped[i]!, MX + (isBullet && i > 0 ? indent + 3 : indent), y)
+          y += 5.5
+        }
+      }
+      // Extra gap after paragraph blocks (not bullets)
+      if (!isBullet) { y += 2; prevWasParagraph = true }
+      else prevWasParagraph = false
     }
   }
-  return y + 3
+  return y + 4
 }
 
 // ── History table ────────────────────────────────────────────────────────────
@@ -627,8 +712,8 @@ export async function buildPdf(
     y += 6; fr(doc, MX, y, CW, 0.8, LIME); y += 7
 
     // ── Section 1: Employee ────────────────────────────────────────────────
-    y = ens(y, 10); y = secHead(doc, '1. Identifica\u00E7\u00E3o do Colaborador', null, y)
-    y = ens(y, 38)
+    y = ens(y, 20); y = secHead(doc, '1. Identifica\u00E7\u00E3o do Colaborador', null, y)
+    y = ens(y, 42)
     y = infoGrid(doc, [
       { l1: 'NOME COMPLETO',       v1: s(fd.nome),
         l2: 'CPF',                 v2: maskCpf(fd.cpf) },
@@ -641,7 +726,7 @@ export async function buildPdf(
     ], y); y += 2
 
     // ── Section 2: Company ─────────────────────────────────────────────────
-    y = ens(y, 10); y = secHead(doc, '2. Identifica\u00E7\u00E3o da Empresa', null, y)
+    y += 6; y = ens(y, 20); y = secHead(doc, '2. Identifica\u00E7\u00E3o da Empresa', null, y)
     y = ens(y, 22)
     y = infoGrid(doc, [
       { l1: 'RAZ\u00C3O SOCIAL', v1: s(co.name),       l2: 'CNPJ',         v2: s(co.cnpj) },
@@ -649,7 +734,7 @@ export async function buildPdf(
     ], y); y += 2
 
     // ── Section 3: Assessment data ─────────────────────────────────────────
-    y = ens(y, 10); y = secHead(doc, '3. Dados da Avalia\u00E7\u00E3o', null, y)
+    y += 6; y = ens(y, 20); y = secHead(doc, '3. Dados da Avalia\u00E7\u00E3o', null, y)
     y = ens(y, 30)
     y = infoGrid(doc, [
       { l1: 'ID DO LAUDO',          v1: laudoId(state.evaluationId), l2: 'DATA DA AVALIA\u00C7\u00C3O', v2: today },
@@ -658,7 +743,7 @@ export async function buildPdf(
     ], y); y += 2
 
     // ── Section 4: Scale scores ────────────────────────────────────────────
-    y = ens(y, 10)
+    y += 6; y = ens(y, 20)
     y = secHead(doc, '4. Resultados das Escalas Cl\u00EDnicas',
       'As escalas abaixo foram aplicadas via plataforma BrightMonitor e comp\u00F5em a avalia\u00E7\u00E3o de sa\u00FAde mental para mapeamento de riscos psicossociais.',
       y)
@@ -673,7 +758,7 @@ export async function buildPdf(
     y += 3
 
     // ── Section 5: AEP ────────────────────────────────────────────────────
-    y = ens(y, 10)
+    y += 6; y = ens(y, 20)
     y = secHead(doc, '5. Avalia\u00E7\u00E3o Ergon\u00F4mica Preliminar (AEP)',
       'Ref. NR-1: 1.5.3.2.1 \u00B7 NR-17 \u2014 Fatores psicossociais e organizacionais do posto de trabalho.',
       y)
@@ -706,7 +791,7 @@ export async function buildPdf(
     y += 4
 
     // ── Section 6: Risk classification ────────────────────────────────────
-    y = ens(y, 10)
+    y += 6; y = ens(y, 20)
     y = secHead(doc, '6. Classifica\u00E7\u00E3o de Risco Psicossocial Integrado',
       'Resultado da matriz probabilidade \u00D7 severidade conforme metodologia BrightMonitor, integrando dados das escalas cl\u00EDnicas, AEP e SRQ-20.',
       y)
@@ -717,7 +802,7 @@ export async function buildPdf(
     y += 4
 
     // ── Section 7: PDCA ───────────────────────────────────────────────────
-    y = ens(y, 10)
+    y += 6; y = ens(y, 20)
     y = secHead(doc, '7. Plano de A\u00E7\u00E3o Individual (PDCA)',
       'Ref. NR-1: 1.5.5.2 \u2014 Medidas de preven\u00E7\u00E3o com respons\u00E1veis e prazos.',
       y)
@@ -732,7 +817,7 @@ export async function buildPdf(
     y += 4
 
     // ── Section 8: History / Trends ────────────────────────────────────────
-    y = ens(y, 10)
+    y += 6; y = ens(y, 20)
     y = secHead(doc, '8. Hist\u00F3rico de Avalia\u00E7\u00F5es (Linha do Tempo)',
       'Ref. NR-1: 1.5.7.3.3.1 \u2014 Registro com reten\u00E7\u00E3o garantida de 20 anos.',
       y)
@@ -743,7 +828,7 @@ export async function buildPdf(
     y += 5
 
     // ── Section 9: Nota Metodológica ──────────────────────────────────────
-    y = ens(y, 10)
+    y += 6; y = ens(y, 20)
     y = secHead(doc, '9. Nota Metodol\u00F3gica',
       'Ref. NR-1: 1.5.4.4.2.2 \u2014 Crit\u00E9rios de avalia\u00E7\u00E3o expl\u00EDcitos e documentados.',
       y)
@@ -753,31 +838,37 @@ export async function buildPdf(
     y += 2
 
     // ── Section 10: Validação e Assinaturas ───────────────────────────────
-    y = ens(y, 45)
+    y += 6; y = ens(y, 75)
     y = secHead(doc, '10. Valida\u00E7\u00E3o e Assinaturas', null, y)
-    y += 4
+    y += 6
 
-    // Two signature blocks
     const sigW = (CW - 10) / 2
     const sig1X = MX; const sig2X = MX + sigW + 10
 
+    // Labels above signature lines
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
+    doc.text('Assinatura do Responsável Técnico', sig1X, y)
+    doc.text('Assinatura do Responsável SST da Empresa', sig2X, y)
+    y += 20
+
+    // Signature lines — with extra height above for actual signing
     for (const sx of [sig1X, sig2X]) {
-      sd(doc, TXT_L); doc.setLineWidth(0.3)
+      sd(doc, TXT_L); doc.setLineWidth(0.4)
       doc.line(sx, y, sx + sigW, y)
     }
-    y += 5
+    y += 6
 
-    doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); st(doc, TXT_B)
     doc.text(co.sst_responsible_name || 'Dra. Soraya Aurani Jorge Cecilio', sig1X, y)
     doc.text('Respons\u00E1vel SST da Empresa', sig2X, y)
     y += 5
-    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); st(doc, TXT_L)
     doc.text('Diretora T\u00E9cnica BrightMonitor', sig1X, y)
     doc.text('Assinatura Digital ICP-Brasil', sig2X, y)
-    y += 4.5
+    y += 5
     doc.text('CRM/SP 60.246', sig1X, y)
-    doc.text('Carimbo de data/hora', sig2X, y)
-    y += 10
+    doc.text(`Data/hora: ${today}`, sig2X, y)
+    y += 12
 
     // Legal notice
     doc.setFontSize(7); doc.setFont('helvetica', 'italic'); st(doc, TXT_M)
@@ -785,10 +876,6 @@ export async function buildPdf(
     for (const l of doc.splitTextToSize(legal, CW) as string[]) {
       y = ens(y, 5); doc.text(l, MX, y); y += 4
     }
-    y += 4
-
-    // ── Confidentiality stamp ─────────────────────────────────────────────
-    y = ens(y, 22); y = confStamp(doc, y)
 
     // ── Footers on all pages ──────────────────────────────────────────────
     const total = doc.getNumberOfPages()
