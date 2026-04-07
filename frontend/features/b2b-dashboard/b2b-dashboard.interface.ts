@@ -232,6 +232,10 @@ export interface B2BReportResponse {
   generatedAt: string
 }
 
+export interface B2BReportDownloadResult {
+  generatedAt: string
+}
+
 // --- NR-1 Fields & Settings ---
 
 export interface B2BNR1Data {

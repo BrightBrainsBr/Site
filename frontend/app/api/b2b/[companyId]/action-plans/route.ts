@@ -10,6 +10,9 @@ import { getB2BUser, resolveCycle } from '../../lib/getB2BUser'
 import { buildAndInvokeActionPlanGraph } from './lib/invokeActionPlanAgent'
 
 export const runtime = 'nodejs'
+export const maxDuration = 120
+
+const TAG = '[b2b/action-plans]'
 
 export async function GET(
   request: NextRequest,
@@ -56,7 +59,7 @@ export async function GET(
   const { data: items, error } = await query
 
   if (error) {
-    console.error('[b2b/action-plans]', error)
+    console.error(`${TAG} GET error`, error)
     return NextResponse.json(
       { error: 'Erro ao buscar planos' },
       { status: 500 }
@@ -108,12 +111,21 @@ export async function POST(
   )
 
   if (body.generate === true) {
+    const t0 = Date.now()
+    console.warn(
+      `${TAG} GENERATE START company=${companyId} cycle=${cycleRes.cycleId}`
+    )
+
     try {
       const generated = await buildAndInvokeActionPlanGraph({
         companyId,
         cycleId: cycleRes.cycleId,
         department: body.department ?? null,
       })
+
+      console.warn(
+        `${TAG} GENERATE LLM DONE plans=${generated.length} in ${Date.now() - t0}ms`
+      )
 
       const rows = generated.map((item) => ({
         company_id: companyId,
@@ -137,19 +149,27 @@ export async function POST(
       await ensureTracingFlushed()
 
       if (error) {
-        console.error('[b2b/action-plans] insert AI plans', error)
+        console.error(`${TAG} INSERT FAILED`, error)
         return NextResponse.json(
-          { error: 'Erro ao salvar planos gerados' },
+          { error: `Erro ao salvar planos gerados: ${error.message}` },
           { status: 500 }
         )
       }
 
+      console.warn(
+        `${TAG} GENERATE COMPLETE plans=${data?.length ?? 0} total=${Date.now() - t0}ms`
+      )
       return NextResponse.json({ items: data })
     } catch (err) {
       await ensureTracingFlushed()
-      console.error('[b2b/action-plans] AI generation failed', err)
+      const message = err instanceof Error ? err.message : String(err)
+      const stack = err instanceof Error ? err.stack : undefined
+      console.error(
+        `${TAG} GENERATE FAILED error="${message}" total=${Date.now() - t0}ms`
+      )
+      if (stack) console.error(`${TAG} STACK`, stack)
       return NextResponse.json(
-        { error: 'Falha na geração de planos' },
+        { error: `Falha na geração de planos: ${message}` },
         { status: 500 }
       )
     }
@@ -184,7 +204,7 @@ export async function POST(
     .single()
 
   if (error) {
-    console.error('[b2b/action-plans] insert', error)
+    console.error(`${TAG} INSERT error`, error)
     return NextResponse.json({ error: 'Erro ao criar plano' }, { status: 500 })
   }
 

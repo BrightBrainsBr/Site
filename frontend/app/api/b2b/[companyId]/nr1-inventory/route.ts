@@ -130,7 +130,7 @@ function buildInventoryPdf(
   automated: InventoryField[],
   companyFields: InventoryField[],
   companyName: string
-): Buffer {
+): ArrayBuffer {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 20
@@ -191,7 +191,8 @@ function buildInventoryPdf(
     y
   )
 
-  return Buffer.from(doc.output('arraybuffer'))
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  return doc.output('arraybuffer') as ArrayBuffer
 }
 
 export async function POST(
@@ -278,69 +279,11 @@ export async function POST(
 
   const filename = `inventario-nr1-${companyId}-${Date.now()}.pdf`
 
-  const { error: uploadError } = await sb.storage
-    .from('nr1-inventories')
-    .upload(filename, pdfBuffer, {
-      contentType: 'application/pdf',
-      upsert: false,
-    })
-
-  if (uploadError) {
-    console.error('[b2b/nr1-inventory] upload', uploadError)
-    return NextResponse.json(
-      { error: 'Erro ao fazer upload do PDF' },
-      { status: 500 }
-    )
-  }
-
-  const {
-    data: { publicUrl },
-  } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
-
-  const generatedAt = new Date().toISOString()
-  return NextResponse.json({
-    url: publicUrl,
-    filename,
-    generatedAt,
-    generated_at: generatedAt,
-  })
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ companyId: string }> }
-) {
-  const { companyId } = await params
-
-  const auth = await getB2BUser(request, companyId)
-  if (!auth.ok) {
-    return NextResponse.json(auth.body, { status: auth.status })
-  }
-
-  const sb = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const { data: files, error } = await sb.storage
-    .from('nr1-inventories')
-    .list('', {
-      search: `inventario-nr1-${companyId}`,
-      sortBy: { column: 'created_at', order: 'desc' },
-      limit: 1,
-    })
-
-  if (error || !files || files.length === 0) {
-    return NextResponse.json({ url: null, generated_at: null })
-  }
-
-  const latest = files[0]
-  const {
-    data: { publicUrl },
-  } = sb.storage.from('nr1-inventories').getPublicUrl(latest.name)
-
-  return NextResponse.json({
-    url: publicUrl,
-    generated_at: latest.created_at,
+  return new NextResponse(pdfBuffer, {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'X-Generated-At': new Date().toISOString(),
+    },
   })
 }

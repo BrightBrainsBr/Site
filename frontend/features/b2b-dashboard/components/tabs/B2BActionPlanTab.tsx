@@ -213,21 +213,91 @@ export function B2BActionPlanTab({
         <button
           onClick={handleGenerate}
           disabled={generatePlans.isPending}
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[14px] font-semibold text-[#94a3b8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#e2e8f0] disabled:opacity-50"
+          className="rounded-lg border border-[rgba(96,165,250,0.3)] bg-[rgba(96,165,250,0.1)] px-4 py-2 text-[14px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.2)] disabled:opacity-50"
         >
-          {generatePlans.isPending ? 'Gerando…' : '✨ Gerar com IA'}
+          {generatePlans.isPending ? (
+            <span className="flex items-center gap-2">
+              <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Gerando com IA…
+            </span>
+          ) : (
+            '✨ Gerar com IA'
+          )}
         </button>
       </div>
 
-      {generateError && (
-        <div className="rounded-lg border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.08)] px-3 py-2 text-[14px] text-[#F87171]">
-          {generateError}
+      {/* Generation progress */}
+      {generatePlans.isPending && (
+        <div className="rounded-xl border border-[rgba(96,165,250,0.25)] bg-[rgba(96,165,250,0.06)] px-4 py-3">
+          <div className="mb-2 flex items-center gap-2">
+            <svg className="h-4 w-4 animate-spin text-[#60A5FA]" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span className="text-[14px] font-semibold text-[#60A5FA]">
+              Gerando plano de ação com IA…
+            </span>
+          </div>
+          <div className="mb-2 h-1 w-full overflow-hidden rounded-full bg-[rgba(96,165,250,0.15)]">
+            <div className="h-full animate-pulse rounded-full bg-[#60A5FA]" style={{ width: '60%' }} />
+          </div>
+          <div className="space-y-1 text-[13px] text-[#64748b]">
+            <div className="flex items-center gap-2">
+              <svg className="h-3 w-3 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Carregando dados GRO psicossocial
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="h-3 w-3 animate-spin text-[#60A5FA]" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Analisando riscos e gerando planos com Claude
+            </div>
+            <div className="flex items-center gap-2 opacity-40">
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" strokeWidth={2} />
+              </svg>
+              Salvando planos no banco de dados
+            </div>
+          </div>
         </div>
       )}
 
-      {generatePlans.isSuccess && (
-        <div className="rounded-lg border border-[rgba(34,197,94,0.3)] bg-[rgba(34,197,94,0.08)] px-3 py-2 text-[14px] text-[#22c55e]">
-          ✓ Plano de ação gerado com sucesso pela IA
+      {generateError && (
+        <div className="rounded-xl border border-[rgba(239,68,68,0.25)] bg-[rgba(239,68,68,0.06)] px-4 py-3">
+          <div className="flex items-start gap-2">
+            <svg className="mt-0.5 h-4 w-4 shrink-0 text-[#F87171]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-[14px] font-semibold text-[#F87171]">Falha na geração de planos</p>
+              <p className="mt-0.5 text-[13px] text-[#F87171]/80">{generateError}</p>
+              <button
+                onClick={handleGenerate}
+                className="mt-2 rounded-lg border border-[rgba(239,68,68,0.3)] px-3 py-1 text-[13px] font-medium text-[#F87171] transition-colors hover:bg-[rgba(239,68,68,0.1)]"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {generatePlans.isSuccess && !generatePlans.isPending && (
+        <div className="rounded-xl border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.06)] px-4 py-2">
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-[14px] font-semibold text-[#22c55e]">
+              Plano de ação gerado com sucesso pela IA
+            </span>
+          </div>
         </div>
       )}
 

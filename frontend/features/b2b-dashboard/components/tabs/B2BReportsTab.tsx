@@ -4,10 +4,7 @@
 
 import { useState } from 'react'
 
-import type {
-  B2BReportResponse,
-  ReportType,
-} from '../../b2b-dashboard.interface'
+import type { ReportType } from '../../b2b-dashboard.interface'
 import { useB2BDepartments } from '../../hooks/useB2BDepartments'
 import { useB2BNR1InventoryMutationHook } from '../../hooks/useB2BNR1InventoryMutationHook'
 import { useB2BReportsMutationHook } from '../../hooks/useB2BReportsMutationHook'
@@ -16,7 +13,6 @@ interface ReportCardDef {
   type: ReportType
   title: string
   description: string
-  prominent?: boolean
 }
 
 const REPORT_CARDS: ReportCardDef[] = [
@@ -47,9 +43,7 @@ interface B2BReportsTabProps {
 
 export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
   const [department, setDepartment] = useState<string>('')
-  const [results, setResults] = useState<
-    Record<string, B2BReportResponse | null>
-  >({})
+  const [lastGenerated, setLastGenerated] = useState<Record<string, string>>({})
 
   const { data: deptData } = useB2BDepartments(companyId ?? null, cycleId)
   const reportsMutation = useB2BReportsMutationHook(companyId ?? null)
@@ -57,7 +51,7 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
 
   const departments = deptData?.departments ?? []
 
-  const handleGenerate = (type: ReportType) => {
+  const handleDownload = (type: ReportType) => {
     reportsMutation.mutate(
       {
         type,
@@ -66,12 +60,12 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
       },
       {
         onSuccess: (data) =>
-          setResults((prev) => ({ ...prev, [type]: data })),
+          setLastGenerated((prev) => ({ ...prev, [type]: data.generatedAt })),
       }
     )
   }
 
-  const handleGenerateInventory = () => {
+  const handleDownloadInventory = () => {
     inventoryMutation.mutate(
       {
         department: department || undefined,
@@ -79,7 +73,10 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
       },
       {
         onSuccess: (data) =>
-          setResults((prev) => ({ ...prev, 'nr1-inventario': data })),
+          setLastGenerated((prev) => ({
+            ...prev,
+            'nr1-inventario': data.generatedAt,
+          })),
       }
     )
   }
@@ -92,7 +89,9 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
           <span className="text-[20px]">📄</span>
           <h2 className="text-[20px] font-bold text-[#e2e8f0]">Relatórios</h2>
         </div>
-        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">Geração de relatórios com filtros e download</p>
+        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">
+          Geração de relatórios com filtros e download
+        </p>
       </div>
 
       {/* Filter bar */}
@@ -117,10 +116,10 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
       {/* Report cards grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {REPORT_CARDS.map((card) => {
-          const result = results[card.type]
-          const isGenerating =
+          const isDownloading =
             reportsMutation.isPending &&
             reportsMutation.variables?.type === card.type
+          const generatedAt = lastGenerated[card.type]
           return (
             <div
               key={card.type}
@@ -132,29 +131,19 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
               <p className="mt-1 text-[14px] text-[#64748b]">
                 {card.description}
               </p>
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-4">
                 <button
-                  onClick={() => handleGenerate(card.type)}
-                  disabled={isGenerating}
+                  onClick={() => handleDownload(card.type)}
+                  disabled={isDownloading}
                   className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
                 >
-                  {isGenerating ? 'Gerando…' : 'Gerar'}
+                  {isDownloading ? 'Gerando…' : 'Download'}
                 </button>
-                {result && (
-                  <a
-                    href={result.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[13px] font-medium text-[#c5e155] underline underline-offset-2 hover:text-[#d4ec7e]"
-                  >
-                    Download ({result.filename})
-                  </a>
-                )}
               </div>
-              {result && (
+              {generatedAt && (
                 <p className="mt-2 text-[12px] text-[#64748b]">
                   Gerado em{' '}
-                  {new Date(result.generatedAt).toLocaleString('pt-BR')}
+                  {new Date(generatedAt).toLocaleString('pt-BR')}
                 </p>
               )}
             </div>
@@ -169,40 +158,26 @@ export function B2BReportsTab({ companyId, cycleId }: B2BReportsTabProps) {
                 Inventário de Riscos NR-1
               </h3>
               <p className="mt-1 text-[14px] text-[#64748b]">
-                Documento oficial de inventário de riscos psicossociais
-                conforme NR-1. Gera PDF completo com matriz de risco, plano de
-                ação e recomendações.
+                Documento oficial de inventário de riscos psicossociais conforme
+                NR-1. Gera PDF completo com matriz de risco, plano de ação e
+                recomendações.
               </p>
-              {results['nr1-inventario'] && (
+              {lastGenerated['nr1-inventario'] && (
                 <p className="mt-1 text-[12px] text-[#64748b]">
                   Última geração:{' '}
                   {new Date(
-                    results['nr1-inventario'].generatedAt
+                    lastGenerated['nr1-inventario']
                   ).toLocaleString('pt-BR')}
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleGenerateInventory}
-                disabled={inventoryMutation.isPending}
-                className="shrink-0 rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-2 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
-              >
-                {inventoryMutation.isPending
-                  ? 'Gerando Inventário…'
-                  : 'Gerar Inventário'}
-              </button>
-              {results['nr1-inventario'] && (
-                <a
-                  href={results['nr1-inventario'].url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[13px] font-medium text-[#c5e155] underline underline-offset-2 hover:text-[#d4ec7e]"
-                >
-                  Download
-                </a>
-              )}
-            </div>
+            <button
+              onClick={handleDownloadInventory}
+              disabled={inventoryMutation.isPending}
+              className="shrink-0 rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-2 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
+            >
+              {inventoryMutation.isPending ? 'Gerando…' : 'Download'}
+            </button>
           </div>
         </div>
       </div>

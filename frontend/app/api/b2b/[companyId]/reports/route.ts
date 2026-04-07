@@ -103,7 +103,7 @@ export async function POST(
     : evaluations
 
   if (reportType === 'csv') {
-    return buildCsvResponse(filtered, companyId, sb)
+    return buildCsvResponse(filtered, companyId)
   }
 
   if (reportType === 'departamento') {
@@ -113,16 +113,14 @@ export async function POST(
   return buildGroConsolidadoPdf(filtered, companyId, sb)
 }
 
-async function buildCsvResponse(
+function buildCsvResponse(
   evaluations: Array<{
     id: string
     scores: Record<string, number> | null
     employee_department: string | null
     created_at: string
   }>,
-  companyId: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sb: SupabaseClient<any, any, any>
+  companyId: string
 ) {
   const scaleKeys = ['phq9', 'gad7', 'srq20', 'pss10', 'mbi', 'isi']
   const header = ['id', 'department', 'created_at', 'risk_level', ...scaleKeys]
@@ -146,34 +144,15 @@ async function buildCsvResponse(
   }
 
   const csvContent = '\uFEFF' + csvRows.join('\n') // BOM for Excel UTF-8
-  const csvBuffer = Buffer.from(csvContent, 'utf-8')
+  const csvBuffer = new TextEncoder().encode(csvContent)
   const filename = `relatorio-csv-${companyId}-${Date.now()}.csv`
 
-  const { error: uploadError } = await sb.storage
-    .from('nr1-inventories')
-    .upload(filename, csvBuffer, {
-      contentType: 'text/csv; charset=utf-8',
-      upsert: false,
-    })
-
-  if (uploadError) {
-    console.error('[b2b/reports] csv upload', uploadError)
-    return NextResponse.json(
-      { error: 'Erro ao fazer upload do CSV' },
-      { status: 500 }
-    )
-  }
-
-  const {
-    data: { publicUrl },
-  } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
-
-  const generatedAt = new Date().toISOString()
-  return NextResponse.json({
-    url: publicUrl,
-    filename,
-    generatedAt,
-    generated_at: generatedAt,
+  return new NextResponse(csvBuffer, {
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'X-Generated-At': new Date().toISOString(),
+    },
   })
 }
 
@@ -236,34 +215,16 @@ async function buildGroConsolidadoPdf(
   doc.setFont('helvetica', 'italic')
   doc.text('Gerado automaticamente pelo BrightMonitor.', margin, y)
 
-  const pdfBuffer = Buffer.from(doc.output('arraybuffer'))
-
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const pdfBuffer = doc.output('arraybuffer') as ArrayBuffer
   const filename = `relatorio-gro-${companyId}-${Date.now()}.pdf`
-  const { error: uploadError } = await sb.storage
-    .from('nr1-inventories')
-    .upload(filename, pdfBuffer, {
-      contentType: 'application/pdf',
-      upsert: false,
-    })
 
-  if (uploadError) {
-    console.error('[b2b/reports] upload', uploadError)
-    return NextResponse.json(
-      { error: 'Erro ao fazer upload do relatório' },
-      { status: 500 }
-    )
-  }
-
-  const {
-    data: { publicUrl },
-  } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
-
-  const generatedAt = new Date().toISOString()
-  return NextResponse.json({
-    url: publicUrl,
-    filename,
-    generatedAt,
-    generated_at: generatedAt,
+  return new NextResponse(pdfBuffer, {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'X-Generated-At': new Date().toISOString(),
+    },
   })
 }
 
@@ -335,33 +296,15 @@ async function buildDepartmentPdf(
     y += 8
   }
 
-  const pdfBuffer = Buffer.from(doc.output('arraybuffer'))
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const pdfBuffer = doc.output('arraybuffer') as ArrayBuffer
   const filename = `relatorio-dept-${companyId}-${Date.now()}.pdf`
 
-  const { error: uploadError } = await sb.storage
-    .from('nr1-inventories')
-    .upload(filename, pdfBuffer, {
-      contentType: 'application/pdf',
-      upsert: false,
-    })
-
-  if (uploadError) {
-    console.error('[b2b/reports] dept upload', uploadError)
-    return NextResponse.json(
-      { error: 'Erro ao fazer upload do relatório' },
-      { status: 500 }
-    )
-  }
-
-  const {
-    data: { publicUrl },
-  } = sb.storage.from('nr1-inventories').getPublicUrl(filename)
-
-  const generatedAt = new Date().toISOString()
-  return NextResponse.json({
-    url: publicUrl,
-    filename,
-    generatedAt,
-    generated_at: generatedAt,
+  return new NextResponse(pdfBuffer, {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'X-Generated-At': new Date().toISOString(),
+    },
   })
 }
