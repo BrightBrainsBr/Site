@@ -10,6 +10,8 @@ export const runtime = 'nodejs'
 
 const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET ?? 'pdf-jobs-internal'
 
+const TAG = '[extract-pdf/jobs]'
+
 function getSupabase() {
   return createClient(
     process.env.SUPABASE_URL!,
@@ -25,11 +27,22 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
 ) {
+  const t0 = Date.now()
   const { companyId } = await params
+
+  console.warn(`${TAG} POST START company=${companyId}`)
+
   const auth = await getB2BUser(request, companyId)
   if (!auth.ok) {
+    console.warn(
+      `${TAG} AUTH FAILED company=${companyId} status=${auth.status}`
+    )
     return NextResponse.json(auth.body, { status: auth.status })
   }
+
+  console.warn(
+    `${TAG} AUTH OK user=${auth.userId} isPortal=${auth.isPortalAdmin ?? false}`
+  )
 
   const formData = await request.formData()
   const files = formData.getAll('files') as File[]
@@ -37,11 +50,16 @@ export async function POST(
     (formData.get('extractionType') as string) ?? 'events-bulk'
 
   if (!files.length) {
+    console.warn(`${TAG} NO FILES company=${companyId}`)
     return NextResponse.json(
       { error: 'Nenhum arquivo enviado' },
       { status: 400 }
     )
   }
+
+  console.warn(
+    `${TAG} UPLOADING ${files.length} file(s): ${files.map((f) => `"${f.name}" (${f.size} bytes)`).join(', ')}`
+  )
 
   const sb = getSupabase()
   const jobs: Array<{ id: string; fileName: string; status: string }> = []
@@ -59,7 +77,9 @@ export async function POST(
       })
 
     if (uploadError) {
-      console.error('[extract-pdf/jobs] upload failed', uploadError)
+      console.error(
+        `${TAG} STORAGE UPLOAD FAILED job=${jobId} file="${file.name}" error="${uploadError.message}"`
+      )
       continue
     }
 
@@ -74,45 +94,84 @@ export async function POST(
     })
 
     if (insertError) {
-      console.error('[extract-pdf/jobs] insert failed', insertError)
+      console.error(
+        `${TAG} DB INSERT FAILED job=${jobId} file="${file.name}" error="${insertError.message}"`
+      )
       continue
     }
 
+    console.warn(`${TAG} JOB CREATED job=${jobId} file="${file.name}"`)
     jobs.push({ id: jobId, fileName: file.name, status: 'pending' })
   }
 
   if (jobs.length === 0) {
+    console.error(
+      `${TAG} ALL UPLOADS FAILED company=${companyId} total=${Date.now() - t0}ms`
+    )
     return NextResponse.json(
       { error: 'Falha ao processar todos os arquivos' },
       { status: 500 }
     )
   }
 
-  // Use request origin so async `after()` callbacks hit this dev server on whatever port is in use.
   const origin = new URL(request.url).origin
+  console.warn(
+    `${TAG} SCHEDULING ${jobs.length} process job(s) via after() origin=${origin} total=${Date.now() - t0}ms`
+  )
 
   after(async () => {
+    console.warn(`${TAG} after() TRIGGERED — processing ${jobs.length} job(s)`)
+    const failedSb = getSupabase()
+
     for (const job of jobs) {
+      const processUrl = `${origin}/api/b2b/${companyId}/extract-pdf/jobs/${job.id}/process`
+      console.warn(`${TAG} after() FETCHING job=${job.id} url=${processUrl}`)
       try {
-        await fetch(
-          `${origin}/api/b2b/${companyId}/extract-pdf/jobs/${job.id}/process`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-internal-secret': INTERNAL_SECRET,
-            },
-          }
-        )
+        const res = await fetch(processUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-internal-secret': INTERNAL_SECRET,
+          },
+        })
+
+        if (!res.ok) {
+          const body = await res.text().catch(() => '')
+          console.error(
+            `${TAG} after() PROCESS RESPONSE FAILED job=${job.id} status=${res.status} body="${body.slice(0, 500)}"`
+          )
+          await failedSb
+            .from('pdf_extraction_jobs')
+            .update({
+              status: 'failed',
+              error_message: `Internal process request failed: HTTP ${res.status} — ${body.slice(0, 200)}`,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', job.id)
+        } else {
+          console.warn(`${TAG} after() PROCESS OK job=${job.id}`)
+        }
       } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
         console.error(
-          `[extract-pdf/jobs] trigger process failed ${job.id}`,
-          err
+          `${TAG} after() FETCH EXCEPTION job=${job.id} error="${msg}"`
         )
+        await failedSb
+          .from('pdf_extraction_jobs')
+          .update({
+            status: 'failed',
+            error_message: `Internal process fetch failed: ${msg}`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', job.id)
       }
     }
+    console.warn(`${TAG} after() DONE all jobs dispatched`)
   })
 
+  console.warn(
+    `${TAG} RESPONSE 201 jobs=${jobs.map((j) => j.id).join(',')} total=${Date.now() - t0}ms`
+  )
   return NextResponse.json({ jobs }, { status: 201 })
 }
 
@@ -147,7 +206,7 @@ export async function GET(
     .in('id', ids)
 
   if (error) {
-    console.error('[extract-pdf/jobs] GET error', error)
+    console.error(`${TAG} GET error ids=${idsParam}`, error)
     return NextResponse.json(
       { error: 'Erro ao buscar status dos jobs' },
       { status: 500 }

@@ -9,7 +9,16 @@ import {
   EVENTS_BULK_EXTRACTION_SYSTEM,
 } from '../prompts/pdf-extraction.prompts'
 
-const GEMINI_MODEL = 'gemini-2.0-flash'
+const GEMINI_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-pro',
+] as const
+
+const TAG = '[gemini-pdf]'
+
+const RETRIES_PER_MODEL = 2
+const RETRY_DELAY_MS = 5_000
 
 const eventsBulkJsonSchema = {
   type: 'object',
@@ -40,18 +49,32 @@ export interface GeminiExtractionResult {
   warnings: string[]
 }
 
+function isRetryableError(msg: string): boolean {
+  return /503|429|UNAVAILABLE|overloaded|high demand|rate.limit|RESOURCE_EXHAUSTED/i.test(msg)
+}
+
 /**
- * Sends the raw PDF bytes to Gemini 2.0 Flash as inline data — no text
- * extraction step required. Gemini reads the PDF natively (including
- * graphics, tables, and scanned pages).
+ * Sends the raw PDF bytes to Gemini as inline data — no text extraction
+ * step required. Gemini reads the PDF natively (including graphics,
+ * tables, and scanned pages).
+ *
+ * Tries models in order with retries: gemini-2.5-flash -> gemini-2.5-flash-lite -> gemini-2.5-pro.
+ * Falls back to the next model when current one is unavailable (503/429).
  */
 export const extractEventsFromPdfWithGemini = traceable(
   async function extractEventsFromPdfWithGemini(
     pdfBuffer: Buffer,
     fileName: string
   ): Promise<GeminiExtractionResult> {
+    const t0 = Date.now()
+
     const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) throw new Error('GEMINI_API_KEY is not set')
+    if (!apiKey) {
+      console.error(`${TAG} GEMINI_API_KEY is NOT SET — cannot call Gemini`)
+      throw new Error('GEMINI_API_KEY is not set')
+    }
+
+    console.log(`${TAG} INIT file="${fileName}" bufferSize=${pdfBuffer.length} models=[${GEMINI_MODELS.join(', ')}]`)
 
     const { GoogleGenAI } = await import('@google/genai')
     const client = new GoogleGenAI({ apiKey })
@@ -59,8 +82,8 @@ export const extractEventsFromPdfWithGemini = traceable(
     const base64Pdf = pdfBuffer.toString('base64')
     const schema = sanitizeSchemaForGemini(eventsBulkJsonSchema)
 
-    const response = await client.models.generateContent({
-      model: GEMINI_MODEL,
+    const makeRequest = (model: string) => client.models.generateContent({
+      model,
       contents: [
         {
           role: 'user',
@@ -84,13 +107,75 @@ export const extractEventsFromPdfWithGemini = traceable(
       },
     })
 
-    const text = response.text
-    if (!text?.trim()) {
-      const reason = response.candidates?.[0]?.finishReason ?? 'UNKNOWN'
-      throw new Error(`Gemini returned no text. Finish reason: ${reason}`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let response: any = null
+    let usedModel: string = GEMINI_MODELS[0]
+    let lastError: unknown = null
+
+    for (const model of GEMINI_MODELS) {
+      let succeeded = false
+
+      for (let attempt = 0; attempt <= RETRIES_PER_MODEL; attempt++) {
+        const tApi = Date.now()
+        console.log(`${TAG} CALLING model=${model} file="${fileName}" attempt=${attempt + 1}/${RETRIES_PER_MODEL + 1}`)
+
+        try {
+          response = await makeRequest(model)
+          usedModel = model
+          console.log(`${TAG} OK model=${model} attempt=${attempt + 1} apiTime=${Date.now() - tApi}ms`)
+          succeeded = true
+          break
+        } catch (apiErr) {
+          lastError = apiErr
+          const apiMsg = apiErr instanceof Error ? apiErr.message : String(apiErr)
+          const retryable = isRetryableError(apiMsg)
+
+          console.error(`${TAG} ERROR model=${model} attempt=${attempt + 1} retryable=${retryable} error="${apiMsg}" apiTime=${Date.now() - tApi}ms`)
+
+          if (retryable && attempt < RETRIES_PER_MODEL) {
+            console.log(`${TAG} RETRY same model in ${RETRY_DELAY_MS}ms`)
+            await new Promise(r => setTimeout(r, RETRY_DELAY_MS))
+            continue
+          }
+
+          break
+        }
+      }
+
+      if (succeeded) break
+
+      const nextIdx = GEMINI_MODELS.indexOf(model) + 1
+      if (nextIdx < GEMINI_MODELS.length) {
+        console.log(`${TAG} FALLBACK from ${model} -> ${GEMINI_MODELS[nextIdx]} file="${fileName}"`)
+      }
     }
 
-    const parsed: EventsBulkOutput = JSON.parse(text)
+    if (!response) {
+      const msg = lastError instanceof Error ? lastError.message : String(lastError)
+      const stack = lastError instanceof Error ? lastError.stack : undefined
+      if (stack) console.error(`${TAG} FINAL STACK`, stack)
+      throw new Error(`All Gemini models failed [${GEMINI_MODELS.join(', ')}]: ${msg}`)
+    }
+
+    const finishReason = response.candidates?.[0]?.finishReason ?? 'UNKNOWN'
+    const usageMetadata = response.usageMetadata
+    console.log(`${TAG} RESPONSE model=${usedModel} file="${fileName}" finishReason=${finishReason} totalTime=${Date.now() - t0}ms promptTokens=${usageMetadata?.promptTokenCount ?? '?'} outputTokens=${usageMetadata?.candidatesTokenCount ?? '?'}`)
+
+    const text = response.text
+    if (!text?.trim()) {
+      console.error(`${TAG} EMPTY RESPONSE model=${usedModel} file="${fileName}" finishReason=${finishReason} candidates=${JSON.stringify(response.candidates?.map((c: { finishReason?: string; safetyRatings?: unknown }) => ({ finishReason: c.finishReason, safetyRatings: c.safetyRatings })))}`)
+      throw new Error(`Gemini (${usedModel}) returned no text. Finish reason: ${finishReason}`)
+    }
+
+    console.log(`${TAG} PARSING JSON file="${fileName}" textLength=${text.length}`)
+
+    let parsed: EventsBulkOutput
+    try {
+      parsed = JSON.parse(text)
+    } catch {
+      console.error(`${TAG} JSON PARSE FAILED file="${fileName}" text="${text.slice(0, 500)}"`)
+      throw new Error(`Failed to parse Gemini response as JSON: ${text.slice(0, 200)}`)
+    }
 
     const warnings: string[] = []
     let confidence = 1.0
@@ -112,6 +197,8 @@ export const extractEventsFromPdfWithGemini = traceable(
 
     confidence = Math.max(0, Math.min(1, confidence))
 
+    console.log(`${TAG} DONE model=${usedModel} file="${fileName}" events=${parsed.events?.length ?? 0} confidence=${confidence} totalTime=${Date.now() - t0}ms`)
+
     return {
       extracted: parsed,
       confidence: Math.round(confidence * 100) / 100,
@@ -122,6 +209,6 @@ export const extractEventsFromPdfWithGemini = traceable(
     name: 'extract_events_from_pdf_gemini',
     run_type: 'llm' as const,
     tags: ['gemini', 'pdf-extraction', 'google'],
-    metadata: { model: GEMINI_MODEL },
+    metadata: { models: GEMINI_MODELS },
   }
 )
