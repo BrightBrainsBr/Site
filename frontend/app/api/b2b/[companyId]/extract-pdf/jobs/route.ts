@@ -5,10 +5,10 @@ import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
 
 import { getB2BUser } from '../../../lib/getB2BUser'
+import { processExtractionJob } from './[jobId]/process/processJob'
 
 export const runtime = 'nodejs'
-
-const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET ?? 'pdf-jobs-internal'
+export const maxDuration = 300
 
 const TAG = '[extract-pdf/jobs]'
 
@@ -22,6 +22,9 @@ function getSupabase() {
 /**
  * POST — Upload multiple PDFs, create job rows, trigger async processing.
  * Returns immediately with job IDs so the client can poll.
+ *
+ * Processing runs directly in after() — no self-referencing HTTP calls
+ * that would be blocked by Vercel preview auth.
  */
 export async function POST(
   request: NextRequest,
@@ -114,59 +117,27 @@ export async function POST(
     )
   }
 
-  const origin = new URL(request.url).origin
   console.warn(
-    `${TAG} SCHEDULING ${jobs.length} process job(s) via after() origin=${origin} total=${Date.now() - t0}ms`
+    `${TAG} SCHEDULING ${jobs.length} job(s) via after() total=${Date.now() - t0}ms`
   )
 
   after(async () => {
-    console.warn(`${TAG} after() TRIGGERED — processing ${jobs.length} job(s)`)
-    const failedSb = getSupabase()
+    console.warn(
+      `${TAG} after() TRIGGERED — processing ${jobs.length} job(s) directly`
+    )
 
     for (const job of jobs) {
-      const processUrl = `${origin}/api/b2b/${companyId}/extract-pdf/jobs/${job.id}/process`
-      console.warn(`${TAG} after() FETCHING job=${job.id} url=${processUrl}`)
+      console.warn(`${TAG} after() PROCESSING job=${job.id}`)
       try {
-        const res = await fetch(processUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-internal-secret': INTERNAL_SECRET,
-          },
-        })
-
-        if (!res.ok) {
-          const body = await res.text().catch(() => '')
-          console.error(
-            `${TAG} after() PROCESS RESPONSE FAILED job=${job.id} status=${res.status} body="${body.slice(0, 500)}"`
-          )
-          await failedSb
-            .from('pdf_extraction_jobs')
-            .update({
-              status: 'failed',
-              error_message: `Internal process request failed: HTTP ${res.status} — ${body.slice(0, 200)}`,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', job.id)
-        } else {
-          console.warn(`${TAG} after() PROCESS OK job=${job.id}`)
-        }
+        await processExtractionJob(companyId, job.id)
+        console.warn(`${TAG} after() DONE job=${job.id}`)
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err)
-        console.error(
-          `${TAG} after() FETCH EXCEPTION job=${job.id} error="${msg}"`
-        )
-        await failedSb
-          .from('pdf_extraction_jobs')
-          .update({
-            status: 'failed',
-            error_message: `Internal process fetch failed: ${msg}`,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', job.id)
+        console.error(`${TAG} after() FAILED job=${job.id} error="${msg}"`)
       }
     }
-    console.warn(`${TAG} after() DONE all jobs dispatched`)
+
+    console.warn(`${TAG} after() ALL DONE`)
   })
 
   console.warn(
