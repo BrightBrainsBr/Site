@@ -177,14 +177,6 @@ export function B2BActionPlanTab({
     [deletePlan]
   )
 
-  const handleGenerateClick = useCallback(() => {
-    if (pendingAIPlans.length > 0) {
-      setShowGenerateWarning(true)
-      return
-    }
-    triggerGenerate()
-  }, [pendingAIPlans.length, triggerGenerate])
-
   const triggerGenerate = useCallback(() => {
     setGenerateError(null)
     setShowGenerateWarning(false)
@@ -197,6 +189,14 @@ export function B2BActionPlanTab({
       }
     )
   }, [generatePlans])
+
+  const handleGenerateClick = useCallback(() => {
+    if (pendingAIPlans.length > 0) {
+      setShowGenerateWarning(true)
+      return
+    }
+    triggerGenerate()
+  }, [pendingAIPlans.length, triggerGenerate])
 
   const handleAcceptAll = useCallback(() => {
     const ids = pendingAIPlans.map((p) => p.id)
