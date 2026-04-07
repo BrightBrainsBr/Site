@@ -2,6 +2,7 @@
 
 import type Anthropic from '@anthropic-ai/sdk'
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources/messages'
+import { traceable } from 'langsmith/traceable'
 
 import type { LLMConfig, LLMMessage } from '../../llm.interface'
 import {
@@ -185,48 +186,55 @@ export interface AnthropicNativeParams {
   stepName?: string
 }
 
-export async function invokeAnthropicNativeStructured(
-  params: AnthropicNativeParams
-): Promise<string> {
-  const {
-    config,
-    messages,
-    enableThinking = false,
-    enableCache = false,
-    cacheTtl = '5m',
-  } = params
-  const label = `Anthropic Native (${config.modelName})`
+export const invokeAnthropicNativeStructured = traceable(
+  async function invokeAnthropicNativeStructured(
+    params: AnthropicNativeParams
+  ): Promise<string> {
+    const {
+      config,
+      messages,
+      enableThinking = false,
+      enableCache = false,
+      cacheTtl = '5m',
+    } = params
+    const label = `Anthropic Native (${config.modelName})`
 
-  let budget = params.thinkingBudgetTokens ?? 8000
-  if (enableThinking && budget < 1024) budget = 1024
+    let budget = params.thinkingBudgetTokens ?? 8000
+    if (enableThinking && budget < 1024) budget = 1024
 
-  let maxTokens = config.maxTokens ?? 4096
-  if (enableThinking && maxTokens <= budget) maxTokens = budget + 4096
+    let maxTokens = config.maxTokens ?? 4096
+    if (enableThinking && maxTokens <= budget) maxTokens = budget + 4096
 
-  const { default: SDK } = await import('@anthropic-ai/sdk')
-  const platform = config.platform ?? resolvePlatform()
-  const client: Anthropic = new SDK({ apiKey: config.apiKey })
+    const { default: SDK } = await import('@anthropic-ai/sdk')
+    const platform = config.platform ?? resolvePlatform()
+    const client: Anthropic = new SDK({ apiKey: config.apiKey })
 
-  const effectiveModel =
-    platform === 'bedrock'
-      ? getBedrockModelId(config.modelName)
-      : config.modelName
+    const effectiveModel =
+      platform === 'bedrock'
+        ? getBedrockModelId(config.modelName)
+        : config.modelName
 
-  const msgs = buildAnthropicMessages(messages, enableCache, cacheTtl)
-  const args = buildRequestArgs(
-    effectiveModel,
-    msgs,
-    maxTokens,
-    config,
-    enableThinking,
-    budget
-  )
-  const headers = buildHeaders(cacheTtl)
-  const opts = headers ? { headers } : undefined
-  const response = await client.messages.create(args, opts)
+    const msgs = buildAnthropicMessages(messages, enableCache, cacheTtl)
+    const args = buildRequestArgs(
+      effectiveModel,
+      msgs,
+      maxTokens,
+      config,
+      enableThinking,
+      budget
+    )
+    const headers = buildHeaders(cacheTtl)
+    const opts = headers ? { headers } : undefined
+    const response = await client.messages.create(args, opts)
 
-  return extractAnthropicText(response, label)
-}
+    return extractAnthropicText(response, label)
+  },
+  {
+    name: 'anthropic_native_structured',
+    run_type: 'llm' as const,
+    tags: ['anthropic', 'claude'],
+  }
+)
 
 // -------------------------------------------------------
 // Anthropic Web Search
@@ -239,35 +247,42 @@ export interface AnthropicWebSearchParams {
   stepName?: string
 }
 
-export async function invokeAnthropicWithWebSearch(
-  params: AnthropicWebSearchParams
-): Promise<string> {
-  const {
-    config,
-    messages,
-    maxUses = 3,
-    stepName = 'anthropic_web_search',
-  } = params
+export const invokeAnthropicWithWebSearch = traceable(
+  async function invokeAnthropicWithWebSearch(
+    params: AnthropicWebSearchParams
+  ): Promise<string> {
+    const {
+      config,
+      messages,
+      maxUses = 3,
+      stepName = 'anthropic_web_search',
+    } = params
 
-  const { default: SDK } = await import('@anthropic-ai/sdk')
-  const client = new SDK({ apiKey: config.apiKey })
+    const { default: SDK } = await import('@anthropic-ai/sdk')
+    const client = new SDK({ apiKey: config.apiKey })
 
-  const msgs = buildAnthropicMessages(messages, false, '5m')
-  const systemText = msgs.systemParts.map((p) => p.text as string).join('\n')
+    const msgs = buildAnthropicMessages(messages, false, '5m')
+    const systemText = msgs.systemParts.map((p) => p.text as string).join('\n')
 
-  const tools = [
-    { type: 'web_search_20250305', name: 'web_search', max_uses: maxUses },
-  ] as unknown as MessageCreateParamsNonStreaming['tools']
+    const tools = [
+      { type: 'web_search_20250305', name: 'web_search', max_uses: maxUses },
+    ] as unknown as MessageCreateParamsNonStreaming['tools']
 
-  const args: MessageCreateParamsNonStreaming = {
-    model: config.modelName,
-    messages:
-      msgs.messagesList as unknown as MessageCreateParamsNonStreaming['messages'],
-    tools,
-    max_tokens: config.maxTokens ?? 2048,
+    const args: MessageCreateParamsNonStreaming = {
+      model: config.modelName,
+      messages:
+        msgs.messagesList as unknown as MessageCreateParamsNonStreaming['messages'],
+      tools,
+      max_tokens: config.maxTokens ?? 2048,
+    }
+    if (systemText) args.system = systemText
+
+    const response = await client.messages.create(args)
+    return extractAnthropicText(response, stepName)
+  },
+  {
+    name: 'anthropic_web_search',
+    run_type: 'llm' as const,
+    tags: ['anthropic', 'claude', 'web-search'],
   }
-  if (systemText) args.system = systemText
-
-  const response = await client.messages.create(args)
-  return extractAnthropicText(response, stepName)
-}
+)

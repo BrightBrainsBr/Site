@@ -5,6 +5,7 @@ import type {
   ChatCompletion,
   ChatCompletionMessageParam,
 } from 'openai/resources/chat/completions'
+import { traceable } from 'langsmith/traceable'
 
 import { toOpenAIMessages } from '../../helpers/messageConverters'
 import type { LLMConfig, LLMMessage } from '../../llm.interface'
@@ -23,100 +24,114 @@ const log = {
 // Perplexity Native
 // -------------------------------------------------------
 
-export async function invokePerplexityNativeStructured(
-  config: LLMConfig,
-  messages: LLMMessage[]
-): Promise<string> {
-  const stepName = `Perplexity Native (${config.modelName})`
-  log.info(`Invoking ${stepName}`)
+export const invokePerplexityNativeStructured = traceable(
+  async function invokePerplexityNativeStructured(
+    config: LLMConfig,
+    messages: LLMMessage[]
+  ): Promise<string> {
+    const stepName = `Perplexity Native (${config.modelName})`
+    log.info(`Invoking ${stepName}`)
 
-  if (!config.apiKey) {
-    throw new Error('Perplexity API Key is missing for native SDK call.')
+    if (!config.apiKey) {
+      throw new Error('Perplexity API Key is missing for native SDK call.')
+    }
+
+    const { default: OpenAI } = await import('openai')
+    const client = new OpenAI({
+      apiKey: config.apiKey,
+      baseURL: 'https://api.perplexity.ai',
+    })
+
+    const msgs = toSdkMessages(messages)
+
+    const response = (await client.chat.completions.create({
+      model: config.modelName,
+      messages: msgs,
+      ...(config.temperature != null ? { temperature: config.temperature } : {}),
+      ...(config.maxTokens != null ? { max_tokens: config.maxTokens } : {}),
+      ...(config.topP != null ? { top_p: config.topP } : {}),
+      ...(config.jsonMode
+        ? { response_format: { type: 'json_object' as const } }
+        : {}),
+    })) as ChatCompletion
+
+    const content = response.choices?.[0]?.message?.content
+    if (!content?.trim()) {
+      const reason = response.choices?.[0]?.finish_reason ?? 'UNKNOWN'
+      throw new Error(`Perplexity returned no content. Finish reason: ${reason}`)
+    }
+
+    if (response.choices?.[0]?.finish_reason === 'length') {
+      log.warn(`[${stepName}] POTENTIAL TRUNCATION: finished due to length`)
+    }
+
+    log.info(`[${stepName}] Success. ${content.length} chars`)
+    return content
+  },
+  {
+    name: 'perplexity_native_structured',
+    run_type: 'llm' as const,
+    tags: ['perplexity'],
   }
-
-  const { default: OpenAI } = await import('openai')
-  const client = new OpenAI({
-    apiKey: config.apiKey,
-    baseURL: 'https://api.perplexity.ai',
-  })
-
-  const msgs = toSdkMessages(messages)
-
-  const response = (await client.chat.completions.create({
-    model: config.modelName,
-    messages: msgs,
-    ...(config.temperature != null ? { temperature: config.temperature } : {}),
-    ...(config.maxTokens != null ? { max_tokens: config.maxTokens } : {}),
-    ...(config.topP != null ? { top_p: config.topP } : {}),
-    ...(config.jsonMode
-      ? { response_format: { type: 'json_object' as const } }
-      : {}),
-  })) as ChatCompletion
-
-  const content = response.choices?.[0]?.message?.content
-  if (!content?.trim()) {
-    const reason = response.choices?.[0]?.finish_reason ?? 'UNKNOWN'
-    throw new Error(`Perplexity returned no content. Finish reason: ${reason}`)
-  }
-
-  if (response.choices?.[0]?.finish_reason === 'length') {
-    log.warn(`[${stepName}] POTENTIAL TRUNCATION: finished due to length`)
-  }
-
-  log.info(`[${stepName}] Success. ${content.length} chars`)
-  return content
-}
+)
 
 // -------------------------------------------------------
 // Grok Live Search
 // -------------------------------------------------------
 
-export async function invokeGrokWithLiveSearch(
-  config: LLMConfig,
-  messages: LLMMessage[],
-  enableXSearch = true
-): Promise<string> {
-  const stepName = `Grok Live Search (${config.modelName})`
-  log.info(`Invoking ${stepName} with X search: ${String(enableXSearch)}`)
+export const invokeGrokWithLiveSearch = traceable(
+  async function invokeGrokWithLiveSearch(
+    config: LLMConfig,
+    messages: LLMMessage[],
+    enableXSearch = true
+  ): Promise<string> {
+    const stepName = `Grok Live Search (${config.modelName})`
+    log.info(`Invoking ${stepName} with X search: ${String(enableXSearch)}`)
 
-  if (!config.apiKey) throw new Error('Grok API Key is missing')
+    if (!config.apiKey) throw new Error('Grok API Key is missing')
 
-  const { default: OpenAI } = await import('openai')
-  const client = new OpenAI({
-    apiKey: config.apiKey,
-    baseURL: 'https://api.x.ai/v1',
-  })
+    const { default: OpenAI } = await import('openai')
+    const client = new OpenAI({
+      apiKey: config.apiKey,
+      baseURL: 'https://api.x.ai/v1',
+    })
 
-  const msgs = toSdkMessages(messages)
+    const msgs = toSdkMessages(messages)
 
-  const extra: Record<string, unknown> = {}
-  if (enableXSearch) {
-    extra.search_parameters = {
-      mode: 'on',
-      sources: [{ type: 'x' }, { type: 'web' }],
-      max_search_results: 10,
-      return_citations: true,
+    const extra: Record<string, unknown> = {}
+    if (enableXSearch) {
+      extra.search_parameters = {
+        mode: 'on',
+        sources: [{ type: 'x' }, { type: 'web' }],
+        max_search_results: 10,
+        return_citations: true,
+      }
     }
+
+    // Grok extends OpenAI API with search_parameters - cast needed
+
+    const response = (await client.chat.completions.create({
+      model: config.modelName,
+      messages: msgs,
+      ...(config.temperature != null ? { temperature: config.temperature } : {}),
+      ...(config.maxTokens != null ? { max_tokens: config.maxTokens } : {}),
+      ...(config.topP != null ? { top_p: config.topP } : {}),
+      ...extra,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)) as ChatCompletion
+
+    const content = response.choices?.[0]?.message?.content
+    if (!content) throw new Error('Grok Live Search returned no content')
+
+    log.info(`[${stepName}] Got response: ${content.length} chars`)
+    return content
+  },
+  {
+    name: 'grok_live_search',
+    run_type: 'llm' as const,
+    tags: ['grok', 'xai', 'web-search'],
   }
-
-  // Grok extends OpenAI API with search_parameters - cast needed
-
-  const response = (await client.chat.completions.create({
-    model: config.modelName,
-    messages: msgs,
-    ...(config.temperature != null ? { temperature: config.temperature } : {}),
-    ...(config.maxTokens != null ? { max_tokens: config.maxTokens } : {}),
-    ...(config.topP != null ? { top_p: config.topP } : {}),
-    ...extra,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any)) as ChatCompletion
-
-  const content = response.choices?.[0]?.message?.content
-  if (!content) throw new Error('Grok Live Search returned no content')
-
-  log.info(`[${stepName}] Got response: ${content.length} chars`)
-  return content
-}
+)
 
 // -------------------------------------------------------
 // Grok Native with Tool Calling
@@ -175,60 +190,67 @@ const X_SEMANTIC_SEARCH_TOOL = {
   },
 }
 
-export async function invokeGrokNativeWithTools(
-  config: LLMConfig,
-  messages: LLMMessage[],
-  availableTools: string[] = []
-): Promise<string> {
-  const stepName = `Grok Native Tools (${config.modelName})`
-  log.info(`Invoking ${stepName} with tools: ${availableTools.join(', ')}`)
+export const invokeGrokNativeWithTools = traceable(
+  async function invokeGrokNativeWithTools(
+    config: LLMConfig,
+    messages: LLMMessage[],
+    availableTools: string[] = []
+  ): Promise<string> {
+    const stepName = `Grok Native Tools (${config.modelName})`
+    log.info(`Invoking ${stepName} with tools: ${availableTools.join(', ')}`)
 
-  if (!config.apiKey) throw new Error('Grok API Key is missing')
+    if (!config.apiKey) throw new Error('Grok API Key is missing')
 
-  const { default: OpenAI } = await import('openai')
-  const client = new OpenAI({
-    apiKey: config.apiKey,
-    baseURL: 'https://api.x.ai/v1',
-  })
+    const { default: OpenAI } = await import('openai')
+    const client = new OpenAI({
+      apiKey: config.apiKey,
+      baseURL: 'https://api.x.ai/v1',
+    })
 
-  const msgs = toSdkMessages(messages)
-  const tools = buildGrokToolDefinitions(availableTools)
+    const msgs = toSdkMessages(messages)
+    const tools = buildGrokToolDefinitions(availableTools)
 
-  const response = (await client.chat.completions.create({
-    model: config.modelName,
-    messages: msgs,
-    ...(config.temperature != null ? { temperature: config.temperature } : {}),
-    ...(config.maxTokens != null ? { max_tokens: config.maxTokens } : {}),
-    ...(config.topP != null ? { top_p: config.topP } : {}),
-    ...(tools.length > 0
-      ? {
-          tools:
-            tools as unknown as OpenAI.Chat.Completions.ChatCompletionTool[],
-          tool_choice: 'auto' as const,
-        }
-      : {}),
-    ...(config.jsonMode
-      ? { response_format: { type: 'json_object' as const } }
-      : {}),
-  })) as ChatCompletion
+    const response = (await client.chat.completions.create({
+      model: config.modelName,
+      messages: msgs,
+      ...(config.temperature != null ? { temperature: config.temperature } : {}),
+      ...(config.maxTokens != null ? { max_tokens: config.maxTokens } : {}),
+      ...(config.topP != null ? { top_p: config.topP } : {}),
+      ...(tools.length > 0
+        ? {
+            tools:
+              tools as unknown as OpenAI.Chat.Completions.ChatCompletionTool[],
+            tool_choice: 'auto' as const,
+          }
+        : {}),
+      ...(config.jsonMode
+        ? { response_format: { type: 'json_object' as const } }
+        : {}),
+    })) as ChatCompletion
 
-  if (!response.choices?.length) throw new Error('Grok returned no choices.')
+    if (!response.choices?.length) throw new Error('Grok returned no choices.')
 
-  const first = response.choices[0]
+    const first = response.choices[0]
 
-  if (first.message.tool_calls?.length) {
-    return handleGrokToolCalls(client, config, msgs, first, stepName)
+    if (first.message.tool_calls?.length) {
+      return handleGrokToolCalls(client, config, msgs, first, stepName)
+    }
+
+    if (first.message?.content) {
+      log.info(
+        `[${stepName}] Direct response: ${first.message.content.length} chars`
+      )
+      return first.message.content
+    }
+
+    throw new Error('Grok API returned no content')
+  },
+  {
+    name: 'grok_native_with_tools',
+    run_type: 'llm' as const,
+    tags: ['grok', 'xai', 'tools'],
   }
-
-  if (first.message?.content) {
-    log.info(
-      `[${stepName}] Direct response: ${first.message.content.length} chars`
-    )
-    return first.message.content
-  }
-
-  throw new Error('Grok API returned no content')
-}
+)
 
 type GrokToolDef = typeof X_KEYWORD_SEARCH_TOOL | typeof X_SEMANTIC_SEARCH_TOOL
 

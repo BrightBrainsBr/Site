@@ -52,7 +52,6 @@ export async function GET(
     })
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: company } = (await sb
     .from('companies')
     .select(

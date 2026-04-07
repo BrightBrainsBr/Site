@@ -1,5 +1,7 @@
 // frontend/features/llm/services/providers/googleNativeProvider.ts
 
+import { traceable } from 'langsmith/traceable'
+
 import { sanitizeSchemaForGemini } from '../../helpers/sanitizeSchemaForGemini'
 import type { LLMConfig, LLMMessage } from '../../llm.interface'
 import { LLMProvider } from '../../llm.interface'
@@ -54,11 +56,12 @@ function convertToGeminiFormat(messages: LLMMessage[]): {
  * Invoke Google Gemini using the native @google/genai SDK.
  * Provides JSON-mode structured output with schema enforcement.
  */
-export async function invokeGoogleNativeStructured(
-  config: LLMConfig,
-  messages: LLMMessage[],
-  outputSchemaJson: Record<string, unknown>
-): Promise<string> {
+export const invokeGoogleNativeStructured = traceable(
+  async function invokeGoogleNativeStructured(
+    config: LLMConfig,
+    messages: LLMMessage[],
+    outputSchemaJson: Record<string, unknown>
+  ): Promise<string> {
   const stepName = `Google Native (${config.modelName})`
   log.info(`Invoking ${stepName}`)
 
@@ -106,4 +109,10 @@ export async function invokeGoogleNativeStructured(
 
   log.info(`[${stepName}] Success. ${text.length} chars`)
   return text
-}
+  },
+  {
+    name: 'google_native_structured',
+    run_type: 'llm' as const,
+    tags: ['gemini', 'google'],
+  }
+)

@@ -75,7 +75,7 @@ export function useB2BEventsMutationHook(companyId: string | null) {
   })
 
   const bulkCreate = useMutation<B2BEvent[], Error, CreateEventInput[]>({
-    mutationFn: (events) => postJSON(`${base}/bulk`, events),
+    mutationFn: (events) => postJSON(base, { events }),
     onSuccess: invalidate,
   })
 

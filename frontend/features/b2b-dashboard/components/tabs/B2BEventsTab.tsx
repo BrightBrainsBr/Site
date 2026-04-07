@@ -8,14 +8,15 @@ import type {
   B2BEvent,
   CreateEventInput,
   EventType,
-  PdfExtractionEventsResult,
 } from '../../b2b-dashboard.interface'
 import { CID_CODES_NR1 } from '../../constants/cid-codes'
 import { useB2BDepartments } from '../../hooks/useB2BDepartments'
 import { useB2BEventsMutationHook } from '../../hooks/useB2BEventsMutationHook'
 import { useB2BEventsQueryHook } from '../../hooks/useB2BEventsQueryHook'
-import { useB2BExtractPdfMutationHook } from '../../hooks/useB2BExtractPdfMutationHook'
 import { useB2BPercepcaoQueryHook } from '../../hooks/useB2BPercepcaoQueryHook'
+import type { PdfJobDetail } from '../../hooks/useB2BPdfJobsHook'
+import { useB2BPdfJobsHook } from '../../hooks/useB2BPdfJobsHook'
+import { B2BPdfUploadModal } from '../shared/B2BPdfUploadModal'
 
 function CIDSearchSelect({
   value,
@@ -155,15 +156,221 @@ interface B2BEventsTabProps {
   cycleId: string | null
 }
 
+function PdfProgressBanner({
+  jobs,
+  isUploading,
+  isAllComplete,
+  onConfirm,
+  onDismiss,
+  bulkCreatePending,
+}: {
+  jobs: PdfJobDetail[]
+  isUploading: boolean
+  isAllComplete: boolean
+  onConfirm: (events: CreateEventInput[]) => void
+  onDismiss: () => void
+  bulkCreatePending: boolean
+}) {
+  const isProcessing =
+    isUploading ||
+    jobs.some((j) => j.status === 'pending' || j.status === 'processing')
+
+  const completedJobs = jobs.filter((j) => j.status === 'completed')
+  const failedJobs = jobs.filter((j) => j.status === 'failed')
+  const totalEvents = completedJobs.reduce(
+    (acc, j) => acc + (j.result?.events?.length ?? 0),
+    0
+  )
+  const allFailed = jobs.length > 0 && failedJobs.length === jobs.length
+
+  const handleConfirm = useCallback(() => {
+    const events: CreateEventInput[] = []
+    for (const job of completedJobs) {
+      for (const ev of job.result?.events ?? []) {
+        events.push({
+          event_date: (ev.event_date as string) ?? '',
+          event_type: ((ev.event_type as string) ?? 'outro') as EventType,
+          cid_code: (ev.cid_code as string) ?? '',
+          description: (ev.description as string) ?? '',
+          department: (ev.department as string) ?? '',
+          days_lost:
+            typeof ev.days_lost === 'number' ? ev.days_lost : undefined,
+          source: 'pdf_import',
+        })
+      }
+    }
+    onConfirm(events)
+  }, [completedJobs, onConfirm])
+
+  if (isProcessing) {
+    return (
+      <div className="rounded-xl border border-[rgba(96,165,250,0.25)] bg-[rgba(96,165,250,0.06)] px-4 py-3">
+        <div className="mb-2 flex items-center gap-2">
+          <svg
+            className="h-4 w-4 animate-spin text-[#60A5FA]"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+          <span className="text-[14px] font-semibold text-[#60A5FA]">
+            {isUploading
+              ? 'Enviando arquivos…'
+              : 'Processando PDFs com IA…'}
+          </span>
+          <button
+            onClick={onDismiss}
+            className="ml-auto text-[#64748b] hover:text-[#94a3b8]"
+            title="Cancelar"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {/* Animated progress bar */}
+        <div className="mb-2 h-1 w-full overflow-hidden rounded-full bg-[rgba(96,165,250,0.15)]">
+          <div className="h-full animate-pulse rounded-full bg-[#60A5FA]" style={{ width: '60%' }} />
+        </div>
+        {jobs.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {jobs.map((job) => (
+              <div key={job.id} className="flex items-center gap-2 text-[13px] text-[#64748b]">
+                {(job.status === 'pending' || job.status === 'processing') && (
+                  <svg className="h-3 w-3 animate-spin text-[#60A5FA]" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                )}
+                {job.status === 'completed' && (
+                  <svg className="h-3 w-3 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                <span>{job.file_name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (!isAllComplete || jobs.length === 0) return null
+
+  if (allFailed) {
+    return (
+      <div className="rounded-xl border border-[rgba(248,113,113,0.25)] bg-[rgba(248,113,113,0.06)] px-4 py-3">
+        <div className="mb-2 flex items-center gap-2">
+          <svg className="h-4 w-4 text-[#F87171]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-[14px] font-semibold text-[#F87171]">
+            Falha ao processar PDF{jobs.length !== 1 ? 's' : ''}
+          </span>
+          <button onClick={onDismiss} className="ml-auto text-[#64748b] hover:text-[#94a3b8]">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="space-y-1">
+          {failedJobs.map((job) => (
+            <div key={job.id} className="text-[13px] text-[#F87171]">
+              <span className="font-medium">{job.file_name}:</span>{' '}
+              {job.error_message ?? 'Erro desconhecido'}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const hasEvents = totalEvents > 0
+
+  return (
+    <div
+      className={`rounded-xl border px-4 py-3 ${
+        hasEvents
+          ? 'border-[rgba(74,222,128,0.25)] bg-[rgba(74,222,128,0.06)]'
+          : 'border-[rgba(251,191,36,0.25)] bg-[rgba(251,191,36,0.06)]'
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        {hasEvents ? (
+          <svg className="h-4 w-4 text-[#4ADE80]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ) : (
+          <svg className="h-4 w-4 text-[#FBBF24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )}
+        <span className={`text-[14px] font-semibold ${hasEvents ? 'text-[#4ADE80]' : 'text-[#FBBF24]'}`}>
+          {hasEvents
+            ? `${totalEvents} evento${totalEvents !== 1 ? 's' : ''} extraído${totalEvents !== 1 ? 's' : ''} de ${completedJobs.length} PDF${completedJobs.length !== 1 ? 's' : ''}`
+            : `Nenhum evento encontrado nos PDF${jobs.length !== 1 ? 's' : ''} enviados`}
+        </span>
+        <div className="ml-auto flex items-center gap-2">
+          {failedJobs.length > 0 && (
+            <span className="text-[13px] text-[#F87171]">
+              {failedJobs.length} falhou
+            </span>
+          )}
+          {hasEvents && (
+            <button
+              onClick={handleConfirm}
+              disabled={bulkCreatePending}
+              className="rounded-lg bg-[rgba(74,222,128,0.15)] px-3 py-1 text-[13px] font-semibold text-[#4ADE80] transition-colors hover:bg-[rgba(74,222,128,0.25)] disabled:opacity-50"
+            >
+              {bulkCreatePending ? 'Importando…' : `Confirmar ${totalEvents} evento${totalEvents !== 1 ? 's' : ''}`}
+            </button>
+          )}
+          <button onClick={onDismiss} className="text-[#64748b] hover:text-[#94a3b8]">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      {failedJobs.length > 0 && (
+        <div className="mt-2 space-y-0.5">
+          {failedJobs.map((job) => (
+            <div key={job.id} className="text-[12px] text-[#F87171]">
+              <span className="font-medium">{job.file_name}:</span>{' '}
+              {job.error_message ?? 'Erro ao processar'}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
   const [filterType, setFilterType] = useState<string>('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<CreateEventInput>({ ...EMPTY_EVENT })
-  const [extractedEvents, setExtractedEvents] = useState<B2BEvent[] | null>(
-    null
-  )
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+
+  const { uploadJobs, pollQuery, isAllComplete, reset } =
+    useB2BPdfJobsHook(companyId)
+  const pdfJobs: PdfJobDetail[] = pollQuery.data?.jobs ?? []
+  const hasPdfActivity =
+    uploadJobs.isPending || pdfJobs.length > 0
 
   const { data: deptData } = useB2BDepartments(companyId, cycleId)
   const { data: eventsData, isLoading } = useB2BEventsQueryHook(companyId, {
@@ -171,7 +378,6 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
   })
   const { createEvent, updateEvent, deleteEvent, bulkCreate } =
     useB2BEventsMutationHook(companyId)
-  const extractPdf = useB2BExtractPdfMutationHook(companyId)
   const { data: percepcao } = useB2BPercepcaoQueryHook(
     companyId,
     cycleId ?? undefined
@@ -225,36 +431,20 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
     [deleteEvent]
   )
 
-  const handleFileUpload = useCallback(
-    (file: File) => {
-      extractPdf.mutate(
-        { file, extractionType: 'events-bulk' },
-        {
-          onSuccess: (result) => {
-            const eventsResult = result.extracted as PdfExtractionEventsResult
-            setExtractedEvents(eventsResult.events ?? [])
-          },
-        }
-      )
+  const handlePdfSubmit = useCallback(
+    (files: File[]) => {
+      uploadJobs.mutate(files)
     },
-    [extractPdf]
+    [uploadJobs]
   )
 
-  const handleConfirmBulk = useCallback(() => {
-    if (!extractedEvents?.length) return
-    const inputs: CreateEventInput[] = extractedEvents.map((ev) => ({
-      event_date: ev.event_date,
-      event_type: ev.event_type,
-      cid_code: ev.cid_code,
-      description: ev.description,
-      department: ev.department,
-      days_lost: ev.days_lost,
-      source: 'pdf_import',
-    }))
-    bulkCreate.mutate(inputs, {
-      onSuccess: () => setExtractedEvents(null),
-    })
-  }, [extractedEvents, bulkCreate])
+  const handlePdfConfirm = useCallback(
+    (events: CreateEventInput[]) => {
+      if (!events.length) return
+      bulkCreate.mutate(events, { onSuccess: reset })
+    },
+    [bulkCreate, reset]
+  )
 
   if (isLoading) {
     return (
@@ -323,23 +513,11 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
           + Novo Evento
         </button>
         <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={extractPdf.isPending}
-          className="rounded-lg border border-[rgba(255,255,255,0.1)] px-3 py-1.5 text-[14px] font-semibold text-[#94a3b8] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:text-[#e2e8f0] disabled:opacity-50"
+          onClick={() => setShowUploadModal(true)}
+          className="rounded-lg bg-[rgba(96,165,250,0.15)] border border-[rgba(96,165,250,0.3)] px-4 py-2 text-[14px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.25)]"
         >
-          {extractPdf.isPending ? 'Extraindo…' : 'Upload PDF (lote)'}
+          Upload PDF (lote)
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) handleFileUpload(file)
-            e.target.value = ''
-          }}
-        />
 
         {/* Type filter */}
         <select
@@ -358,42 +536,16 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
         </select>
       </div>
 
-      {/* PDF extraction preview */}
-      {extractedEvents && (
-        <div className="rounded-[14px] border border-[rgba(96,165,250,0.3)] bg-[#0c1425] p-4">
-          <h3 className="mb-2 text-[17px] font-semibold text-[#60A5FA]">
-            Eventos extraídos do PDF — Revise antes de confirmar
-          </h3>
-          <div className="mb-3 max-h-60 space-y-1 overflow-y-auto">
-            {extractedEvents.map((ev, i) => (
-              <div
-                key={i}
-                className="rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#111b2e] px-3 py-2 text-[14px] text-[#94a3b8]"
-              >
-                {ev.event_date.slice(0, 10)} — {ev.event_type} —{' '}
-                {ev.description}
-                {ev.cid_code && ` (${ev.cid_code})`}
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={handleConfirmBulk}
-              disabled={bulkCreate.isPending}
-              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] disabled:opacity-50"
-            >
-              {bulkCreate.isPending
-                ? 'Importando…'
-                : `Confirmar (${extractedEvents.length})`}
-            </button>
-            <button
-              onClick={() => setExtractedEvents(null)}
-              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[14px] font-semibold text-[#94a3b8]"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
+      {/* PDF processing progress banner */}
+      {hasPdfActivity && (
+        <PdfProgressBanner
+          jobs={pdfJobs}
+          isUploading={uploadJobs.isPending}
+          isAllComplete={isAllComplete}
+          onConfirm={handlePdfConfirm}
+          onDismiss={reset}
+          bulkCreatePending={bulkCreate.isPending}
+        />
       )}
 
       {/* Create / Edit form */}
@@ -645,6 +797,14 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
           </div>
         )}
       </div>
+
+      {/* PDF Upload Modal */}
+      <B2BPdfUploadModal
+        open={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onSubmit={handlePdfSubmit}
+        isUploading={uploadJobs.isPending}
+      />
 
       {/* Correlações Identificadas */}
       <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-4">
