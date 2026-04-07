@@ -63,18 +63,15 @@ export async function POST(
       continue
     }
 
-    const { error: insertError } = await sb
-      .from('pdf_extraction_jobs')
-      .insert({
-        id: jobId,
-        company_id: companyId,
-        file_name: file.name,
-        storage_path: storagePath,
-        extraction_type: extractionType,
-        status: 'pending',
-        created_by:
-          auth.ok && !auth.isPortalAdmin ? auth.userId : null,
-      })
+    const { error: insertError } = await sb.from('pdf_extraction_jobs').insert({
+      id: jobId,
+      company_id: companyId,
+      file_name: file.name,
+      storage_path: storagePath,
+      extraction_type: extractionType,
+      status: 'pending',
+      created_by: auth.ok && !auth.isPortalAdmin ? auth.userId : null,
+    })
 
     if (insertError) {
       console.error('[extract-pdf/jobs] insert failed', insertError)
@@ -108,7 +105,10 @@ export async function POST(
           }
         )
       } catch (err) {
-        console.error(`[extract-pdf/jobs] trigger process failed ${job.id}`, err)
+        console.error(
+          `[extract-pdf/jobs] trigger process failed ${job.id}`,
+          err
+        )
       }
     }
   })
@@ -140,7 +140,9 @@ export async function GET(
 
   const { data: jobs, error } = await sb
     .from('pdf_extraction_jobs')
-    .select('id, file_name, status, result, error_message, warnings, confidence, updated_at')
+    .select(
+      'id, file_name, status, result, error_message, warnings, confidence, updated_at'
+    )
     .eq('company_id', companyId)
     .in('id', ids)
 

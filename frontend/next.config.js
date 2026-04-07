@@ -11,6 +11,8 @@ const { withHelpers } = require('@futurebrand/helpers-nextjs/plugins')
  * @type {import('next').NextConfig}
  */
 const nextConfig = {
+  // Avoid webpack bundling pdf-parse (dynamic requires → "Critical dependency" + flaky builds)
+  serverExternalPackages: ['pdf-parse'],
   logging: {
     fetches: {
       fullUrl: true,
