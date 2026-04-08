@@ -124,16 +124,20 @@ export async function updateEvaluation(
     laudo_pdf_url: string
     laudo_markdown: string
     status: string
+    risk_level?: string
   }
 ): Promise<void> {
   const sb = createSb()
+  const patch: Record<string, unknown> = {
+    laudo_pdf_url: data.laudo_pdf_url,
+    laudo_markdown: data.laudo_markdown,
+    status: data.status,
+  }
+  if (data.risk_level) patch.risk_level = data.risk_level
+
   const { error } = await sb
     .from('mental_health_evaluations')
-    .update({
-      laudo_pdf_url: data.laudo_pdf_url,
-      laudo_markdown: data.laudo_markdown,
-      status: data.status,
-    })
+    .update(patch)
     .eq('id', evaluationId)
 
   if (error) {

@@ -57,6 +57,11 @@ export const B2BLaudoAnnotation = Annotation.Root({
     default: () => 'init',
   }),
 
+  riskLevel: Annotation<string>({
+    reducer: (_, b) => b,
+    default: () => '',
+  }),
+
   errors: Annotation<string[]>({
     reducer: (a, b) => [...a, ...b],
     default: () => [],
