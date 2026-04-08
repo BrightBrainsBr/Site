@@ -4,6 +4,10 @@ import jsPDF from 'jspdf'
 
 import { RetryableError } from '~/agents/shared/errors'
 import {
+  computeNormalizedScore,
+  getRiskLevel,
+} from '~/app/api/b2b/lib/riskUtils'
+import {
   getAnthropicConfigForTask,
   llmService,
   toLangChainMessages,
@@ -400,8 +404,9 @@ function aepTable(doc: jsPDF, rows: AepRow[], total: number, y: number): number 
 
 // ── Risk matrix (Section 6) ──────────────────────────────────────────────────
 
-function riskMatrixGrid(doc: jsPDF, srq20Score: number, aepTotal: number, y: number): number {
-  const { row: activeRow, col: activeCol, level: finalLevel } = matrixCell(srq20Score, aepTotal)
+function riskMatrixGrid(doc: jsPDF, srq20Score: number, aepTotal: number, y: number, overrideLevel?: RiskLevel): number {
+  const { row: activeRow, col: activeCol, level: matrixLevel } = matrixCell(srq20Score, aepTotal)
+  const finalLevel = overrideLevel ?? matrixLevel
 
   const CH = 9; const labH = 8  // cell height, label height
   const cols = 4; const rows = 3
@@ -748,6 +753,15 @@ export async function buildPdf(
       'As escalas abaixo foram aplicadas via plataforma BrightMonitor e comp\u00F5em a avalia\u00E7\u00E3o de sa\u00FAde mental para mapeamento de riscos psicossociais.',
       y)
     const srq = sc.srq20 ?? 0
+
+    // Compute the same normalized risk the dashboard uses (all scales averaged)
+    const EN_TO_PT: Record<string, RiskLevel> = {
+      low: 'baixo', moderate: 'moderado', elevated: 'elevado', critical: 'critico',
+    }
+    const normalizedScore = computeNormalizedScore(sc)
+    const normalizedRiskEn = normalizedScore != null ? getRiskLevel(normalizedScore) : null
+    const normalizedRiskPT = normalizedRiskEn ? (EN_TO_PT[normalizedRiskEn] as RiskLevel) : null
+
     y = ens(y, 24)
     y = scaleTable(doc, [
       { escala: 'SRQ-20', dominio: 'Transtornos Mentais Comuns (OMS)', score: String(srq), range: '0\u201320', classificacao: srq20Label(srq), nivel: srq20Risk(srq) },
@@ -795,7 +809,7 @@ export async function buildPdf(
     y = secHead(doc, '6. Classifica\u00E7\u00E3o de Risco Psicossocial Integrado',
       'Resultado da matriz probabilidade \u00D7 severidade conforme metodologia BrightMonitor, integrando dados das escalas cl\u00EDnicas, AEP e SRQ-20.',
       y)
-    y = ens(y, 65); y = riskMatrixGrid(doc, srq, aepTotal, y); y += 4
+    y = ens(y, 65); y = riskMatrixGrid(doc, srq, aepTotal, y, normalizedRiskPT ?? undefined); y += 4
 
     const sec6 = aiSection(state.laudoMarkdown, 'SECTION_6')
     if (sec6) { y = bodyText(doc, sec6, y, ens) }
@@ -882,7 +896,7 @@ export async function buildPdf(
     for (let p = 1; p <= total; p++) { doc.setPage(p); drawFooter(doc, today, p) }
 
     const pdfBuffer = Buffer.from(doc.output('arraybuffer'))
-    return { pdfBuffer, status: 'pdf_built' }
+    return { pdfBuffer, riskLevel: normalizedRiskEn ?? '', status: 'pdf_built' }
 
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown buildPdf error'
@@ -909,6 +923,7 @@ export async function storeResult(
       laudo_pdf_url: pdfUrl,
       laudo_markdown: state.laudoMarkdown,
       status: 'completed',
+      risk_level: state.riskLevel || undefined,
     })
 
     const patientName  = (state.formData.nome as string)     || 'Colaborador'
