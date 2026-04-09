@@ -53,9 +53,9 @@ export function B2BLoginComponent() {
       const meData = await meRes.json()
 
       if (meData.isCompanyUser) {
-        router.push(localePath('/empresa/dashboard'))
+        router.push(localePath('/monitor'))
       } else if (meData.isCollaborator) {
-        router.push(localePath('/avaliacao'))
+        router.push(localePath('/monitor/form'))
       } else {
         setError('Esta conta não tem acesso ao dashboard empresarial.')
         return
@@ -129,7 +129,7 @@ export function B2BLoginComponent() {
 
         <div className="text-center">
           <Link
-            href={localePath('/empresa/reset-password')}
+            href={localePath('/monitor/reset-password')}
             className="text-sm text-[#5a7fa0] hover:text-[#00c9b1] transition-colors"
           >
             Esqueceu a senha?

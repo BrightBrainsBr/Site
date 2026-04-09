@@ -1,9 +1,10 @@
-// frontend/app/[locale]/empresa/perfil/page.tsx
+import { redirect } from 'next/navigation'
 
-'use client'
-
-import { B2BProfileComponent } from '~/features/b2b-dashboard/components/B2BProfileComponent'
-
-export default function EmpresaProfilePage() {
-  return <B2BProfileComponent />
+export default async function OldProfileRedirect({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  redirect(`/${locale}/monitor/perfil`)
 }

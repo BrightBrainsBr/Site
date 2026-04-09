@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Conta criada com sucesso.',
-      redirect: '/avaliacao',
+      redirect: '/monitor/form',
       userType: 'collaborator',
     })
   } catch (err) {

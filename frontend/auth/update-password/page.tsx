@@ -66,8 +66,8 @@ export default function UpdatePasswordPage() {
         if (isFromInvite) {
           destination =
             inviteRole === 'collaborator'
-              ? '/pt-BR/avaliacao'
-              : '/pt-BR/empresa/dashboard'
+              ? '/pt-BR/monitor/form'
+              : '/pt-BR/monitor'
         }
         setTimeout(() => {
           router.push(destination)

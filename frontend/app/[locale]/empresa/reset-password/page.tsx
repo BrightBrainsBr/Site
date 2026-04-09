@@ -1,9 +1,10 @@
-// frontend/app/[locale]/empresa/reset-password/page.tsx
+import { redirect } from 'next/navigation'
 
-'use client'
-
-import { B2BResetPasswordComponent } from '~/features/b2b-dashboard/components/B2BResetPasswordComponent'
-
-export default function EmpresaResetPasswordPage() {
-  return <B2BResetPasswordComponent />
+export default async function OldResetPasswordRedirect({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  redirect(`/${locale}/monitor/reset-password`)
 }

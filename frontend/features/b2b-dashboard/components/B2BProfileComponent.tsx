@@ -95,7 +95,7 @@ export function B2BProfileComponent() {
       <div className="border-b border-[rgba(255,255,255,0.08)] bg-[#0E1E33] px-4 py-3 md:px-6 md:py-4">
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           <Link
-            href={localePath('/empresa/dashboard')}
+            href={localePath('/monitor')}
             className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[rgba(255,255,255,0.05)]"
           >
             <ArrowLeft className="h-4 w-4 text-[#94A3B8]" />
