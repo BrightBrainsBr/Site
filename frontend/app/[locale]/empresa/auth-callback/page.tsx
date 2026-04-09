@@ -75,14 +75,14 @@ export default function EmpresaAuthCallbackPage() {
         }
 
         if (meData.isCompanyUser) {
-          router.replace('/pt-BR/empresa/dashboard')
+          router.replace('/pt-BR/monitor')
         } else if (meData.isCollaborator) {
-          router.replace('/pt-BR/avaliacao')
+          router.replace('/pt-BR/monitor/form')
         } else {
-          router.replace('/pt-BR/empresa/dashboard')
+          router.replace('/pt-BR/monitor')
         }
       } catch {
-        router.replace('/pt-BR/empresa/dashboard')
+        router.replace('/pt-BR/monitor')
       }
     }
 

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
           sessionError.message,
           '— this usually means the email was opened in a different browser.'
         )
-        const redirectUrl = new URL('/pt-BR/empresa/reset-password', request.url)
+        const redirectUrl = new URL('/pt-BR/monitor/reset-password', request.url)
         redirectUrl.searchParams.set('error', 'link_expired')
         return NextResponse.redirect(redirectUrl)
       }
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       )
     } catch (error) {
       console.error('[Auth Callback] Recovery flow error:', error)
-      const redirectUrl = new URL('/pt-BR/empresa/reset-password', request.url)
+      const redirectUrl = new URL('/pt-BR/monitor/reset-password', request.url)
       redirectUrl.searchParams.set('error', 'link_expired')
       return NextResponse.redirect(redirectUrl)
     }
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
       console.log(
         `[Auth Callback] User is a company admin. Redirecting to dashboard.`
       )
-      const finalRedirectPath = intendedRedirect || '/pt-BR/empresa/dashboard'
+      const finalRedirectPath = intendedRedirect || '/pt-BR/monitor'
       return NextResponse.redirect(new URL(finalRedirectPath, request.url))
     }
 
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
       console.log(
         `[Auth Callback] User is a collaborator with active invite. Redirecting to assessment.`
       )
-      return NextResponse.redirect(new URL('/pt-BR/avaliacao', request.url))
+      return NextResponse.redirect(new URL('/pt-BR/monitor/form', request.url))
     }
 
     console.log(

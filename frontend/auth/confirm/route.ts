@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { createClient, createServiceClient } from '@/utils/supabase/server'
 
-const REDIRECT_EMPRESA_DASHBOARD = '/pt-BR/empresa/dashboard'
+const REDIRECT_EMPRESA_DASHBOARD = '/pt-BR/monitor'
 const REDIRECT_LOGIN = '/pt-BR/login'
 const REDIRECT_ON_ERROR = '/pt-BR/login?error=confirmation_failed'
 const REDIRECT_UPDATE_PASSWORD = '/auth/update-password'
@@ -62,7 +62,7 @@ async function resolveUserDestination(
 
   if (invite) {
     console.log('[Auth Confirm] User is a collaborator with active invite.')
-    return redirectTo(request, '/pt-BR/avaliacao')
+    return redirectTo(request, '/pt-BR/monitor/form')
   }
 
   console.log('[Auth Confirm] User not in company_users or invites.')

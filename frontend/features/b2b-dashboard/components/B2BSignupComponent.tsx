@@ -116,9 +116,9 @@ export function B2BSignupComponent() {
       const meData = await meRes.json()
 
       if (meData.isCompanyUser) {
-        router.push(localePath('/empresa/dashboard'))
+        router.push(localePath('/monitor'))
       } else {
-        router.push(localePath('/avaliacao'))
+        router.push(localePath('/monitor/form'))
       }
       router.refresh()
     } catch {

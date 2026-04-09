@@ -47,6 +47,8 @@ import {
   WelcomeStep,
 } from './steps'
 
+export type AssessmentMode = 'b2b' | 'b2c'
+
 const IS_DEV = process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
 
 function getLocalePrefix(): string {
@@ -55,19 +57,13 @@ function getLocalePrefix(): string {
   return parts[1] && parts[1].includes('-') ? `/${parts[1]}` : '/pt-BR'
 }
 
-function AccessGate({
-  onUnlock,
-}: {
-  onUnlock: (ctx?: CompanyContext) => void
-}) {
+function useCodeValidation(
+  onUnlock: (ctx?: CompanyContext) => void,
+  mode: AssessmentMode
+) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [showCodeInput, setShowCodeInput] = useState(false)
-
-  const locale = getLocalePrefix()
-  const loginPath = `${locale}/empresa/login`
-  const signupPath = `${locale}/signup`
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,17 +80,17 @@ function AccessGate({
 
       if (data.valid) {
         sessionStorage.setItem('bb_access', '1')
-        const ctx: CompanyContext | undefined =
-          data.type === 'company'
-            ? {
-                company_id: data.company_id,
-                department: data.department,
-                departments: data.departments,
-                cycle_id: data.cycle_id,
-                code_id: data.code_id,
-              }
-            : undefined
-        onUnlock(ctx)
+        if (mode === 'b2b' && data.type === 'company') {
+          onUnlock({
+            company_id: data.company_id,
+            department: data.department,
+            departments: data.departments,
+            cycle_id: data.cycle_id,
+            code_id: data.code_id,
+          })
+        } else {
+          onUnlock()
+        }
       } else {
         setError(true)
       }
@@ -104,6 +100,22 @@ function AccessGate({
       setLoading(false)
     }
   }
+
+  return { code, setCode, error, setError, loading, handleSubmit }
+}
+
+function B2BAccessGate({
+  onUnlock,
+}: {
+  onUnlock: (ctx?: CompanyContext) => void
+}) {
+  const { code, setCode, error, setError, loading, handleSubmit } =
+    useCodeValidation(onUnlock, 'b2b')
+  const [showCodeInput, setShowCodeInput] = useState(false)
+
+  const locale = getLocalePrefix()
+  const loginPath = `${locale}/login`
+  const signupPath = `${locale}/signup`
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 bg-zinc-950">
@@ -124,7 +136,6 @@ function AccessGate({
           </p>
         </div>
 
-        {/* Primary CTAs — login flow for invited employees */}
         <div className="space-y-2.5">
           <a
             href={loginPath}
@@ -144,7 +155,6 @@ function AccessGate({
           Acesse com o e-mail para o qual recebeu o convite da empresa.
         </p>
 
-        {/* Secondary: access code for generic/B2C entry */}
         {!showCodeInput ? (
           <button
             type="button"
@@ -172,7 +182,9 @@ function AccessGate({
               className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-3 text-center text-sm text-white placeholder-zinc-500 transition-colors focus:border-lime-400 focus:outline-none focus:ring-1 focus:ring-lime-400/30"
             />
             {error && (
-              <p className="text-center text-xs text-red-400">Código inválido</p>
+              <p className="text-center text-xs text-red-400">
+                Código inválido
+              </p>
             )}
             <button
               type="submit"
@@ -188,7 +200,55 @@ function AccessGate({
   )
 }
 
-export function AssessmentPage() {
+function B2CAccessGate({ onUnlock }: { onUnlock: () => void }) {
+  const { code, setCode, error, setError, loading, handleSubmit } =
+    useCodeValidation(onUnlock, 'b2c')
+
+  return (
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        className="w-full max-w-sm space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-8 shadow-xl backdrop-blur-sm"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo-light.svg"
+          alt="Bright Brains"
+          className="mx-auto mb-2 h-9 w-auto"
+        />
+        <h2 className="text-center text-lg font-semibold text-zinc-100">
+          Bright Precision
+        </h2>
+        <p className="text-center text-xs text-zinc-500">
+          Digite o código de acesso para continuar
+        </p>
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value)
+            setError(false)
+          }}
+          placeholder="Código de acesso"
+          autoFocus
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-3 text-center text-sm text-white placeholder-zinc-500 transition-colors focus:border-lime-400 focus:outline-none focus:ring-1 focus:ring-lime-400/30"
+        />
+        {error && (
+          <p className="text-center text-xs text-red-400">Código inválido</p>
+        )}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 py-3 text-sm font-bold text-zinc-900 transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {loading ? 'Verificando...' : 'Entrar'}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
   const [authorized, setAuthorized] = useState(false)
   const [data, setData] = useState<AssessmentFormData>(INITIAL_FORM_DATA)
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -214,6 +274,14 @@ export function AssessmentPage() {
     }
 
     async function checkSession() {
+      if (mode === 'b2c') {
+        if (!isDevMode) {
+          if (hasSessionFlag) setAuthorized(true)
+          if (!cancelled) setSessionChecked(true)
+        }
+        return
+      }
+
       try {
         const res = await fetch('/api/assessment/check-session')
         const result = await res.json()
@@ -250,17 +318,20 @@ export function AssessmentPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [mode])
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE !== 'true') return
-    const devCompanyId = new URLSearchParams(window.location.search).get('company_id')
+    if (mode === 'b2c') return
+    const devCompanyId = new URLSearchParams(window.location.search).get(
+      'company_id'
+    )
     if (devCompanyId) {
       setCompanyContext((prev) =>
         prev.company_id === devCompanyId ? prev : { company_id: devCompanyId }
       )
     }
-  }, [])
+  }, [mode])
 
   useEffect(() => {
     if (!authorized) return
@@ -290,7 +361,7 @@ export function AssessmentPage() {
     saveCurrentStep(currentStepIndex)
   }, [currentStepIndex, isLoaded])
 
-  const isB2B = !!companyContext.company_id
+  const isB2B = mode === 'b2b' && !!companyContext.company_id
   const stepSource = isB2B ? B2B_STEPS : ALL_STEPS
 
   const visibleSteps = useMemo(
@@ -359,8 +430,17 @@ export function AssessmentPage() {
         </div>
       )
     }
+    if (mode === 'b2c') {
+      return (
+        <B2CAccessGate
+          onUnlock={() => {
+            setAuthorized(true)
+          }}
+        />
+      )
+    }
     return (
-      <AccessGate
+      <B2BAccessGate
         onUnlock={(ctx) => {
           if (ctx) setCompanyContext(ctx)
           setAuthorized(true)

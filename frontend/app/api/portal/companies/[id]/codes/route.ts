@@ -123,7 +123,7 @@ export async function POST(
     return NextResponse.json({ message: error.message }, { status: 500 })
   }
 
-  const baseUrl = `${getSiteUrl()}/pt-BR/avaliacao`
+  const baseUrl = `${getSiteUrl()}/pt-BR/monitor/form`
   for (const row of inserted ?? []) {
     const r = row as {
       id: string
@@ -181,7 +181,7 @@ export async function GET(
     return NextResponse.json({ message: error.message }, { status: 500 })
   }
 
-  const baseUrl = `${getSiteUrl()}/pt-BR/avaliacao`
+  const baseUrl = `${getSiteUrl()}/pt-BR/monitor/form`
   const safeStr = (v: unknown): string => {
     if (v == null) return ''
     if (

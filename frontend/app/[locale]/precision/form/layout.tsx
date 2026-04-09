@@ -1,15 +1,13 @@
-// frontend/app/[locale]/avaliacao/layout.tsx
-
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Avaliação Digital | Bright Brains',
+  title: 'Bright Precision | Avaliação Digital',
   description:
     'Formulário clínico completo para avaliação neuropsiquiátrica digital',
   robots: 'noindex, nofollow',
 }
 
-export default function AvaliacaoLayout({
+export default function PrecisionFormLayout({
   children,
 }: {
   children: React.ReactNode
