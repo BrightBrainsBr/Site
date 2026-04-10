@@ -32,22 +32,56 @@ export async function GET() {
       .maybeSingle()
 
     if (cuError || !cu) {
+      const metaCompanyId = user.user_metadata?.company_id as string | undefined
+
+      if (metaCompanyId) {
+        return NextResponse.json({
+          isCompanyUser: false,
+          isCollaborator: true,
+          company_id: metaCompanyId,
+        })
+      }
+
       const { data: invite } = await sb
         .from('company_access_codes')
         .select('id, company_id')
         .eq('employee_email', user.email!)
-        .is('used_at', null)
         .eq('active', true)
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
-      return NextResponse.json(
-        {
+      if (invite) {
+        return NextResponse.json({
           isCompanyUser: false,
-          isCollaborator: !!invite,
-        },
-        { status: 200 }
-      )
+          isCollaborator: true,
+          company_id: invite.company_id,
+        })
+      }
+
+      const domain = user.email?.split('@')[1]
+      if (domain) {
+        const { data: domainCompany } = await sb
+          .from('companies')
+          .select('id')
+          .contains('allowed_domains', [domain])
+          .eq('active', true)
+          .limit(1)
+          .maybeSingle()
+
+        if (domainCompany) {
+          return NextResponse.json({
+            isCompanyUser: false,
+            isCollaborator: true,
+            company_id: domainCompany.id,
+          })
+        }
+      }
+
+      return NextResponse.json({
+        isCompanyUser: false,
+        isCollaborator: false,
+      })
     }
 
     const [companyRes, cyclesRes] = await Promise.all([
