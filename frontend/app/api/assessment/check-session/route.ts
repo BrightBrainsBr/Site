@@ -1,9 +1,104 @@
 import { createServerClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
+
+interface CompanyContext {
+  company_id: string
+  department?: string
+  departments: string[]
+  cycle_id?: string
+  code_id?: string
+}
+
+async function resolveCompanyContext(
+  sb: SupabaseClient,
+  user: User
+): Promise<CompanyContext | null> {
+  const { data: invite } = await sb
+    .from('company_access_codes')
+    .select('id, company_id, department, cycle_id')
+    .eq('employee_email', user.email!)
+    .eq('active', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (invite) {
+    const { data: companyData } = await sb
+      .from('companies')
+      .select('departments')
+      .eq('id', invite.company_id)
+      .single()
+
+    return {
+      company_id: invite.company_id,
+      department: invite.department ?? undefined,
+      departments: companyData?.departments ?? [],
+      cycle_id: invite.cycle_id,
+      code_id: invite.id,
+    }
+  }
+
+  const metaCompanyId = user.user_metadata?.company_id as string | undefined
+  if (metaCompanyId) {
+    return await buildContextFromCompanyId(sb, metaCompanyId)
+  }
+
+  const domain = user.email?.split('@')[1]
+  if (domain) {
+    const { data: domainCompany } = await sb
+      .from('companies')
+      .select('id, departments')
+      .contains('allowed_domains', [domain])
+      .eq('active', true)
+      .limit(1)
+      .maybeSingle()
+
+    if (domainCompany) {
+      return await buildContextFromCompanyId(
+        sb,
+        domainCompany.id,
+        domainCompany.departments ?? []
+      )
+    }
+  }
+
+  return null
+}
+
+async function buildContextFromCompanyId(
+  sb: SupabaseClient,
+  companyId: string,
+  departments?: string[]
+): Promise<CompanyContext> {
+  const depts =
+    departments ??
+    (
+      await sb
+        .from('companies')
+        .select('departments')
+        .eq('id', companyId)
+        .single()
+    ).data?.departments ??
+    []
+
+  const { data: currentCycle } = await sb
+    .from('assessment_cycles')
+    .select('id')
+    .eq('company_id', companyId)
+    .eq('is_current', true)
+    .maybeSingle()
+
+  return {
+    company_id: companyId,
+    departments: depts,
+    cycle_id: currentCycle?.id ?? undefined,
+  }
+}
 
 export async function GET() {
   try {
@@ -38,37 +133,17 @@ export async function GET() {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const { data: invite } = await sb
-      .from('company_access_codes')
-      .select('id, company_id, department, cycle_id')
-      .eq('employee_email', user.email!)
-      .is('used_at', null)
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const companyContext = await resolveCompanyContext(sb, user)
 
-    if (!invite) {
+    if (!companyContext) {
       return NextResponse.json({ authenticated: true, hasInvite: false })
     }
-
-    const { data: companyData } = await sb
-      .from('companies')
-      .select('departments')
-      .eq('id', invite.company_id)
-      .single()
 
     return NextResponse.json({
       authenticated: true,
       hasInvite: true,
       userEmail: user.email,
-      companyContext: {
-        company_id: invite.company_id,
-        department: invite.department ?? undefined,
-        departments: companyData?.departments ?? [],
-        cycle_id: invite.cycle_id,
-        code_id: invite.id,
-      },
+      companyContext,
     })
   } catch (err) {
     console.error('[assessment/check-session] Error:', err)
