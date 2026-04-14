@@ -2,6 +2,14 @@
 
 export function formatDate(iso: string): string {
   if (!iso) return ''
+  // Date-only strings (YYYY-MM-DD) must be parsed without timezone conversion.
+  // new Date("1963-12-07") is treated as UTC midnight, which in UTC-3 (Brazil)
+  // rolls back to Dec 6 — causing a 1-day divergence vs the raw stored value.
+  const dateOnly = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (dateOnly) {
+    const [, year, month, day] = dateOnly
+    return `${day}/${month}/${year}`
+  }
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   const day = String(d.getDate()).padStart(2, '0')
