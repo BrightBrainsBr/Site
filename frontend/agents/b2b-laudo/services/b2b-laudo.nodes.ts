@@ -166,10 +166,29 @@ function maskCpf(v: unknown): string {
 }
 function fmtBirth(v: unknown): string {
   try {
-    const d = new Date(String(v || ''))
-    if (isNaN(d.getTime())) return String(v || '\u2014')
-    const age = Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 36e5))
-    return `${d.toLocaleDateString('pt-BR')} (${age} anos)`
+    const raw = String(v || '')
+    // Date-only strings (YYYY-MM-DD) must be parsed without timezone conversion.
+    // new Date("1963-12-07") is treated as UTC midnight, which in UTC-3 (Brazil)
+    // rolls back to Dec 6 — causing a wrong display date and an off-by-one age.
+    const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    let year: number, month: number, day: number
+    if (dateOnly) {
+      year = parseInt(dateOnly[1]!, 10)
+      month = parseInt(dateOnly[2]!, 10) - 1
+      day = parseInt(dateOnly[3]!, 10)
+    } else {
+      const d = new Date(raw)
+      if (isNaN(d.getTime())) return raw || '\u2014'
+      year = d.getFullYear(); month = d.getMonth(); day = d.getDate()
+    }
+    const display = `${String(day).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`
+    const now = new Date()
+    let age = now.getFullYear() - year
+    if (
+      now.getMonth() < month ||
+      (now.getMonth() === month && now.getDate() < day)
+    ) age--
+    return `${display} (${age} anos)`
   } catch { return '\u2014' }
 }
 function laudoId(evalId: string): string {

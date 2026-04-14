@@ -73,11 +73,23 @@ ${historyBlock}`
 }
 
 function calculateAge(birthDate: string): number {
-  const birth = new Date(birthDate)
+  // Date-only strings (YYYY-MM-DD) must NOT go through new Date() — that parses
+  // them as UTC midnight, which in UTC-3 (Brazil) rolls back to the previous day,
+  // causing birth.getMonth()/getDate() to be wrong and the age to be off by 1.
+  const dateOnly = birthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  let birthYear: number, birthMonth: number, birthDay: number
+  if (dateOnly) {
+    birthYear = parseInt(dateOnly[1]!, 10)
+    birthMonth = parseInt(dateOnly[2]!, 10) - 1
+    birthDay = parseInt(dateOnly[3]!, 10)
+  } else {
+    const d = new Date(birthDate)
+    birthYear = d.getFullYear(); birthMonth = d.getMonth(); birthDay = d.getDate()
+  }
   const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  const monthDiff = today.getMonth() - birth.getMonth()
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+  let age = today.getFullYear() - birthYear
+  const monthDiff = today.getMonth() - birthMonth
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDay)) {
     age--
   }
   return age
