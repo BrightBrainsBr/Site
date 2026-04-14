@@ -7,6 +7,7 @@ import type {
 } from '~/features/assessment/components/assessment.interface'
 import { cn } from '~/shared/utils/cn'
 
+import { formatDate } from '../helpers/format-evaluation'
 import { FIELD_LABELS, FORM_SECTIONS } from '../constants/form-sections'
 import { getScaleColor, getScaleMax } from '../constants/scale-max'
 import type { EvaluationDetail } from '../portal.interface'
@@ -35,6 +36,8 @@ const SCALE_FIELDS = new Set([
   'spin',
   'auditc',
 ])
+
+const DATE_FIELDS = new Set(['nascimento'])
 
 const LONG_TEXT_FIELDS = new Set([
   'queixaPrincipal',
@@ -159,6 +162,15 @@ function formatValue(
           />
         </div>
       </div>
+    )
+  }
+
+  if (DATE_FIELDS.has(fieldId) && typeof value === 'string') {
+    const formatted = formatDate(value)
+    return (
+      <span className="text-sm font-medium text-[#cce6f7]">
+        {formatted || value}
+      </span>
     )
   }
 
