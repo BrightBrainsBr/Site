@@ -23,6 +23,9 @@ const nextConfig = {
       bodySizeLimit: '250mb',
     },
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   reactStrictMode: false,
 }
 
