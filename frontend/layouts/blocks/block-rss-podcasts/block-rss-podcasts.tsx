@@ -22,13 +22,13 @@ async function fetchRssEpisodes() {
     return itemBlocks.map((item) => {
       // Usar regex match pra capturar CDATA ou texto limpo
       const titleMatch =
-        item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/s) ||
-        item.match(/<title>(.*?)<\/title>/s)
+        item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) ||
+        item.match(/<title>([\s\S]*?)<\/title>/)
       const descMatch =
-        item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/s) ||
-        item.match(/<description>(.*?)<\/description>/s)
-      const linkMatch = item.match(/<link>(.*?)<\/link>/s)
-      const dateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/s)
+        item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) ||
+        item.match(/<description>([\s\S]*?)<\/description>/)
+      const linkMatch = item.match(/<link>([\s\S]*?)<\/link>/)
+      const dateMatch = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)
 
       const title = titleMatch ? titleMatch[1].trim() : ''
       // Limpar tags HTML do conteúdo da descrição e reter só o primeiro parágrafo
