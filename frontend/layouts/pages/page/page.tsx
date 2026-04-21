@@ -22,16 +22,19 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
     previewData,
   })
 
-  // Detecta se é a página sobre-nos pelo path
-  const isSobreNosPage = params?.path?.[0] === 'sobre-nos'
-  const isHomePage = !params?.path || params?.path?.length === 0 || params?.path?.[0] === 'home'
+  // Detecta se é a página sobre-nos pelo path/slug
+  const isSobreNosPage = pageData.slug?.includes('sobre-nos') || params?.path?.[0] === 'sobre-nos'
+  const isHomePage = pageData.slug === '/' || pageData.slug === 'home'
 
   let finalBlocks = [...(pageData.blocks || [])]
 
   if (isHomePage) {
-    // Procura bloco confiável: blocks.treatment-guide ou blocks.benefits
+    // Procura bloco confiável: treatment-guide ou benefits via includes
     const targetIdx = finalBlocks.findIndex(
-      (b: any) => b.__component === 'blocks.treatment-guide' || b.__component === 'blocks.benefits'
+      (b: any) => 
+        b.__component?.includes('treatment-guide') || 
+        b.__component?.includes('benefits') ||
+        b.__component?.includes('media-text')
     )
 
     if (targetIdx !== -1) {
@@ -40,8 +43,10 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
         id: 9998,
       } as any)
     } else {
-      // Fallback: se não achar, coloca como penúltimo
-      finalBlocks.splice(finalBlocks.length > 0 ? finalBlocks.length - 1 : 0, 0, {
+      // Fallback: se não achar o bloco, garante que fica na homepage de qualquer forma, 
+      // logo acima de um provável footer block.
+      const fallbackIdx = finalBlocks.length > 0 ? finalBlocks.length - 1 : 0;
+      finalBlocks.splice(fallbackIdx, 0, {
         __component: 'blocks.rss-podcasts',
         id: 9998,
       } as any)
