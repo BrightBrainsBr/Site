@@ -19,9 +19,27 @@ export default async function sitemap({
 }: {
   id: string
 }): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.brightbrains.com.br'
+
   try {
     const router = await getHelpersRouter()
-    return await router.map.generateSitemap({ locale })
+    const generated = await router.map.generateSitemap({ locale })
+    
+    // Força URL absoluta correta ignorando o 127.0.0.1 padrão da lib proprietária
+    return generated.map((item) => {
+      let url = item.url
+      try {
+        const parsedUrl = new URL(url)
+        url = `${baseUrl}/${locale}${parsedUrl.pathname}`.replace(/([^:]\/)\/+/g, '$1')
+      } catch (e) {
+        url = `${baseUrl}/${locale}${url.startsWith('/') ? url : `/${url}`}`
+      }
+
+      return {
+        ...item,
+        url,
+      }
+    })
   } catch {
     return []
   }

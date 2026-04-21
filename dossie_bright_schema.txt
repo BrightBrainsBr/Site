@@ -1,0 +1,576 @@
+================================================================================
+DOSSIÊ BRIGHT BRAINS — DADOS PARA SCHEMA.ORG
+================================================================================
+Gerado em: 2026-04-20
+Fonte: Código da branch felipe/seo-bright + API Strapi (produção)
+================================================================================
+
+
+================================================================================
+1. DADOS INSTITUCIONAIS
+================================================================================
+
+Nome oficial:          Bright Brains - Instituto da Mente
+URL principal:         https://www.brightbrains.com.br/
+Telefone:              +55-11-97517-8575
+Email:                 (não encontrado no código — vem do CMS/footer)
+
+Endereço completo:
+  Logradouro:          Rua do Rócio, 350, cj 61 - Vila Olímpia
+  Cidade:              São Paulo
+  Estado:              SP
+  CEP:                 04552-000
+  País:                Brasil (BR)
+
+Horário de funcionamento:
+  (não encontrado no código nem no CMS — dado faltante)
+
+Redes sociais:
+  Instagram:           https://www.instagram.com/brightbrainsbr/
+  LinkedIn:            https://br.linkedin.com/company/bright-brains-brasil
+  YouTube:             https://www.youtube.com/@BrightBrainsBr
+
+Logo:
+  SVG (light):         https://www.brightbrains.com.br/logo-light.svg
+  Favicon SVG:         https://www.brightbrains.com.br/favicon.svg
+  Favicon PNG 96x96:   https://www.brightbrains.com.br/favicon-96x96.png
+  Apple Touch Icon:    https://www.brightbrains.com.br/apple-touch-icon.png
+
+CDN de imagens:        https://d1a30r7wqil0mo.cloudfront.net
+CMS / Painel:          https://painel-website.brightbrains.com.br
+
+Web App Manifest:
+  Nome:                "MyWebSite" (INCORRETO — deveria ser "Bright Brains")
+  Short name:          "MySite" (INCORRETO — deveria ser "Bright Brains")
+  Display:             standalone
+
+
+================================================================================
+2. POSICIONAMENTO
+================================================================================
+
+Como se apresenta:
+  "Clínica especializada em neuromodulação não invasiva aplicada à saúde
+  mental e neurológica."
+
+Descrição institucional completa (do Schema global):
+  "Clínica especializada em neuromodulação não invasiva aplicada à saúde
+  mental e neurológica, utilizando técnicas como Estimulação Magnética
+  Transcraniana (TMS) e Estimulação Transcraniana por Corrente Contínua
+  (tDCS) para tratamento de transtornos neuropsiquiátricos, doenças
+  neurológicas e otimização cognitiva."
+
+Proposta de valor:
+  - Tratamento sem medicamentos
+  - Neurociência aplicada
+  - Técnicas validadas cientificamente (TMS, tDCS)
+  - Atende saúde mental, neurologia e performance cognitiva
+
+Nomenclatura usada no código:
+  - "Instituto da Mente" (título oficial)
+  - "MedicalClinic" (tipo Schema.org)
+  - "Organization" (tipo Schema.org secundário)
+
+Programa especial:
+  "Bright Precision" — IA de Apoio à Decisão Clínica para avaliações
+  de saúde mental personalizadas.
+
+
+================================================================================
+3. SERVIÇOS / TRATAMENTOS (14 no CMS)
+================================================================================
+
+--- TRATAMENTOS PRINCIPAIS (com excerpt) ---
+
+ID: 293 | Tratamento Infantil
+  Slug:    /tratamento-infantil
+  URL:     /pt-BR/neuromodulacao/tratamento-infantil
+  Excerpt: Para crianças e adolescentes com TDAH, TEA ou dificuldades
+           de aprendizado.
+  Cor:     blue-400
+  Imagem:  /uploads/Bright_Brain_images_website_07_cb3c7be358.png
+  SEO Title: Bright Brains: Instituto da Mente | Tratamento Infantil
+  SEO Desc:  Para crianças e adolescentes com TDAH, TEA, dificuldades
+             de aprendizado ou está em desenvolvimento cognitivo.
+
+ID: 297 | Tratamento Clínico
+  Slug:    /tratamento-clinico
+  URL:     /pt-BR/neuromodulacao/tratamento-clinico
+  Excerpt: Para quem convive com depressão, ansiedade, dor crônica,
+           TDAH, Alzheimer e outras condições neurológicas.
+  Cor:     green-400
+  Imagem:  /uploads/Bright_Brain_images_website_08_a5b422ac68.png
+  SEO Title: Bright Brains: Instituto da Mente | Tratamento Clínico
+  SEO Desc:  Para quem convive com depressão, ansiedade, dor crônica,
+             TDAH, Alzheimer ou outras condições neurológicas.
+
+ID: 300 | Performance
+  Slug:    /performance
+  URL:     /pt-BR/neuromodulacao/performance
+  Excerpt: Para executivos, atletas e estudantes que precisam aprimorar
+           foco, memória e seu desempenho sob pressão.
+  Cor:     violet-400
+  Imagem:  /uploads/Bright_Brain_images_website_09_090a1f5584.png
+  SEO Title: Bright Brains: Instituto da Mente | Performance
+  SEO Desc:  Para executivos, atletas e estudantes que precisam aprimorar
+             foco, memória e seu desempenho sob pressão.
+
+--- TRATAMENTOS POR CONDIÇÃO (sem excerpt / sem metaDescription) ---
+
+ID: 294 | Insônia
+  Slug:    /insonia
+  URL:     /pt-BR/neuromodulacao/insonia
+  Cor:     green-400
+  Imagem:  /uploads/Insonia_b6dc70c680.png
+
+ID: 305 | Alzheimer
+  Slug:    /alzheimer
+  URL:     /pt-BR/neuromodulacao/alzheimer
+  Cor:     green-400
+  Imagem:  /uploads/Alzheimer_222b07805c.png
+
+ID: 306 | Ansiedade
+  Slug:    /ansiedade
+  URL:     /pt-BR/neuromodulacao/ansiedade
+  Cor:     green-400
+  Imagem:  /uploads/Ansiedade_20577e311c.png
+
+ID: 307 | AVC
+  Slug:    /avc
+  URL:     /pt-BR/neuromodulacao/avc
+  Cor:     green-400
+  Imagem:  /uploads/AVC_c15a4f59ea.png
+
+ID: 308 | Depressão
+  Slug:    /depressao
+  URL:     /pt-BR/neuromodulacao/depressao
+  Cor:     green-400
+  Imagem:  /uploads/Depressao_10274377f4.png
+
+ID: 309 | Dor Crônica
+  Slug:    /dor
+  URL:     /pt-BR/neuromodulacao/dor
+  Cor:     green-400
+  Imagem:  /uploads/Dor_Cronica_1b79469b12.png
+
+ID: 310 | Esclerose Múltipla
+  Slug:    /esclerose-multipla
+  URL:     /pt-BR/neuromodulacao/esclerose-multipla
+  Cor:     green-400
+  Imagem:  /uploads/Esclerose_Multipla_c2314311e8.png
+
+ID: 311 | Parkinson
+  Slug:    /parkinson
+  URL:     /pt-BR/neuromodulacao/parkinson
+  Cor:     green-400
+  Imagem:  /uploads/Parkinson_0181332094.png
+
+ID: 312 | TDAH
+  Slug:    /tdah
+  URL:     /pt-BR/neuromodulacao/tdah
+  Cor:     green-400
+  Imagem:  /uploads/TDAH_1910cd442c.png
+
+ID: 313 | Transtorno do Espectro Autista (TEA)
+  Slug:    /tea
+  URL:     /pt-BR/neuromodulacao/tea
+  Cor:     green-400
+  Imagem:  /uploads/TEA_35d2d2da02.png
+
+ID: 370 | Bright Precision: avaliação de precisão em saúde mental.
+  Slug:    /avaliacaosaudemental
+  URL:     /pt-BR/neuromodulacao/avaliacaosaudemental
+  Cor:     midnight-950
+  Imagem:  /uploads/Bright_Brains_Banco_Mulher_Close_561cbf0c58.png
+  SEO Title: Avaliação Saúde Mental
+  SEO Desc:  Avaliação precisa em saúde mental
+
+
+================================================================================
+4. CONDIÇÕES ATENDIDAS
+================================================================================
+
+Tags registradas no CMS (12 total):
+
+  Nome                                    | Slug
+  ----------------------------------------|------------------
+  Performance                             | /performance
+  Ansiedade                               | /ansiedade
+  Depressão                               | /depressao
+  Dor Crônica                             | /dorcronica
+  Parkinson                               | /parkinson
+  TDAH                                    | /tdah
+  Transtorno do Espectro Autista (TEA)    | /tea
+  Alzheimer                               | /alzheimer
+  AVC                                     | /avc
+  Esclerose Múltipla                      | /esclerose
+  Tratamento Infantil                     | /infantil
+  Tratamento Clinico                      | /clinico
+
+Técnicas mencionadas no Schema global:
+  - Estimulação Magnética Transcraniana (TMS)
+  - Estimulação Transcraniana por Corrente Contínua (tDCS)
+
+Especialidades médicas (do Schema MedicalClinic):
+  - Neuromodulation
+  - Neurology
+  - Psychiatry
+  - MentalHealth
+
+
+================================================================================
+5. CONTEÚDO — POSTS (10 total, todos em pt-BR)
+================================================================================
+
+NOTA: Nenhum post tem featuredImage preenchida via populate.
+      Nenhum post tem excerpt preenchido.
+      Apenas 1 post tem publishedDateTime.
+      Zero posts existem em inglês (en).
+
+ID: 54
+  Título:    Neuromodulação: um tratamento sem uso de remédios para
+             depressão perinatal.
+  Slug:      /depressao
+  Tags:      Depressão
+  Data pub:  (vazio)
+  PublishedAt: 2025-11-05
+  SEO Title: Neuromodulação: um tratamento sem uso de remédios para
+             depressão perinatal.
+  SEO Desc:  Uma alternativa segura e validada por estudos científicos
+             para mães que amamentam.
+  ShowOnGoogle: Sim
+
+ID: 56
+  Título:    Desvendando 4 mitos sobre a Neuromodulação.
+  Slug:      /sobre-nos   ⚠️ CONFLITO com página institucional
+  Tags:      (nenhuma)
+  Data pub:  (vazio)
+  PublishedAt: 2025-11-05
+  SEO Title: Desvendando 4 mitos sobre a Neuromodulação.
+  SEO Desc:  Mitos sobre a Neuromodulação.
+  ShowOnGoogle: Sim
+
+ID: 57
+  Título:    Quando a liderança cuida: como a Neuromodulação transformou
+             a vida de uma funcionária.
+  Slug:      /depoimentos
+  Tags:      Ansiedade
+  Data pub:  2025-09-01  (ÚNICO post com publishedDateTime)
+  PublishedAt: 2025-11-12
+  SEO Title: Quando a liderança cuida: como a Neuromodulação transformou
+             a vida de uma funcionária.
+  SEO Desc:  (vazio)
+  ShowOnGoogle: Sim
+
+ID: 59
+  Título:    Quando ansiedade vira dor física: como a Neuromodulação pode
+             trazer alívio rápido e duradouro.
+  Slug:      /ansiedade
+  Tags:      Ansiedade
+  Data pub:  (vazio)
+  PublishedAt: 2025-11-12
+  SEO Title: Quando ansiedade vira dor física:
+  SEO Desc:  como a Neuromodulação pode trazer alívio rápido e duradouro.
+  ShowOnGoogle: Sim
+
+ID: 66
+  Título:    Mas afinal, como funciona a Neuromodulação Não Invasiva?
+  Slug:      /comofunciona
+  Tags:      Performance
+  Data pub:  (vazio)
+  PublishedAt: 2025-11-19
+  SEO Title: Mas afinal, como funciona a neuromodulação não invasiva?
+  SEO Desc:  Entenda a tecnologia que trabalha a plasticidade do cérebro.
+  ShowOnGoogle: Sim
+
+ID: 71
+  Título:    O futuro da performance cognitiva e como a Neuromodulação
+             pode turbinar o foco e a produtividade.
+  Slug:      /futuroperformance
+  Tags:      Performance
+  Data pub:  (vazio)
+  PublishedAt: 2026-01-22
+  SEO Title: O futuro da performance cognitiva
+  SEO Desc:  como a Neuromodulação pode turbinar o foco e a produtividade
+  ShowOnGoogle: Sim
+
+ID: 72
+  Título:    Quando os antidepressivos não funcionam: como a
+             Neuromodulação pode ajudar na depressão resistente?
+  Slug:      /depressao1
+  Tags:      Depressão
+  Data pub:  (vazio)
+  PublishedAt: 2026-01-30
+  SEO Title: Quando os antidepressivos não funcionam
+  SEO Desc:  Como a Neuromodulação pode ajudar na depressão resistente
+  ShowOnGoogle: Sim
+
+ID: 82
+  Título:    Neuromodulação dá choque elétrico? 5 mitos sobre o
+             tratamento!
+  Slug:      /tratamento-mitos
+  Tags:      Tratamento Clinico
+  Data pub:  (vazio)
+  PublishedAt: 2026-01-30
+  SEO Title: Neuromodulação dá choque elétrico?
+  SEO Desc:  Neuromodulação dá choque elétrico? 5 mitos sobre o tratamento!
+  ShowOnGoogle: Sim
+
+ID: 86
+  Título:    Neuromodulação contra insônia: reprogramando o cérebro
+             para dormir melhor.
+  Slug:      /reprogramando
+  Tags:      Ansiedade
+  Data pub:  (vazio)
+  PublishedAt: 2026-02-03
+  SEO Title: Neuromodulação contra insônia.
+  SEO Desc:  Reprogramando o cérebro para dormir melhor.
+  ShowOnGoogle: Sim
+
+ID: 93
+  Título:    Reabilitação pós-AVC: como a Neuromodulação auxilia na
+             recuperação motora e cognitiva.
+  Slug:      /reabilitacaoposavc
+  Tags:      AVC, Tratamento Clinico
+  Data pub:  (vazio)
+  PublishedAt: 2026-02-26
+  SEO Title: Reabilitação pós-AVC:
+  SEO Desc:  como a Neuromodulação auxilia na recuperação motora e cognitiva.
+  ShowOnGoogle: Sim
+
+
+================================================================================
+6. ESTRUTURA DE PÁGINAS
+================================================================================
+
+--- PÁGINAS DO CMS (7 total) ---
+
+  Título              | Slug                      | URL Pública
+  --------------------|---------------------------|----------------------------
+  Página Inicial      | /                         | /pt-BR/
+  Sobre Nós           | /sobre-nos                | /pt-BR/sobre-nos
+  Neuromodulação      | /neuromodulacao           | /pt-BR/neuromodulacao
+  Blog e Artigos      | /noticias                 | /pt-BR/noticias
+  Fale Conosco        | /fale-conosco             | /pt-BR/fale-conosco
+  Política de privac. | /politica-de-privacidade  | /pt-BR/politica-de-privacidade
+  Teste               | /depressao1               | /pt-BR/depressao1  ⚠️ TESTE
+
+--- ROTAS DO NEXT.JS ---
+
+  Rota                                    | Tipo
+  ----------------------------------------|------------------------
+  app/[locale]/(routes)/[[...slug]]       | Catch-all (pages, posts, treatments)
+  app/[locale]/(routes)/@modal/(.)m/[slug]| Modals (formulários)
+  app/[locale]/(routes)/preview           | Preview do CMS
+  app/[locale]/portal                     | Portal clínico (autenticado)
+  app/[locale]/(auth)                     | Autenticação
+  app/[locale]/empresa                    | Área B2B
+
+--- CONTENT TYPES E PADRÕES DE URL ---
+
+  Content Type  | Padrão de URL (pt-BR)
+  --------------|---------------------------
+  posts         | /pt-BR/noticias/:slug
+  treatments    | /pt-BR/neuromodulacao/:slug
+  modals        | /pt-BR/m/:slug
+  pages         | /pt-BR/{qualquer-caminho}
+
+  NOTA: Não há padrão definido para locale "en".
+
+--- LOCALES SUPORTADOS ---
+  pt-BR (principal)
+  en (configurado mas sem conteúdo)
+
+
+================================================================================
+7. AUTORES / PROFISSIONAIS
+================================================================================
+
+RESULTADO: Nenhum profissional, médico ou especialista encontrado no código
+ou no CMS.
+
+Não foram encontrados:
+  - Nomes de médicos
+  - CRM ou registros profissionais
+  - Fotos de equipe
+  - Campos de autor nos posts
+  - Content type "team" ou "doctors" no Strapi
+
+NOTA: O campo "author" em posts é fixo como "Organization" (Bright Brains).
+Não há schema Person disponível.
+
+Único email encontrado em dados de teste:
+  teste@brightbrains.com (arquivo generate-test-data.ts — não é real)
+
+
+================================================================================
+8. CAMPOS DISPONÍVEIS NO CMS
+================================================================================
+
+--- POSTS (IPost) ---
+
+  Campo                | Tipo            | Preenchimento real
+  ---------------------|-----------------|----------------------------
+  id                   | number          | Sempre
+  title                | string          | Sempre
+  slug                 | string          | Sempre (com / inicial)
+  excerpt              | string          | 0/10 preenchidos
+  publishedDateTime    | string (ISO)    | 1/10 preenchidos
+  createdAt            | string (ISO)    | Sempre (automático)
+  updatedAt            | string (ISO)    | Sempre (automático)
+  publishedAt          | string (ISO)    | Sempre (automático)
+  locale               | string          | Sempre
+  featuredImage        | IResponsiveImage| Parcial (desktop + mobile)
+    > desktop.url      | string          | Não preenchido em nenhum post
+    > mobile.url       | string          | Não preenchido em nenhum post
+  tags                 | ITag[]          | 8/10 têm tags
+  treatments           | ITag[]          | Disponível, uso não confirmado
+  blocks               | IBlockData[]    | Sempre (conteúdo de página)
+  pageSeo              | IPageSeo        | Sempre presente
+    > metaTitle        | string          | 10/10 preenchidos
+    > metaDescription  | string          | 8/10 preenchidos
+    > metaImage        | IStrapiMedia    | 0/10 preenchidos
+    > showOnGoogle     | boolean         | Todos true
+  localizations        | ILocalization[] | Disponível (sem conteúdo en)
+
+--- TREATMENTS (ITreatment) ---
+
+  Campo                | Tipo            | Preenchimento real
+  ---------------------|-----------------|----------------------------
+  id                   | number          | Sempre
+  title                | string          | Sempre
+  slug                 | string          | Sempre (com / inicial)
+  excerpt              | string          | 3/14 preenchidos
+  publishedDateTime    | string (ISO)    | Disponível, não verificado
+  themeColor           | string enum     | Sempre
+  featuredImage        | IStrapiMedia    | 14/14 preenchidos ✓
+    > url              | string          | Sempre (caminho relativo S3)
+  blocks               | IBlockData[]    | Sempre
+  pageSeo              | IPageSeo        | Sempre presente
+    > metaTitle        | string          | 14/14 preenchidos
+    > metaDescription  | string          | 3/14 preenchidos
+    > metaImage        | IStrapiMedia    | Não verificado
+  localizations        | ILocalization[] | Disponível
+
+--- FIELDS REUTILIZÁVEIS ---
+
+  pageSeo              | Componente compartilhado entre pages, posts, treatments
+  blocks               | Dynamic zone — blocos montáveis pelo CMS
+  localizations        | Sistema i18n do Strapi
+
+
+================================================================================
+9. SEO ATUAL
+================================================================================
+
+--- METADADOS GLOBAIS ---
+  Gerados por: router.seo.getGlobalMetadata(locale)
+  Fonte: CMS global settings
+  Inclui: title, description, viewport via getViewport()
+
+--- METADADOS POR PÁGINA ---
+  Gerados por: router.getSEO(paramsData, parent, 600)
+  Fonte: campo pageSeo de cada content no Strapi
+  Inclui: metaTitle → title, metaDescription → description
+
+--- SCHEMA GLOBAL (JSON-LD) ---
+  Localização: app/[locale]/layout.tsx (linhas 67-136)
+  Tipos: Organization + MedicalClinic + WebSite (em @graph)
+
+--- SCHEMA POR PÁGINA ---
+  NÃO EXISTE. Nenhum JSON-LD é injetado em posts ou treatments.
+
+--- OPEN GRAPH ---
+  Depende inteiramente do campo pageSeo.metaImage do CMS.
+  Status: metaImage está VAZIO em todos os posts verificados.
+  Resultado: compartilhamento em redes sociais sem imagem.
+
+--- CANONICAL ---
+  Gerado automaticamente pela lib @futurebrand/helpers-nextjs
+  via getLocalizationCanonicals()
+
+--- HREFLANG ---
+  Gerado automaticamente quando localizations[] tem versões traduzidas.
+  Status atual: nenhum conteúdo tem tradução en, portanto hreflang
+  nunca é gerado na prática.
+
+--- ROBOTS.TS ---
+  Configurado corretamente. Allow: /, sitemap por locale.
+
+--- SITEMAP.TS ---
+  Configurado corretamente. Dinâmico por locale via router.map.generateSitemap()
+
+
+================================================================================
+10. OBSERVAÇÕES E INCONSISTÊNCIAS
+================================================================================
+
+--- PROBLEMAS CRÍTICOS ---
+
+1. SLUG COM BARRA INICIAL
+   Todos os slugs vêm com "/" no início: "/depressao", "/sobre-nos".
+   Risco: URLs duplicadas ou com barra dupla (/pt-BR/noticias//depressao).
+
+2. CONFLITO DE SLUGS
+   O post ID 56 tem slug "/sobre-nos" — mesmo nome da página institucional.
+   O post ID 72 tem slug "/depressao1" — mesmo nome de uma página de teste.
+   O Google pode indexar a URL errada como canônica.
+
+3. ZERO SCHEMA POR PÁGINA
+   Não existe Article, MedicalProcedure, FAQPage, BreadcrumbList ou
+   qualquer outro schema específico nas páginas de conteúdo.
+
+4. EXCERPT VAZIO
+   80% dos posts e 79% dos treatments não têm excerpt.
+   Isso afeta: meta description, snippets no Google, schema description.
+
+5. PUBLISHED DATE TIME VAZIO
+   9 de 10 posts não têm publishedDateTime preenchido.
+   Isso impede schema Article com datePublished.
+
+6. META IMAGE VAZIO EM TODOS OS POSTS
+   pageSeo.metaImage não está preenchido em nenhum post.
+   Resultado: sem imagem OG ao compartilhar em redes sociais.
+
+7. FEATURED IMAGE NÃO POPULADA EM POSTS
+   Os posts retornam featuredImage como { id: 453 } sem URL.
+   Já os treatments retornam featuredImage com URL correta.
+
+--- PROBLEMAS MENORES ---
+
+8. WEB MANIFEST GENÉRICO
+   site.webmanifest usa "MyWebSite" e "MySite" em vez de
+   "Bright Brains - Instituto da Mente".
+
+9. ZERO CONTEÚDO EM INGLÊS
+   O locale "en" está configurado mas não há nenhum post ou treatment
+   traduzido. Toda a infra de i18n existe sem uso.
+
+10. SEM SLUGS EM INGLÊS NO CONTENT-SLUGS
+    content-slugs.ts só define rotas para pt-BR.
+    Se traduzir conteúdo, as URLs em inglês serão /en/noticias/:slug
+    (português dentro de URL inglesa).
+
+11. MODALS VAZIOS
+    Nenhum modal cadastrado no CMS (0 resultados).
+
+12. PAGINA "TESTE" NO CMS
+    Existe uma página com título "Teste" e slug "/depressao1" que
+    parece ser conteúdo de desenvolvimento. Pode ser indexada por engano.
+
+--- DADOS FALTANTES PARA SCHEMA COMPLETO ---
+
+  • Horário de funcionamento (OpeningHoursSpecification)
+  • Email de contato (contactPoint)
+  • Área de atuação geográfica detalhada (areaServed)
+  • Faixa de preço (priceRange)
+  • Avaliações/reviews (aggregateRating)
+  • Profissionais com nome e CRM (Person / Physician)
+  • FAQ estruturado (FAQPage)
+  • Breadcrumbs (BreadcrumbList)
+  • SearchAction para sitelinks search box
+
+
+================================================================================
+FIM DO DOSSIÊ
+================================================================================

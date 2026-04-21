@@ -32,8 +32,46 @@ export async function generateMetadata(
   if (!router.localization.locales.includes(paramsData.locale)) {
     return {}
   }
+  
   try {
-    return await router.getSEO(paramsData, parent, 600)
+    const seo = await router.getSEO(paramsData, parent, 600)
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.brightbrains.com.br'
+    
+    // Resolve slug path accurately
+    const path = paramsData.slug ? `/${paramsData.slug.join('/')}` : ''
+    const absoluteUrl = `${siteUrl}/${paramsData.locale}${path}`
+
+    const title = seo?.title || 'Bright Brains - Instituto da Mente'
+    const description = seo?.description || 'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica.'
+
+    return {
+      ...seo,
+      title,
+      description,
+      alternates: {
+        canonical: absoluteUrl,
+        languages: {
+          'pt-BR': `${siteUrl}/pt-BR${path}`,
+          'en': `${siteUrl}/en${path}`,
+          'x-default': `${siteUrl}/pt-BR${path}`,
+        },
+      },
+      openGraph: {
+        title,
+        description,
+        url: absoluteUrl,
+        siteName: 'Bright Brains',
+        locale: paramsData.locale,
+        type: 'website',
+        ...(seo.openGraph || {}),
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        ...(seo.twitter || {}),
+      },
+    }
   } catch {
     return {}
   }

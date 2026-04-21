@@ -64,22 +64,30 @@ const kmr = localFont({
 export const revalidate = 60
 export const dynamicParams = true
 
+const SITE_URL = 'https://www.brightbrains.com.br'
+
 const globalSchema = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
       name: 'Bright Brains - Instituto da Mente',
-      url: 'https://www.brightbrains.com.br/',
+      url: SITE_URL,
+      inLanguage: 'pt-BR',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/logo-light.svg`,
+      },
       description:
         'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica, utilizando técnicas como Estimulação Magnética Transcraniana (TMS) e Estimulação Transcraniana por Corrente Contínua (tDCS) para tratamento de transtornos neuropsiquiátricos, doenças neurológicas e otimização cognitiva.',
-      telephone: '+55-11-97517-8575',
+      telephone: '+55-11-3042-2857',
+      email: 'contato@brightbrains.com.br',
       address: {
         '@type': 'PostalAddress',
-        streetAddress: 'Rua do Rócio, 350, cj 61 - Vila Olímpia',
+        streetAddress: 'Rua Joaquim Floriano, 72',
         addressLocality: 'São Paulo',
         addressRegion: 'SP',
-        postalCode: '04552-000',
         addressCountry: 'BR',
       },
       sameAs: [
@@ -90,20 +98,34 @@ const globalSchema = {
     },
     {
       '@type': 'MedicalClinic',
+      '@id': `${SITE_URL}/#clinic`,
       name: 'Bright Brains - Instituto da Mente',
-      url: 'https://www.brightbrains.com.br/',
+      url: SITE_URL,
+      inLanguage: 'pt-BR',
+      isPartOf: {
+        '@id': `${SITE_URL}/#organization`,
+      },
       description:
-        'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica, utilizando técnicas como Estimulação Magnética Transcraniana (TMS) e Estimulação Transcraniana por Corrente Contínua (tDCS) para tratamento de transtornos neuropsiquiátricos, doenças neurológicas e otimização cognitiva.',
-      telephone: '+55-11-97517-8575',
+        'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica.',
+      telephone: '+55-11-3042-2857',
+      email: 'contato@brightbrains.com.br',
       address: {
         '@type': 'PostalAddress',
-        streetAddress: 'Rua do Rócio, 350, cj 61 - Vila Olímpia',
+        streetAddress: 'Rua Joaquim Floriano, 72',
         addressLocality: 'São Paulo',
         addressRegion: 'SP',
-        postalCode: '04552-000',
         addressCountry: 'BR',
       },
-      areaServed: 'Brasil',
+      openingHoursSpecification: {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        opens: '09:00',
+        closes: '18:00',
+      },
+      areaServed: {
+        '@type': 'Country',
+        name: 'Brazil',
+      },
       availableService: [
         {
           '@type': 'MedicalTherapy',
@@ -123,13 +145,20 @@ const globalSchema = {
     },
     {
       '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
       name: 'Bright Brains - Instituto da Mente',
-      url: 'https://www.brightbrains.com.br/',
+      url: SITE_URL,
       inLanguage: 'pt-BR',
       publisher: {
-        '@type': 'Organization',
-        name: 'Bright Brains - Instituto da Mente',
-        url: 'https://www.brightbrains.com.br/',
+        '@id': `${SITE_URL}/#organization`,
+      },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/pt-BR/noticias?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
       },
     },
   ],
