@@ -20,6 +20,7 @@ const BLOCKS: Record<string, any> = {
   'medium-hero': async () => await import('./block-medium-hero'),
   'neuro-types': async () => await import('./block-neuro-types'),
   podcasts: async () => await import('./block-spotify-podcasts'),
+  'rss-podcasts': async () => await import('./block-rss-podcasts'),
   'rich-text': async () => await import('./block-rich-text'),
   'short-hero': async () => await import('./block-short-hero'),
   team: async () => await import('./block-team'),
