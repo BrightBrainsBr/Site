@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
@@ -60,6 +60,27 @@ const CarouselContent: React.FC<Props> = ({ episodes }) => {
   const nextRef = useRef<HTMLButtonElement>(null)
   const prevRef = useRef<HTMLButtonElement>(null)
   const paginationRef = useRef<HTMLDivElement>(null)
+  const swiperRef = useRef<SwiperType | null>(null)
+
+  useEffect(() => {
+    const swiper = swiperRef.current
+    if (!swiper) return
+
+    // Re-assign navigation elements now that refs are populated
+    if (swiper.params.navigation && typeof swiper.params.navigation !== 'boolean') {
+      swiper.params.navigation.prevEl = prevRef.current
+      swiper.params.navigation.nextEl = nextRef.current
+    }
+    if (swiper.params.pagination && typeof swiper.params.pagination !== 'boolean') {
+      swiper.params.pagination.el = paginationRef.current
+    }
+
+    swiper.navigation.init()
+    swiper.navigation.update()
+    swiper.pagination.init()
+    swiper.pagination.render()
+    swiper.pagination.update()
+  }, [])
 
   return (
     <div className="relative w-full block-rss-carousel">
@@ -93,22 +114,8 @@ const CarouselContent: React.FC<Props> = ({ episodes }) => {
           640: { slidesPerView: 2.1, spaceBetween: 24 },
           1024: { slidesPerView: 3, spaceBetween: 28 },
         }}
-        navigation={{
-          prevEl: prevRef.current,
-          nextEl: nextRef.current,
-        }}
-        pagination={{
-          el: paginationRef.current,
-          clickable: true,
-        }}
-        onBeforeInit={(swiper: SwiperType) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const navigation = swiper.params.navigation as any
-          navigation.prevEl = prevRef.current
-          navigation.nextEl = nextRef.current
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const pagination = swiper.params.pagination as any
-          pagination.el = paginationRef.current
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper
         }}
         className="pb-14"
       >
