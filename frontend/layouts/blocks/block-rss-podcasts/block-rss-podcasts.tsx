@@ -71,35 +71,77 @@ const BlockRssPodcasts: React.FC<IBlockProps<any>> = async ({
       anchor={anchor}
       spacing="padding"
       distance="small"
-      className="overflow-hidden bg-gray-light"
+      className="overflow-hidden"
+      style={{ background: 'linear-gradient(180deg, #060d1b 0%, #0b1a2e 50%, #0a1628 100%)' }}
     >
-      <div className="container">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-14 gap-4">
+      {/* Decorative background elements */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, rgba(132,255,160,0.5) 1px, transparent 0)',
+          backgroundSize: '40px 40px',
+        }}
+      />
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none opacity-20"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, rgba(132,255,160,0.15) 0%, transparent 70%)',
+        }}
+      />
+
+      <div className="container relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-6">
           <div className="max-w-2xl">
+            {/* Accent line */}
+            <div
+              className={twMerge(
+                'flex items-center gap-3 mb-5',
+                animate()
+              )}
+            >
+              <span
+                className="block w-8 h-[2px]"
+                style={{ background: 'linear-gradient(90deg, #84ffa0, #3ecf8e)' }}
+              />
+              <span
+                className="text-xs font-bold tracking-[0.2em] uppercase"
+                style={{ color: '#84ffa0' }}
+              >
+                BrightCast
+              </span>
+            </div>
+
             <h2
               className={twMerge(
-                'heading-4xl text-midnight-950 mb-3',
-                animate()
+                'heading-4xl text-white mb-4',
+                animate({ index: 1 })
               )}
             >
               Podcast Bright Brains
             </h2>
             <p
-              className={twMerge('body-lg text-gray-500', animate({ index: 1 }))}
+              className={twMerge(
+                'body-lg max-w-lg',
+                animate({ index: 2 })
+              )}
+              style={{ color: 'rgba(255,255,255,0.5)' }}
             >
-              Conteúdos sobre saúde mental, neuromodulação e bem-estar.
+              Conversas inspiradoras sobre saúde mental, neuromodulação e os
+              avanços da ciência aplicada ao bem-estar.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="container">
+      <div className="container relative z-10">
         <Suspense
           fallback={
-            <div className="w-full h-48 animate-pulse bg-gray-200 rounded-lg"></div>
+            <div className="w-full h-48 rounded-2xl animate-pulse" style={{ background: 'rgba(255,255,255,0.03)' }}></div>
           }
         >
-          <div className={animate({ index: 2 })}>
+          <div className={animate({ index: 3 })}>
             <CarouselContent episodes={episodes} />
           </div>
         </Suspense>
