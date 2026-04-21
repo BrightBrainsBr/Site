@@ -32,17 +32,21 @@ export async function generateMetadata(
   if (!router.localization.locales.includes(paramsData.locale)) {
     return {}
   }
-  
+
   try {
     const seo = await router.getSEO(paramsData, parent, 600)
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.brightbrains.com.br'
-    
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || 'https://www.brightbrains.com.br'
+
     // Resolve slug path accurately
-    const path = paramsData.slug ? `/${paramsData.slug.join('/')}` : ''
+    const originalParams = await params
+    const path = originalParams.slug ? `/${originalParams.slug.join('/')}` : ''
     const absoluteUrl = `${siteUrl}/${paramsData.locale}${path}`
 
     const title = seo?.title || 'Bright Brains - Instituto da Mente'
-    const description = seo?.description || 'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica.'
+    const description =
+      seo?.description ||
+      'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica.'
 
     return {
       ...seo,
@@ -52,7 +56,7 @@ export async function generateMetadata(
         canonical: absoluteUrl,
         languages: {
           'pt-BR': `${siteUrl}/pt-BR${path}`,
-          'en': `${siteUrl}/en${path}`,
+          en: `${siteUrl}/en${path}`,
           'x-default': `${siteUrl}/pt-BR${path}`,
         },
       },
