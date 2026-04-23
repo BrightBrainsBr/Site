@@ -6,7 +6,6 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import type {
-  EvaluationListItem,
   SortOption,
 } from '~/features/portal/portal.interface'
 
@@ -63,7 +62,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: error.message }, { status: 500 })
     }
 
-    return NextResponse.json((data ?? []) as EvaluationListItem[])
+    return NextResponse.json(data ?? [])
   } catch (err) {
     console.error('[portal/evaluations] Error:', err)
     return NextResponse.json(

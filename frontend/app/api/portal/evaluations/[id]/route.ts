@@ -173,7 +173,7 @@ export async function PATCH(
       )
     }
 
-    const currentFormData = (currentRow.form_data ?? {}) as AssessmentFormData
+    const currentFormData = currentRow.form_data ?? {}
     const mergedFormData = {
       ...currentFormData,
       ...body.form_data,

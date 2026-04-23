@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { Form } from '@futurebrand/layouts'
@@ -40,7 +39,7 @@ const FormComponent: React.FC<IProperties> = ({
       {...rest}
     >
       <Form.Root className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 transition-all duration-500 ease-out data-disabled:opacity-0 data-disabled:-translate-y-10 data-disabled:pointer-events-none data-disabled:overflow-hidden">
-        <Form.Fields blocks={FIELDS as any} />
+        <Form.Fields blocks={FIELDS} />
         <Form.Error>
           {(message) => <ErrorMessage message={message} />}
         </Form.Error>

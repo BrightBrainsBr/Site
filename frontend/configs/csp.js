@@ -39,7 +39,7 @@ const SCRIPTS_SRC = [
   '*.youtube.com',
 ]
 const STYLES_SRC = ['fonts.googleapis.com']
-const FRAMES_SRC = ['www.youtube.com', 'open.spotify.com', '*.doubleclick.net']
+const FRAMES_SRC = ['www.youtube.com', 'open.spotify.com', 'podcasters.spotify.com', 'creators.spotify.com', '*.spotify.com', 'anchor.fm', '*.doubleclick.net']
 const IMAGES_SRC = [
   ...[cmsHostName, supabaseHostName].filter(Boolean),
   ...imagesDomain,

@@ -5,7 +5,10 @@ import { getHelpersRouter } from '~/hooks/get-helpers-router'
 export const revalidate = 600
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
-  const baseUrl = process.env.siteUrl || process.env.SITE_URL || ''
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    'https://www.brightbrains.com.br'
   let locales = ['pt-BR', 'en']
 
   try {

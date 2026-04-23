@@ -22,8 +22,36 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
     previewData,
   })
 
-  // Detecta se é a página sobre-nos pelo path
-  const isSobreNosPage = params?.path?.[0] === 'sobre-nos'
+  // Detecta se é a página sobre-nos pelo path/slug
+  const isSobreNosPage = pageData.slug?.includes('sobre-nos') || params?.path?.[0] === 'sobre-nos'
+  const isHomePage = pageData.slug === '/' || pageData.slug === 'home'
+
+  let finalBlocks = [...(pageData.blocks || [])]
+
+  if (isHomePage) {
+    // Procura bloco confiável: treatment-guide ou benefits via includes
+    const targetIdx = finalBlocks.findIndex(
+      (b: any) => 
+        b.__component?.includes('treatment-guide') || 
+        b.__component?.includes('benefits') ||
+        b.__component?.includes('media-text')
+    )
+
+    if (targetIdx !== -1) {
+      finalBlocks.splice(targetIdx + 1, 0, {
+        __component: 'blocks.rss-podcasts',
+        id: 9998,
+      } as any)
+    } else {
+      // Fallback: se não achar o bloco, garante que fica na homepage de qualquer forma, 
+      // logo acima de um provável footer block.
+      const fallbackIdx = finalBlocks.length > 0 ? finalBlocks.length - 1 : 0;
+      finalBlocks.splice(fallbackIdx, 0, {
+        __component: 'blocks.rss-podcasts',
+        id: 9998,
+      } as any)
+    }
+  }
 
   return (
     <Main
@@ -34,7 +62,7 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
       <BlocksLayout
         content={pageData}
         contentType="pages"
-        blocks={pageData.blocks}
+        blocks={finalBlocks}
       />
 
       {/* Injeta bloco de ebook no final da página sobre-nos */}
