@@ -1,8 +1,9 @@
 // frontend/features/b2b-dashboard/components/B2BDashboardComponent.tsx
+// TODO: rename feature folder from b2b-dashboard to brightmonitor-dashboard
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, LogOut, Menu, Settings, User } from 'lucide-react'
+import { BookOpen, ChevronDown, LogOut, Menu, Settings, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
@@ -32,6 +33,7 @@ type TabId =
   | 'percepcao'
   | 'compliance'
   | 'relatorios'
+  | 'insights'
   | 'settings'
 
 interface TabDef {
@@ -45,11 +47,13 @@ const DASHBOARD_TABS: TabDef[] = [
   { id: 'setores', label: 'Setores', icon: '🏢' },
   { id: 'gro', label: 'GRO Psicossocial', icon: '⚖️' },
   { id: 'plano-acao', label: 'Plano de Ação', icon: '🔄' },
-  { id: 'eventos', label: 'Eventos & Nexo', icon: '🚨' },
+  { id: 'eventos', label: 'Incidentes', icon: '🚨' },
   { id: 'percepcao', label: 'Percepção Organizacional', icon: '💬' },
   { id: 'compliance', label: 'Compliance', icon: '✅' },
   { id: 'relatorios', label: 'Relatórios', icon: '📄' },
 ]
+
+const INSIGHTS_TAB: TabDef = { id: 'insights', label: 'Insights', icon: '💡' }
 
 const PORTAL_EXTRA_TABS: TabDef[] = [
   { id: 'settings', label: 'Configurações', icon: '⚙️' },
@@ -133,9 +137,13 @@ export function B2BDashboardComponent({
     !!compliance?.groValidUntil &&
     new Date(compliance.groValidUntil) > new Date()
 
-  const visibleTabs = isPortalMode
-    ? [...DASHBOARD_TABS, ...PORTAL_EXTRA_TABS]
+  const baseTabs = session.brightInsightsEnabled
+    ? [...DASHBOARD_TABS, INSIGHTS_TAB]
     : DASHBOARD_TABS
+
+  const visibleTabs = isPortalMode
+    ? [...baseTabs, ...PORTAL_EXTRA_TABS]
+    : baseTabs
 
   const showOnboarding =
     !isPortalMode &&
@@ -231,6 +239,19 @@ export function B2BDashboardComponent({
             </button>
           ))}
         </nav>
+
+        {/* Guia link */}
+        <div className="border-t border-[rgba(255,255,255,0.06)] px-3 py-2">
+          <a
+            href="/pt-BR/brightmonitor/guia"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            Guia de Metodologia NR-1
+          </a>
+        </div>
 
         {/* Footer */}
         <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-3">
@@ -388,6 +409,9 @@ export function B2BDashboardComponent({
               )}
               {activeTab === 'relatorios' && (
                 <B2BReportsTab companyId={companyId} cycleId={cycleId} />
+              )}
+              {activeTab === 'insights' && session.brightInsightsEnabled && (
+                <B2BPercepcaoTab companyId={companyId} cycleId={cycleId} />
               )}
               {activeTab === 'settings' && (
                 <B2BSettingsTab companyId={companyId} isPortalMode={isPortalMode} />

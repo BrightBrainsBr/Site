@@ -24,7 +24,10 @@ const MODERATE_TASKS = new Set([
 ])
 
 // Tasks that need high output token limits but not extended thinking
-const HIGH_OUTPUT_TASKS = new Set(['b2b_laudo_generation'])
+const HIGH_OUTPUT_TASKS = new Set([
+  'b2b_laudo_generation',
+  'brightmonitor_pgr_generation',
+])
 
 /**
  * Get optimized Anthropic config based on task complexity.

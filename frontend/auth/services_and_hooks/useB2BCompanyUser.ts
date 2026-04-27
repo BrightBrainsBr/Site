@@ -10,6 +10,7 @@ export interface B2BCompanyUserData {
   user_email?: string | null
   company_id?: string
   company_name?: string | null
+  bright_insights_enabled?: boolean
   current_cycle?: {
     id: string
     label: string
@@ -25,7 +26,7 @@ export interface B2BCompanyUserData {
 }
 
 async function fetchB2BMe(): Promise<B2BCompanyUserData> {
-  const res = await fetch('/api/b2b/me')
+  const res = await fetch('/api/brightmonitor/me')
   if (res.status === 401) {
     return { isCompanyUser: false }
   }
@@ -48,6 +49,7 @@ export function useB2BCompanyUser(enabled = true) {
     userEmail: query.data?.user_email ?? null,
     companyId: query.data?.company_id,
     companyName: query.data?.company_name,
+    brightInsightsEnabled: query.data?.bright_insights_enabled ?? false,
     currentCycle: query.data?.current_cycle ?? null,
     cycles: query.data?.cycles ?? [],
   }

@@ -41,7 +41,7 @@ export function DepartmentsSection({
     setLocalDepts(updated)
     setSaving(true)
     try {
-      const isB2B = apiBase.includes('/api/b2b')
+      const isB2B = apiBase.includes('/api/brightmonitor')
       if (isB2B) {
         const res = await fetch(`${apiBase}/${companyId}/settings`, {
           method: 'POST',

@@ -15,7 +15,6 @@ import { useB2BEventsMutationHook } from '../../hooks/useB2BEventsMutationHook'
 import { useB2BEventsQueryHook } from '../../hooks/useB2BEventsQueryHook'
 import type { PdfJobDetail } from '../../hooks/useB2BPdfJobsHook'
 import { useB2BPdfJobsHook } from '../../hooks/useB2BPdfJobsHook'
-import { useB2BPercepcaoQueryHook } from '../../hooks/useB2BPercepcaoQueryHook'
 import { B2BPdfUploadModal } from '../shared/B2BPdfUploadModal'
 
 function CIDSearchSelect({
@@ -720,11 +719,6 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
   })
   const { createEvent, updateEvent, deleteEvent, bulkCreate } =
     useB2BEventsMutationHook(companyId)
-  const { data: percepcao } = useB2BPercepcaoQueryHook(
-    companyId,
-    cycleId ?? undefined
-  )
-
   const departments = deptData?.departments ?? []
   const events = eventsData?.events ?? []
   const kpis = eventsData?.kpis ?? {
@@ -1194,41 +1188,9 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
           </div>
         </div>
 
-        {!percepcao?.correlations?.length ? (
-          <div className="flex h-24 items-center justify-center text-[15px] text-[#64748b]">
-            Nenhuma correlação identificada
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {percepcao.correlations.map((c, i) => {
-              const isHigh =
-                c.severity === 'alta' ||
-                c.severity === 'critical' ||
-                c.severity === 'high'
-              return (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#111b2e] px-3 py-2.5"
-                >
-                  <span
-                    className="mt-0.5 shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[12px] font-semibold"
-                    style={{
-                      color: isHigh ? '#F87171' : '#FBBF24',
-                      backgroundColor: isHigh
-                        ? 'rgba(239,68,68,0.15)'
-                        : 'rgba(245,158,11,0.15)',
-                    }}
-                  >
-                    {isHigh ? 'Alta' : 'Média'}
-                  </span>
-                  <p className="text-[14px] leading-relaxed text-[#94a3b8]">
-                    {c.description}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-        )}
+        <div className="flex h-24 items-center justify-center text-[15px] text-[#64748b]">
+          Nenhuma correlação identificada
+        </div>
       </div>
     </div>
   )

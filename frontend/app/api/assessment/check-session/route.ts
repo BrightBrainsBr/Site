@@ -10,6 +10,7 @@ interface CompanyContext {
   company_id: string
   department?: string
   departments: string[]
+  bright_insights_enabled?: boolean
   cycle_id?: string
   code_id?: string
 }
@@ -30,7 +31,7 @@ async function resolveCompanyContext(
   if (invite) {
     const { data: companyData } = await sb
       .from('companies')
-      .select('departments')
+      .select('departments, bright_insights_enabled')
       .eq('id', invite.company_id)
       .single()
 
@@ -38,6 +39,7 @@ async function resolveCompanyContext(
       company_id: invite.company_id,
       department: invite.department ?? undefined,
       departments: companyData?.departments ?? [],
+      bright_insights_enabled: companyData?.bright_insights_enabled ?? false,
       cycle_id: invite.cycle_id,
       code_id: invite.id,
     }
@@ -52,7 +54,7 @@ async function resolveCompanyContext(
   if (domain) {
     const { data: domainCompany } = await sb
       .from('companies')
-      .select('id, departments')
+      .select('id, departments, bright_insights_enabled')
       .contains('allowed_domains', [domain])
       .eq('active', true)
       .limit(1)
@@ -62,7 +64,8 @@ async function resolveCompanyContext(
       return await buildContextFromCompanyId(
         sb,
         domainCompany.id,
-        domainCompany.departments ?? []
+        domainCompany.departments ?? [],
+        domainCompany.bright_insights_enabled ?? false
       )
     }
   }
@@ -73,18 +76,21 @@ async function resolveCompanyContext(
 async function buildContextFromCompanyId(
   sb: SupabaseClient,
   companyId: string,
-  departments?: string[]
+  departments?: string[],
+  brightInsightsEnabled?: boolean
 ): Promise<CompanyContext> {
-  const depts =
-    departments ??
-    (
-      await sb
-        .from('companies')
-        .select('departments')
-        .eq('id', companyId)
-        .single()
-    ).data?.departments ??
-    []
+  let depts = departments
+  let insightsFlag = brightInsightsEnabled
+
+  if (depts === undefined || insightsFlag === undefined) {
+    const { data: companyData } = await sb
+      .from('companies')
+      .select('departments, bright_insights_enabled')
+      .eq('id', companyId)
+      .single()
+    depts = depts ?? companyData?.departments ?? []
+    insightsFlag = insightsFlag ?? companyData?.bright_insights_enabled ?? false
+  }
 
   const { data: currentCycle } = await sb
     .from('assessment_cycles')
@@ -95,7 +101,8 @@ async function buildContextFromCompanyId(
 
   return {
     company_id: companyId,
-    departments: depts,
+    departments: depts ?? [],
+    bright_insights_enabled: insightsFlag ?? false,
     cycle_id: currentCycle?.id ?? undefined,
   }
 }

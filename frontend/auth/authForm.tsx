@@ -86,7 +86,7 @@ export function AuthForm({
 
     try {
       if (view === 'sign_up') {
-        console.log('Attempting signup with email:', data.email)
+        console.warn('Attempting signup with email:', data.email)
         const result = await authService.signUp({
           email: data.email,
           password: data.password,
@@ -119,11 +119,11 @@ export function AuthForm({
             setAuthError(result.error.message)
           }
         } else {
-          console.log('Signup successful, should redirect via authService')
+          console.warn('Signup successful, should redirect via authService')
           // The authService handles the redirect
         }
       } else if (view === 'sign_in') {
-        console.log('Attempting signin with email:', data.email)
+        console.warn('Attempting signin with email:', data.email)
         const result = await authService.signIn({
           email: data.email,
           password: data.password,
@@ -133,11 +133,11 @@ export function AuthForm({
           console.error('Signin error:', result.error)
           setAuthError(result.error.message)
         } else {
-          console.log('Signin successful')
+          console.warn('Signin successful')
           // The authService should handle redirect
         }
       } else if (view === 'forgotten_password') {
-        console.log('Attempting password reset for email:', data.email)
+        console.warn('Attempting password reset for email:', data.email)
         const result = await authService.resetPassword({ email: data.email })
 
         if (result.error) {
@@ -165,18 +165,18 @@ export function AuthForm({
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event: string, session: any | null) => {
-        console.log(`[AuthForm] Auth Event: ${event}`, session)
+        console.warn(`[AuthForm] Auth Event: ${event}`, session)
 
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          console.log('[AuthForm] Signed In or User Updated event received.')
-          console.log('[AuthForm] Redirect context', {
+          console.warn('[AuthForm] Signed In or User Updated event received.')
+          console.warn('[AuthForm] Redirect context', {
             redirectedFrom,
             hasCompletedOnboarding,
           })
           // Check onboarding status from the hook *after* sign in event
           // This relies on the hook updating quickly after the event
           if (onSuccess) {
-            console.log('[AuthForm] Calling onSuccess callback.')
+            console.warn('[AuthForm] Calling onSuccess callback.')
             onSuccess() // Signal success to parent
           } else {
             // Default redirect logic if no onSuccess provided (might be redundant with page-level logic)
@@ -184,16 +184,16 @@ export function AuthForm({
             const finalRedirect =
               redirectedFrom ||
               (hasCompletedOnboarding ? '/dashboard' : '/onboarding/basic-info')
-            console.log(`[AuthForm] Default redirecting to: ${finalRedirect}`)
+            console.warn(`[AuthForm] Default redirecting to: ${finalRedirect}`)
             // router.replace(finalRedirect); // Careful with double redirects
             window.location.href = finalRedirect // More direct redirect
           }
         } else if (event === 'SIGNED_OUT') {
-          console.log('[AuthForm] Signed Out event received.')
+          console.warn('[AuthForm] Signed Out event received.')
           // Usually handled by sign out button/hook, but can reset form state if needed
           router.push('/login') // Go to login on sign out
         } else if (event === 'USER_ADDED') {
-          console.log(
+          console.warn(
             '[AuthForm] USER_ADDED event - user signed up, redirecting to verify email'
           )
           setIsRedirecting(true)
@@ -351,7 +351,7 @@ export function AuthForm({
                   <button
                     type="button"
                     onClick={async () => {
-                      console.log('Attempting Google OAuth sign-in...')
+                      console.warn('Attempting Google OAuth sign-in...')
                       const result = await authService.signInWithProvider(
                         'google',
                         redirectedFrom

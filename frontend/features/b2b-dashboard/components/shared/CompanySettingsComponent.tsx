@@ -1,8 +1,10 @@
 'use client'
 
 import {
+  BookOpen,
   ClipboardList,
   FileText,
+  Lightbulb,
   Mail,
   RefreshCw,
   Search,
@@ -52,6 +54,7 @@ interface SettingsData {
   allowed_domains: string[]
   departments: string[]
   company_name: string | null
+  bright_insights_enabled?: boolean
   collaborators: {
     evaluations: EvaluationEntry[]
     pending_invites: PendingInvite[]
@@ -67,7 +70,7 @@ interface CompanySettingsComponentProps {
 }
 
 function getApiBase(mode: 'b2b' | 'portal') {
-  return mode === 'b2b' ? '/api/b2b' : '/api/portal/companies'
+  return mode === 'b2b' ? '/api/brightmonitor' : '/api/portal/companies'
 }
 
 export function CompanySettingsComponent({
@@ -280,6 +283,16 @@ export function CompanySettingsComponent({
           await fetchSettings()
         }}
       />
+
+      <BrightInsightsSection
+        companyId={companyId}
+        enabled={data?.bright_insights_enabled ?? false}
+        isPortalMode={mode === 'portal'}
+        apiBase={apiBase}
+        onUpdate={fetchSettings}
+      />
+
+      <GuiaLinkSection />
     </div>
   )
 }
@@ -752,6 +765,152 @@ function CollaboratorsSection({
           </tbody>
         </table>
       )}
+    </div>
+  )
+}
+
+/* ─── Bright Insights Toggle ─── */
+
+function BrightInsightsSection({
+  companyId,
+  enabled,
+  isPortalMode,
+  apiBase,
+  onUpdate,
+}: {
+  companyId: string
+  enabled: boolean
+  isPortalMode: boolean
+  apiBase: string
+  onUpdate: () => void
+}) {
+  const [saving, setSaving] = useState(false)
+  const [localEnabled, setLocalEnabled] = useState(enabled)
+
+  useEffect(() => {
+    setLocalEnabled(enabled)
+  }, [enabled])
+
+  const toggle = async () => {
+    if (!isPortalMode) return
+    const next = !localEnabled
+    setLocalEnabled(next)
+    setSaving(true)
+    try {
+      const res = await fetch(`${apiBase}/${companyId}/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_insights_flag',
+          bright_insights_enabled: next,
+        }),
+      })
+      if (!res.ok) {
+        setLocalEnabled(enabled)
+      } else {
+        onUpdate()
+      }
+    } catch {
+      setLocalEnabled(enabled)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-3 pt-2">
+        <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
+        <div className="flex items-center gap-2">
+          <Lightbulb className="h-4 w-4 text-[#c5e155]" />
+          <span className="text-[15px] font-semibold text-[#E2E8F0]">
+            Bright Insights
+          </span>
+        </div>
+        <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
+      </div>
+      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <h3 className="text-[15px] font-semibold text-[#E2E8F0]">
+              Módulo de Saúde Mental Avançado
+            </h3>
+            <p className="mt-1 text-[13px] leading-relaxed text-[#64748B]">
+              Quando ativado, habilita escalas clínicas (PHQ-9, GAD-7, ISI, MBI)
+              na aba de Percepção Organizacional, fornecendo indicadores avançados
+              de saúde mental.
+            </p>
+          </div>
+          <button
+            onClick={() => void toggle()}
+            disabled={saving || !isPortalMode}
+            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+              localEnabled ? 'bg-[#c5e155]' : 'bg-[#334155]'
+            }`}
+            role="switch"
+            aria-checked={localEnabled}
+            aria-label="Ativar Bright Insights"
+          >
+            <span
+              className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                localEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+        <div className="mt-3 flex items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium ${
+              localEnabled
+                ? 'bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
+                : 'bg-[rgba(100,116,139,0.15)] text-[#64748B]'
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                localEnabled ? 'bg-[#c5e155]' : 'bg-[#64748B]'
+              }`}
+            />
+            {localEnabled ? 'Ativado' : 'Desativado'}
+          </span>
+        </div>
+        {!isPortalMode && (
+          <p className="mt-3 text-[12px] text-[#eab308]">
+            ⚠ Somente administradores Bright Brains podem alterar esta
+            configuração.
+          </p>
+        )}
+      </div>
+    </>
+  )
+}
+
+/* ─── Guia de Metodologia Link ─── */
+
+function GuiaLinkSection() {
+  return (
+    <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0E1E33] p-5">
+      <div className="flex items-center gap-3">
+        <BookOpen className="h-5 w-5 text-[#14B8A6]" />
+        <div className="flex-1">
+          <h3 className="text-[15px] font-semibold text-[#E2E8F0]">
+            Guia de Metodologia NR-1
+          </h3>
+          <p className="mt-0.5 text-[13px] text-[#64748B]">
+            Entenda como o BrightMonitor avalia e classifica riscos
+            ocupacionais.
+          </p>
+        </div>
+        <a
+          href="/pt-BR/brightmonitor/guia"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[rgba(20,184,166,0.15)] px-4 py-2 text-[14px] font-medium text-[#14B8A6] transition-colors hover:bg-[rgba(20,184,166,0.25)]"
+        >
+          <BookOpen className="h-3.5 w-3.5" />
+          Abrir Guia
+        </a>
+      </div>
     </div>
   )
 }

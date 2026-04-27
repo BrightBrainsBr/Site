@@ -1,38 +1,90 @@
 // frontend/features/b2b-dashboard/components/tabs/B2BOverviewTab.tsx
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  Pie,
-  PieChart,
+  Line,
+  LineChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
 
-import type { B2BOverviewData, RiskLevel } from '../../b2b-dashboard.interface'
+import type {
+  B2BAlertData,
+  B2BOverviewData,
+  NR1RiskBand,
+} from '../../b2b-dashboard.interface'
 import { useB2BAlerts } from '../../hooks/useB2BAlerts'
 
-const RISK_COLORS: Record<RiskLevel, string> = {
-  low: '#22c55e',
-  moderate: '#eab308',
-  elevated: '#f97316',
-  critical: '#ef4444',
+const NR1_BAND_COLORS: Record<NR1RiskBand, string> = {
+  baixo: '#22c55e',
+  moderado: '#eab308',
+  alto: '#f97316',
+  critico: '#ef4444',
 }
 
-const RISK_LABELS: Record<RiskLevel, string> = {
-  low: 'Baixo',
-  moderate: 'Moderado',
-  elevated: 'Elevado',
-  critical: 'Crítico',
+const NR1_BAND_LABELS: Record<NR1RiskBand, string> = {
+  baixo: 'Baixo',
+  moderado: 'Moderado',
+  alto: 'Alto',
+  critico: 'Crítico',
 }
 
 const MIN_EVALUATIONS = 10
+
+function scoreToColor(score: number | null): string {
+  if (score == null) return '#64748b'
+  if (score < 2) return '#22c55e'
+  if (score < 3) return '#eab308'
+  if (score < 4) return '#f97316'
+  return '#ef4444'
+}
+
+function scoreToBand(score: number | null): NR1RiskBand | null {
+  if (score == null) return null
+  if (score < 2) return 'baixo'
+  if (score < 3) return 'moderado'
+  if (score < 4) return 'alto'
+  return 'critico'
+}
+
+const PSYCHO_LABELS: Record<string, string> = {
+  workload: 'Carga de Trabalho',
+  pace: 'Ritmo',
+  autonomy: 'Autonomia',
+  leadership: 'Liderança',
+  relationships: 'Relações',
+  recognition: 'Reconhecimento',
+  clarity: 'Clareza',
+  balance: 'Equilíbrio',
+}
+
+const DOMAIN_LABELS: Array<{
+  key: keyof Pick<B2BOverviewData, 'scorePhysical' | 'scoreErgonomic' | 'scorePsychosocial' | 'scoreViolence'>
+  label: string
+}> = [
+  { key: 'scorePhysical', label: 'Físico' },
+  { key: 'scoreErgonomic', label: 'Ergonômico' },
+  { key: 'scorePsychosocial', label: 'Psicossocial' },
+  { key: 'scoreViolence', label: 'Violência' },
+]
+
+const SEVERITY_LABELS: Record<string, string> = {
+  critico: 'Crítico',
+  alto: 'Alto',
+  moderado: 'Moderado',
+}
 
 interface B2BOverviewTabProps {
   companyId: string | null
@@ -50,161 +102,68 @@ export function B2BOverviewTab({
   onNavigateToSettings,
 }: B2BOverviewTabProps) {
   const { data: alertsData } = useB2BAlerts(companyId, cycleId)
-  const [timelineMode, setTimelineMode] = useState<'percent' | 'count'>(
-    'percent'
-  )
 
   const total = overview?.total ?? 0
-  const rd = overview?.riskDistribution ?? {
-    critical: 0,
-    elevated: 0,
-    moderate: 0,
-    low: 0,
-  }
+  const scoreOverall = overview?.scoreOverall ?? null
+  const overallBand = scoreToBand(scoreOverall)
 
-  const kpis: {
-    label: string
-    value: number | string
-    sub: string
-    color: string
-    icon: string
-    borderColor: string
-  }[] = [
+  const kpis = [
     {
-      label: 'Total Avaliados',
+      label: 'Avaliações',
       value: total,
-      sub: 'avaliações',
+      sub: 'no ciclo',
       color: '#c5e155',
-      icon: '👥',
       borderColor: 'rgba(197,225,85,0.3)',
     },
     {
-      label: 'Risco Baixo',
-      value: rd.low,
-      sub: total > 0 ? `${Math.round((rd.low / total) * 100)}%` : '0%',
-      color: '#22c55e',
-      icon: '🟢',
-      borderColor: 'rgba(34,197,94,0.3)',
+      label: 'Score Médio',
+      value: scoreOverall != null ? scoreOverall.toFixed(1) : '–',
+      sub: overallBand ? NR1_BAND_LABELS[overallBand] : '–',
+      color: scoreToColor(scoreOverall),
+      borderColor: `${scoreToColor(scoreOverall)}50`,
     },
     {
-      label: 'Risco Moderado',
-      value: rd.moderate,
-      sub: total > 0 ? `${Math.round((rd.moderate / total) * 100)}%` : '0%',
+      label: 'Ações Pendentes',
+      value: overview?.pendingActions ?? 0,
+      sub: 'em aberto',
       color: '#eab308',
-      icon: '🟡',
       borderColor: 'rgba(234,179,8,0.3)',
     },
     {
-      label: 'Risco Elevado',
-      value: rd.elevated,
-      sub: total > 0 ? `${Math.round((rd.elevated / total) * 100)}%` : '0%',
-      color: '#f97316',
-      icon: '🟠',
-      borderColor: 'rgba(249,115,22,0.3)',
-    },
-    {
-      label: 'Risco Crítico',
-      value: rd.critical,
-      sub: total > 0 ? `${Math.round((rd.critical / total) * 100)}%` : '0%',
+      label: 'Incidentes',
+      value: overview?.incidentsThisCycle ?? 0,
+      sub: 'neste ciclo',
       color: '#ef4444',
-      icon: '🔴',
       borderColor: 'rgba(239,68,68,0.3)',
     },
   ]
 
-  const pieData = (['low', 'moderate', 'elevated', 'critical'] as RiskLevel[])
-    .map((level) => ({
-      name: RISK_LABELS[level],
-      value: rd[level],
-      color: RISK_COLORS[level],
-    }))
-    .filter((d) => d.value > 0)
-
-  const timeline = overview?.timeline ?? []
-  const TIMELINE_COLORS = {
-    baixo: '#22c55e',
-    moderado: '#eab308',
-    elevado: '#f97316',
-    critico: '#ef4444',
-  }
-
-  const timelineData = useMemo(() => {
-    if (timelineMode === 'count') return timeline
-    return timeline.map((m) => {
-      const sum = m.baixo + m.moderado + m.elevado + m.critico
-      if (sum === 0) return { ...m, baixo: 0, moderado: 0, elevado: 0, critico: 0 }
+  const domainBarData = useMemo(() => {
+    if (!overview) return []
+    return DOMAIN_LABELS.map(({ key, label }) => {
+      const score = overview[key]
       return {
-        month: m.month,
-        baixo: Math.round((m.baixo / sum) * 100),
-        moderado: Math.round((m.moderado / sum) * 100),
-        elevado: Math.round((m.elevado / sum) * 100),
-        critico: Math.round((m.critico / sum) * 100),
+        name: label,
+        score: score ?? 0,
+        color: scoreToColor(score),
       }
     })
-  }, [timeline, timelineMode])
+  }, [overview])
 
+  const radarData = useMemo(() => {
+    if (!overview?.psychosocialAxes) return []
+    return Object.entries(PSYCHO_LABELS).map(([key, label]) => {
+      const val =
+        overview.psychosocialAxes[key as keyof typeof overview.psychosocialAxes]
+      return {
+        axis: label,
+        value: typeof val === 'number' ? val : 0,
+      }
+    })
+  }, [overview?.psychosocialAxes])
+
+  const timeline = overview?.timeline ?? []
   const alerts = alertsData?.alerts ?? []
-
-  const aggregateAlerts = useMemo(() => {
-    const items: { text: string; level: RiskLevel }[] = []
-
-    if (rd.critical > 0) {
-      items.push({
-        text: `${rd.critical} colaborador${rd.critical > 1 ? 'es' : ''} em risco crítico — ação imediata requerida`,
-        level: 'critical',
-      })
-    }
-
-    if (rd.elevated > 0) {
-      items.push({
-        text: `${rd.elevated} colaborador${rd.elevated > 1 ? 'es' : ''} em risco elevado — acompanhamento recomendado`,
-        level: 'elevated',
-      })
-    }
-
-    const deptCounts: Record<string, { critical: number; elevated: number }> = {}
-    for (const a of alerts) {
-      const dept = a.department ?? 'Sem departamento'
-      if (!deptCounts[dept]) deptCounts[dept] = { critical: 0, elevated: 0 }
-      if (a.riskLevel === 'critical') deptCounts[dept].critical++
-      if (a.riskLevel === 'elevated') deptCounts[dept].elevated++
-    }
-
-    const worstDept = Object.entries(deptCounts)
-      .filter(([, c]) => c.critical + c.elevated > 0)
-      .sort(([, a], [, b]) => b.critical + b.elevated - (a.critical + a.elevated))[0]
-
-    if (worstDept) {
-      const [dept, counts] = worstDept
-      const highRisk = counts.critical + counts.elevated
-      items.push({
-        text: `Setor ${dept} com ${highRisk} colaborador${highRisk > 1 ? 'es' : ''} em risco elevado/crítico — maior concentração da empresa`,
-        level: 'elevated',
-      })
-    }
-
-    const srq20Count = alerts.filter(
-      (a) => a.reasons?.includes('srq20_elevado')
-    ).length
-    if (srq20Count > 0) {
-      items.push({
-        text: `${srq20Count} colaborador${srq20Count > 1 ? 'es' : ''} com SRQ-20 ≥ 8 — rastreamento positivo para transtornos mentais comuns`,
-        level: 'moderate',
-      })
-    }
-
-    const aepCount = alerts.filter(
-      (a) => a.reasons?.includes('aep_elevado')
-    ).length
-    if (aepCount > 0) {
-      items.push({
-        text: `${aepCount} colaborador${aepCount > 1 ? 'es' : ''} com AEP elevado (≥ 29/56) — fatores ergonômicos requerem atenção`,
-        level: 'moderate',
-      })
-    }
-
-    return items
-  }, [rd, alerts])
 
   if (total === 0) {
     return (
@@ -262,14 +221,13 @@ export function B2BOverviewTab({
       )}
 
       {/* KPI strip */}
-      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
         {kpis.map((k) => (
           <div
             key={k.label}
             className="rounded-[14px] border bg-[rgba(255,255,255,0.03)] p-4 text-center"
             style={{ borderColor: k.borderColor }}
           >
-            <div className="text-[24px]">{k.icon}</div>
             <div
               className="mt-1 font-mono text-[32px] font-bold leading-none tracking-tight"
               style={{ color: k.color }}
@@ -284,104 +242,62 @@ export function B2BOverviewTab({
 
       {/* Charts row */}
       <div className="grid gap-3 lg:grid-cols-2">
-        {/* Donut chart */}
+        {/* Psychosocial Radar */}
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
           <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
-            Distribuição de Risco
+            Eixos Psicossociais (8 dimensões)
           </h3>
-          {pieData.length > 0 ? (
-            <div className="flex flex-col items-center">
-              <ResponsiveContainer width="100%" height={220} minWidth={0}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={1}
-                    startAngle={90}
-                    endAngle={-270}
-                  >
-                    {pieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#111b2e',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      color: '#e2e8f0',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-2 grid grid-cols-2 gap-x-5 gap-y-2">
-                {pieData.map((d) => (
-                  <div
-                    key={d.name}
-                    className="flex items-center gap-2 text-[15px]"
-                  >
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-sm"
-                      style={{ backgroundColor: d.color }}
-                    />
-                    <span className="text-[#94a3b8]">{d.name}</span>
-                    <span className="ml-auto font-semibold text-[#e2e8f0]">
-                      {d.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {radarData.some((d) => d.value > 0) ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                <PolarGrid stroke="rgba(255,255,255,0.06)" />
+                <PolarAngleAxis
+                  dataKey="axis"
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                />
+                <PolarRadiusAxis
+                  domain={[0, 5]}
+                  tickCount={6}
+                  tick={{ fontSize: 9, fill: '#64748b' }}
+                  axisLine={false}
+                />
+                <Radar
+                  name="Empresa"
+                  dataKey="value"
+                  stroke="#c5e155"
+                  fill="rgba(197,225,85,0.15)"
+                  strokeWidth={2}
+                  dot={{ fill: '#c5e155', r: 4 }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#111b2e',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    color: '#e2e8f0',
+                  }}
+                  formatter={(value) => [Number(value).toFixed(1), 'Score']}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
           ) : (
-            <div className="flex h-[220px] flex-col items-center justify-center text-[14px] text-[#64748b]">
-              <span className="text-2xl font-bold text-[#e2e8f0]">{total}</span>
-              <span className="mt-1">avaliados</span>
-              <span className="mt-4">Sem dados de risco</span>
+            <div className="flex h-[280px] items-center justify-center text-[14px] text-[#64748b]">
+              Sem dados psicossociais
             </div>
           )}
         </div>
 
-        {/* Stacked bar chart — monthly evolution */}
+        {/* Domain bar chart */}
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-[17px] font-semibold text-[#e2e8f0]">
-              Evolução Mensal{' '}
-              {timelineMode === 'percent' ? '(%)' : '(contagem)'}
-            </h3>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setTimelineMode('percent')}
-                className={`rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors ${
-                  timelineMode === 'percent'
-                    ? 'bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
-                    : 'text-[#64748b] hover:text-[#94a3b8]'
-                }`}
-              >
-                %
-              </button>
-              <button
-                onClick={() => setTimelineMode('count')}
-                className={`rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors ${
-                  timelineMode === 'count'
-                    ? 'bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
-                    : 'text-[#64748b] hover:text-[#94a3b8]'
-                }`}
-              >
-                #
-              </button>
-            </div>
-          </div>
-          {timelineData.length > 0 ? (
+          <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
+            Score por Domínio NR-1
+          </h3>
+          {domainBarData.length > 0 ? (
             <>
-              <ResponsiveContainer width="100%" height={220} minWidth={0}>
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart
-                  data={timelineData}
+                  data={domainBarData}
                   margin={{ top: 5, right: 5, left: -10, bottom: 5 }}
                 >
                   <CartesianGrid
@@ -389,21 +305,16 @@ export function B2BOverviewTab({
                     stroke="rgba(255,255,255,0.04)"
                   />
                   <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    dataKey="name"
+                    tick={{ fontSize: 12, fill: '#94a3b8' }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
+                    domain={[0, 5]}
                     tick={{ fontSize: 11, fill: '#64748b' }}
                     axisLine={false}
                     tickLine={false}
-                    domain={timelineMode === 'percent' ? [0, 100] : undefined}
-                    tickFormatter={
-                      timelineMode === 'percent'
-                        ? (v: number) => `${v}%`
-                        : undefined
-                    }
                   />
                   <Tooltip
                     contentStyle={{
@@ -413,61 +324,90 @@ export function B2BOverviewTab({
                       fontSize: 13,
                     }}
                     itemStyle={{ color: '#e2e8f0' }}
-                    formatter={(value) =>
-                      timelineMode === 'percent' ? `${value}%` : `${value}`
-                    }
+                    formatter={(value) => [
+                      Number(value).toFixed(2),
+                      'Score',
+                    ]}
                   />
-                  <Bar
-                    dataKey="baixo"
-                    name="Baixo"
-                    stackId="risk"
-                    fill={TIMELINE_COLORS.baixo}
-                    barSize={36}
-                    radius={[0, 0, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="moderado"
-                    name="Moderado"
-                    stackId="risk"
-                    fill={TIMELINE_COLORS.moderado}
-                    barSize={36}
-                  />
-                  <Bar
-                    dataKey="elevado"
-                    name="Elevado"
-                    stackId="risk"
-                    fill={TIMELINE_COLORS.elevado}
-                    barSize={36}
-                  />
-                  <Bar
-                    dataKey="critico"
-                    name="Crítico"
-                    stackId="risk"
-                    fill={TIMELINE_COLORS.critico}
-                    radius={[3, 3, 0, 0]}
-                    barSize={36}
-                  />
+                  <Bar dataKey="score" radius={[4, 4, 0, 0]} barSize={48}>
+                    {domainBarData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
               <div className="mt-2 flex justify-center gap-4 text-[14px] text-[#64748b]">
-                {Object.entries(TIMELINE_COLORS).map(([key, color]) => (
+                {Object.entries(NR1_BAND_COLORS).map(([key, color]) => (
                   <span key={key} className="flex items-center gap-1.5">
                     <span
                       className="h-2.5 w-2.5 rounded-sm"
                       style={{ background: color }}
                     />
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                    {NR1_BAND_LABELS[key as NR1RiskBand]}
                   </span>
                 ))}
               </div>
             </>
           ) : (
             <div className="flex h-[220px] items-center justify-center text-[14px] text-[#64748b]">
-              Dados de evolução disponíveis após o segundo ciclo
+              Sem dados de domínio
             </div>
           )}
         </div>
       </div>
+
+      {/* Timeline */}
+      {timeline.length > 1 && (
+        <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
+          <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
+            Evolução Mensal — Score Geral
+          </h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart
+              data={timeline}
+              margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+            >
+              <CartesianGrid
+                vertical={false}
+                stroke="rgba(255,255,255,0.04)"
+              />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 11, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                domain={[0, 5]}
+                tick={{ fontSize: 11, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#111b2e',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 8,
+                  fontSize: 13,
+                }}
+                itemStyle={{ color: '#e2e8f0' }}
+                formatter={(value) => [
+                  value != null ? Number(value).toFixed(2) : '–',
+                  'Score',
+                ]}
+              />
+              <Line
+                type="monotone"
+                dataKey="scoreOverall"
+                stroke="#c5e155"
+                strokeWidth={2}
+                dot={{ fill: '#c5e155', r: 4, stroke: '#c5e155' }}
+                connectNulls
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Alerts section */}
       <div
@@ -480,11 +420,11 @@ export function B2BOverviewTab({
         <h3 className="mb-3 text-[17px] font-semibold text-[#ef4444]">
           🚨 Alertas Ativos
         </h3>
-        {aggregateAlerts.length > 0 ? (
+        {alerts.length > 0 ? (
           <div className="space-y-2">
-            {aggregateAlerts.map((alert, i) => {
+            {alerts.map((alert: B2BAlertData, i: number) => {
               const dotColor =
-                RISK_COLORS[alert.level] ?? '#64748b'
+                NR1_BAND_COLORS[alert.severity as NR1RiskBand] ?? '#64748b'
               return (
                 <div
                   key={i}
@@ -498,7 +438,16 @@ export function B2BOverviewTab({
                     }}
                   />
                   <span className="flex-1 text-[15px] text-[#e2e8f0]">
-                    {alert.text}
+                    {alert.message}
+                  </span>
+                  <span
+                    className="shrink-0 rounded-md px-2 py-0.5 text-[12px] font-semibold"
+                    style={{
+                      backgroundColor: `${dotColor}20`,
+                      color: dotColor,
+                    }}
+                  >
+                    {SEVERITY_LABELS[alert.severity] ?? alert.severity}
                   </span>
                 </div>
               )

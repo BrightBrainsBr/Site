@@ -106,11 +106,11 @@ class App extends AppClient {
       const podcastSync = new PodcastSyncService(strapi)
 
       // Run initial sync on startup
-      console.log(`[App] 🔄 Running initial podcast synchronization...`)
+      console.warn(`[App] 🔄 Running initial podcast synchronization...`)
       podcastSync.syncPodcasts()
         .then((result) => {
           if (result.success) {
-            console.log(`[App] ✅ Initial sync completed: ${result.message}`)
+            console.warn(`[App] ✅ Initial sync completed: ${result.message}`)
           } else {
             console.error(`[App] ❌ Initial sync failed: ${result.message}`)
           }
@@ -123,11 +123,11 @@ class App extends AppClient {
       // Cron format: second minute hour day month day-of-week
       // 0 0 3 * * * = Every day at 3:00 AM
       const cronJob = cron.schedule('0 0 3 * * *', async () => {
-        console.log(`[Cronjob] Starting scheduled podcast synchronization`)
+        console.warn(`[Cronjob] Starting scheduled podcast synchronization`)
         const result = await podcastSync.syncPodcasts()
         
         if (result.success) {
-          console.log(`[Cronjob] ✅ ${result.message}`)
+          console.warn(`[Cronjob] ✅ ${result.message}`)
         } else {
           console.error(`[Cronjob] ❌ ${result.message}`)
         }
@@ -135,7 +135,7 @@ class App extends AppClient {
         timezone: 'America/Sao_Paulo', // Brazilian timezone
       })
 
-      console.log(`[App] ✅ Podcast synchronization cronjob scheduled for daily execution at 3:00 AM (Brazil/SP timezone)`)
+      console.warn(`[App] ✅ Podcast synchronization cronjob scheduled for daily execution at 3:00 AM (Brazil/SP timezone)`)
 
     } catch (error) {
       console.error(`[App] Failed to initialize podcast synchronization:`, error)

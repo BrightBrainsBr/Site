@@ -62,7 +62,7 @@ export function useB2BActionPlansMutationHook(
   cycleId?: string | null
 ) {
   const queryClient = useQueryClient()
-  const basePath = `/api/b2b/${companyId}/action-plans`
+  const basePath = `/api/brightmonitor/${companyId}/action-plans`
   const cycleQuery = cycleId ? `?cycle=${cycleId}` : ''
   const base = `${basePath}${cycleQuery}`
 

@@ -22,21 +22,33 @@ import type {
   StepComponentProps,
 } from './assessment.interface'
 import { INITIAL_FORM_DATA } from './assessment.interface'
-import { ALL_STEPS, B2B_STEPS } from './constants/steps'
+import {
+  ALL_STEPS,
+  B2B_STEPS,
+  BRIGHT_INSIGHTS_CLINICAL_STEPS,
+} from './constants/steps'
 import { ProgressBar } from './ProgressBar'
 import {
   AEPStep,
+  AcidentesStep,
   B2BConsentsStep,
+  BiologicoStep,
   CanalPercepcaoStep,
   ClinicalProfileStep,
+  ErgonomicoStep,
   FamilyHistoryStep,
+  FisicoStep,
   GenericScaleStep,
   HistoryStep,
   LifestyleStep,
   MDQStep,
   MedicationsStep,
+  PercepcaoNR1Step,
+  PerfilStep,
   PersonalDataStep,
   PriorReportsStep,
+  PsicossocialStep,
+  QuimicoStep,
   SCALE_STEP_CONFIGS,
   SRQ20Step,
   SummaryStep,
@@ -362,7 +374,18 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
   }, [currentStepIndex, isLoaded])
 
   const isB2B = mode === 'b2b' && !!companyContext.company_id
-  const stepSource = isB2B ? B2B_STEPS : ALL_STEPS
+
+  const stepSource = useMemo(() => {
+    if (!isB2B) return ALL_STEPS
+    if (!companyContext.bright_insights_enabled) return B2B_STEPS
+
+    const resumoIndex = B2B_STEPS.findIndex((s) => s.id === 'resumo')
+    return [
+      ...B2B_STEPS.slice(0, resumoIndex),
+      ...BRIGHT_INSIGHTS_CLINICAL_STEPS,
+      ...B2B_STEPS.slice(resumoIndex),
+    ]
+  }, [isB2B, companyContext.bright_insights_enabled])
 
   const visibleSteps = useMemo(
     () => stepSource.filter((step) => step.show(data)),
@@ -523,6 +546,22 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
         return <CanalPercepcaoStep {...stepProps} />
       case 'b2b_consents':
         return <B2BConsentsStep {...stepProps} />
+      case 'nr1_perfil':
+        return <PerfilStep {...stepProps} />
+      case 'nr1_fisico':
+        return <FisicoStep {...stepProps} />
+      case 'nr1_quimico':
+        return <QuimicoStep {...stepProps} />
+      case 'nr1_biologico':
+        return <BiologicoStep {...stepProps} />
+      case 'nr1_ergonomico':
+        return <ErgonomicoStep {...stepProps} />
+      case 'nr1_psicossocial':
+        return <PsicossocialStep {...stepProps} />
+      case 'nr1_acidentes':
+        return <AcidentesStep {...stepProps} />
+      case 'nr1_percepcao':
+        return <PercepcaoNR1Step {...stepProps} />
       case 'resumo':
         return <SummaryStep {...stepProps} />
       default: {

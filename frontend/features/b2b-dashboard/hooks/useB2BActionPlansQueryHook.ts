@@ -18,7 +18,7 @@ async function fetchActionPlans(
   filters?: ActionPlansFilters
 ): Promise<B2BActionPlan[]> {
   const url = new URL(
-    `/api/b2b/${companyId}/action-plans`,
+    `/api/brightmonitor/${companyId}/action-plans`,
     window.location.origin
   )
   if (filters?.status) url.searchParams.set('status', filters.status)

@@ -12,7 +12,7 @@ interface InventoryRequest {
 export function useB2BNR1InventoryMutationHook(companyId: string | null) {
   return useMutation<B2BReportDownloadResult, Error, InventoryRequest>({
     mutationFn: async (opts) => {
-      const res = await fetch(`/api/b2b/${companyId}/nr1-inventory`, {
+      const res = await fetch(`/api/brightmonitor/${companyId}/inventory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(opts),

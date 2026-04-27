@@ -4,6 +4,7 @@
  */
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+
 import { z } from 'zod'
 
 // Load .env manually
@@ -20,7 +21,7 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-import { llmService, LLMProvider } from '../index'
+import { LLMProvider, llmService } from '../index'
 
 const CitySchema = z.object({
   city: z.string(),
@@ -31,18 +32,20 @@ const CitySchema = z.object({
 
 const anthropicConfig = {
   provider: LLMProvider.ANTHROPIC,
-  model_name: 'claude-sonnet-4-20250514',
+  model_name: 'claude-sonnet-4-6',
   temperature: 0,
 }
 
+/** Gemini Developer API — gemini-3-flash-preview (JSON repair path). */
 const fixerConfig = {
-  provider: LLMProvider.ANTHROPIC,
-  model_name: 'claude-haiku-4-20250514',
+  provider: LLMProvider.GOOGLE,
+  model_name: 'gemini-3-flash-preview',
   temperature: 0,
+  max_tokens: 8192,
 }
 
 async function testBasicStructuredOutput() {
-  console.log('\n--- Test 1: Anthropic structured output ---')
+  console.warn('\n--- Test 1: Anthropic structured output ---')
   const { result, modelUsed } = await llmService.invokeStructuredOutput({
     promptMessages: [
       { role: 'system', content: 'You return structured JSON about cities.' },
@@ -58,10 +61,10 @@ async function testBasicStructuredOutput() {
     stepName: 'test_anthropic',
   })
 
-  console.log('SUCCESS! Model used:', modelUsed)
-  console.log('Result:', JSON.stringify(result, null, 2))
+  console.warn('SUCCESS! Model used:', modelUsed)
+  console.warn('Result:', JSON.stringify(result, null, 2))
   const valid = CitySchema.safeParse(result)
-  console.log('Schema valid:', valid.success)
+  console.warn('Schema valid:', valid.success)
   if (!valid.success) throw new Error('Schema validation failed!')
 }
 
@@ -76,7 +79,7 @@ const CompanyListSchema = z.object({
 })
 
 async function testComplexSchema() {
-  console.log('\n--- Test 2: Complex nested schema ---')
+  console.warn('\n--- Test 2: Complex nested schema ---')
   const { result, modelUsed } = await llmService.invokeStructuredOutput({
     promptMessages: [
       {
@@ -91,24 +94,28 @@ async function testComplexSchema() {
     stepName: 'test_complex_schema',
   })
 
-  console.log('SUCCESS! Model used:', modelUsed)
-  console.log('Result:', JSON.stringify(result, null, 2))
-  console.log('Companies count:', result.companies.length)
+  console.warn('SUCCESS! Model used:', modelUsed)
+  console.warn('Result:', JSON.stringify(result, null, 2))
+  console.warn('Companies count:', result.companies.length)
   const valid = CompanyListSchema.safeParse(result)
-  console.log('Schema valid:', valid.success)
+  console.warn('Schema valid:', valid.success)
   if (!valid.success) throw new Error('Schema validation failed!')
 }
 
 async function testFallback() {
-  console.log('\n--- Test 3: Fallback (bad primary -> Anthropic fallback) ---')
+  console.warn('\n--- Test 3: Fallback (bad primary -> Anthropic fallback) ---')
   const { result, modelUsed } = await llmService.invokeStructuredOutput({
     promptMessages: [
-      { role: 'human', content: 'Tell me about Berlin. Return JSON with city, country, population, funFact.' },
+      {
+        role: 'human',
+        content:
+          'Tell me about Berlin. Return JSON with city, country, population, funFact.',
+      },
     ],
     outputSchema: CitySchema,
     primaryConfigDict: {
       provider: LLMProvider.ANTHROPIC,
-      model_name: 'claude-sonnet-4-20250514',
+      model_name: 'claude-sonnet-4-6',
       api_key: 'sk-ant-INVALID-KEY-12345',
     },
     fallbackConfigDict: anthropicConfig,
@@ -116,21 +123,25 @@ async function testFallback() {
     stepName: 'test_fallback',
   })
 
-  console.log('SUCCESS via fallback! Model used:', modelUsed)
-  console.log('Result:', JSON.stringify(result, null, 2))
+  console.warn('SUCCESS via fallback! Model used:', modelUsed)
+  console.warn('Result:', JSON.stringify(result, null, 2))
   const valid = CitySchema.safeParse(result)
-  console.log('Schema valid:', valid.success)
+  console.warn('Schema valid:', valid.success)
   if (!valid.success) throw new Error('Schema validation failed!')
 }
 
 async function main() {
-  console.log('\n=== LLM Service Smoke Test ===')
-  console.log('ANTHROPIC_API_KEY set:', !!process.env.ANTHROPIC_API_KEY)
+  console.warn('\n=== LLM Service Smoke Test ===')
+  console.warn('ANTHROPIC_API_KEY set:', !!process.env.ANTHROPIC_API_KEY)
 
   let passed = 0
   let failed = 0
 
-  for (const test of [testBasicStructuredOutput, testComplexSchema, testFallback]) {
+  for (const test of [
+    testBasicStructuredOutput,
+    testComplexSchema,
+    testFallback,
+  ]) {
     try {
       await test()
       passed++
@@ -140,7 +151,7 @@ async function main() {
     }
   }
 
-  console.log(`\n=== Results: ${passed} passed, ${failed} failed ===\n`)
+  console.warn(`\n=== Results: ${passed} passed, ${failed} failed ===\n`)
   process.exit(failed > 0 ? 1 : 0)
 }
 

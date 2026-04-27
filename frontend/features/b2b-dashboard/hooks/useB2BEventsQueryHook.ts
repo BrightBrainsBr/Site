@@ -18,7 +18,7 @@ async function fetchEvents(
   filters?: EventsFilters
 ): Promise<B2BEventsData> {
   const url = new URL(
-    `/api/b2b/${companyId}/events`,
+    `/api/brightmonitor/${companyId}/incidents`,
     window.location.origin
   )
   if (filters?.type) url.searchParams.set('type', filters.type)

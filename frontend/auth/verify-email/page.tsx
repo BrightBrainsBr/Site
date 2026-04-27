@@ -112,7 +112,7 @@ function VerifyEmailContent() {
       // The authService handles the redirect automatically
       // But we can also redirect here if needed
       if (result.data) {
-        console.log(
+        console.warn(
           'OTP verification successful, should redirect via authService'
         )
       }

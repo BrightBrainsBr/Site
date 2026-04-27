@@ -1,3 +1,5 @@
+// frontend/app/api/assessment/submit/route.ts
+
 import Anthropic from '@anthropic-ai/sdk'
 import { awaitAllCallbacks } from '@langchain/core/callbacks/promises'
 import { createClient } from '@supabase/supabase-js'
@@ -107,7 +109,6 @@ export async function POST(request: NextRequest) {
     }
     if (company_id) {
       insertPayload.company_id = company_id
-      insertPayload.report_type = 'b2b-laudo'
     }
     if (employee_department)
       insertPayload.employee_department = employee_department
@@ -136,6 +137,79 @@ export async function POST(request: NextRequest) {
     }
     if (b2b_anonymized_consent != null) {
       insertPayload.b2b_anonymized_consent = b2b_anonymized_consent
+    }
+
+    const isNR1 = formData.noise_level != null
+    if (isNR1) {
+      insertPayload.nr1_role = formData.nr1_role || null
+      insertPayload.nr1_work_time = formData.nr1_work_time || null
+
+      insertPayload.noise_level = formData.noise_level
+      insertPayload.temperature_level = formData.temperature_level
+      insertPayload.lighting_level = formData.lighting_level
+      insertPayload.vibration_level = formData.vibration_level
+      insertPayload.humidity_level = formData.humidity_level
+
+      insertPayload.chemical_exposures = formData.chemical_exposures || []
+      insertPayload.chemical_details = formData.chemical_details || null
+      insertPayload.biological_exposures = formData.biological_exposures || []
+      insertPayload.biological_details = formData.biological_details || null
+
+      insertPayload.posture_level = formData.posture_level
+      insertPayload.repetition_level = formData.repetition_level
+      insertPayload.manual_force_level = formData.manual_force_level
+      insertPayload.breaks_level = formData.breaks_level
+      insertPayload.screen_level = formData.screen_level
+      insertPayload.mobility_level = formData.mobility_level
+      insertPayload.cognitive_effort_level = formData.cognitive_effort_level
+
+      insertPayload.workload_level = formData.workload_level
+      insertPayload.pace_level = formData.pace_level
+      insertPayload.autonomy_level = formData.autonomy_level
+      insertPayload.leadership_level = formData.leadership_level
+      insertPayload.relationships_level = formData.relationships_level
+      insertPayload.recognition_level = formData.recognition_level
+      insertPayload.clarity_level = formData.clarity_level
+      insertPayload.balance_level = formData.balance_level
+      insertPayload.violence_level = formData.violence_level
+      insertPayload.harassment_level = formData.harassment_level
+
+      insertPayload.had_accident = formData.had_accident ?? false
+      insertPayload.accident_description = formData.accident_description || null
+      insertPayload.had_near_miss = formData.had_near_miss ?? false
+      insertPayload.near_miss_description =
+        formData.near_miss_description || null
+      insertPayload.had_work_disease = formData.had_work_disease ?? false
+      insertPayload.work_disease_description =
+        formData.work_disease_description || null
+
+      insertPayload.satisfaction_level = formData.satisfaction_level
+      insertPayload.biggest_risk = formData.biggest_risk || null
+      insertPayload.suggestion =
+        formData.suggestion || null
+
+      insertPayload.score_physical = scores.nr1_physical ?? null
+      insertPayload.score_ergonomic = scores.nr1_ergonomic ?? null
+      insertPayload.score_psychosocial = scores.nr1_psychosocial ?? null
+      insertPayload.score_violence = scores.nr1_violence ?? null
+      insertPayload.score_overall = scores.nr1_overall ?? null
+
+      insertPayload.assessment_kind = 'nr1'
+    }
+
+    // Check bright_insights_enabled for NR-1-only companies
+    let insightsEnabled = false
+    if (company_id) {
+      const { data: companyRow } = await sb
+        .from('companies')
+        .select('bright_insights_enabled')
+        .eq('id', company_id)
+        .maybeSingle()
+      insightsEnabled = companyRow?.bright_insights_enabled === true
+    }
+
+    if (company_id) {
+      insertPayload.report_type = insightsEnabled ? 'b2b-laudo' : 'nr1'
     }
 
     const { data: row, error } = await sb
@@ -207,6 +281,93 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // NR-1 incident rows (best-effort)
+    if (company_id && isNR1) {
+      const incidentWrites: PromiseLike<unknown>[] = []
+      const eventDate = new Date().toISOString().split('T')[0]
+
+      if (formData.had_accident && formData.accident_description?.trim()) {
+        incidentWrites.push(
+          sb
+            .from('b2b_events')
+            .insert({
+              company_id,
+              event_date: eventDate,
+              event_type: 'acidente',
+              description: formData.accident_description.trim(),
+              department: employee_department || null,
+              source: 'form',
+            })
+            .then(({ error: e }) => {
+              if (e) throw e
+            })
+        )
+      }
+      if (formData.had_near_miss && formData.near_miss_description?.trim()) {
+        incidentWrites.push(
+          sb
+            .from('b2b_events')
+            .insert({
+              company_id,
+              event_date: eventDate,
+              event_type: 'near_miss',
+              description: formData.near_miss_description.trim(),
+              department: employee_department || null,
+              source: 'form',
+            })
+            .then(({ error: e }) => {
+              if (e) throw e
+            })
+        )
+      }
+      if (
+        formData.had_work_disease &&
+        formData.work_disease_description?.trim()
+      ) {
+        incidentWrites.push(
+          sb
+            .from('b2b_events')
+            .insert({
+              company_id,
+              event_date: eventDate,
+              event_type: 'work_disease',
+              description: formData.work_disease_description.trim(),
+              department: employee_department || null,
+              source: 'form',
+            })
+            .then(({ error: e }) => {
+              if (e) throw e
+            })
+        )
+      }
+
+      await Promise.allSettled(incidentWrites).then((results) => {
+        results.forEach((r, i) => {
+          if (r.status === 'rejected')
+            console.error(`Incident write ${i} failed:`, r.reason)
+        })
+      })
+    }
+
+    // Anonymous harassment report
+    if (
+      company_id &&
+      formData.report_harassment &&
+      formData.harassment_report_description?.trim()
+    ) {
+      await sb
+        .from('harassment_reports')
+        .insert({
+          company_id,
+          cycle_id: resolvedCycleId || null,
+          department: employee_department || null,
+          description: formData.harassment_report_description.trim(),
+        })
+        .then(({ error: hrErr }) => {
+          if (hrErr) console.error('Harassment report write failed:', hrErr)
+        })
+    }
+
     const isB2B = !!company_id
 
     after(async () => {
@@ -251,6 +412,16 @@ export async function POST(request: NextRequest) {
               processing_error: null,
               processing_logs: [],
             })
+
+            // NR-1 only (no Bright Insights) — skip report generation
+            if (isB2B && !insightsEnabled) {
+              p(`NR-1 only — skipping report generation`)
+              await sb
+                .from('mental_health_evaluations')
+                .update({ status: 'completed' })
+                .eq('id', evaluationId)
+              return
+            }
 
             const hasUploads = uploads && uploads.length > 0
             if (hasUploads) {

@@ -74,7 +74,7 @@ export const extractEventsFromPdfWithGemini = traceable(
       throw new Error('GEMINI_API_KEY is not set')
     }
 
-    console.log(`${TAG} INIT file="${fileName}" bufferSize=${pdfBuffer.length} models=[${GEMINI_MODELS.join(', ')}]`)
+    console.warn(`${TAG} INIT file="${fileName}" bufferSize=${pdfBuffer.length} models=[${GEMINI_MODELS.join(', ')}]`)
 
     const { GoogleGenAI } = await import('@google/genai')
     const client = new GoogleGenAI({ apiKey })
@@ -117,12 +117,12 @@ export const extractEventsFromPdfWithGemini = traceable(
 
       for (let attempt = 0; attempt <= RETRIES_PER_MODEL; attempt++) {
         const tApi = Date.now()
-        console.log(`${TAG} CALLING model=${model} file="${fileName}" attempt=${attempt + 1}/${RETRIES_PER_MODEL + 1}`)
+        console.warn(`${TAG} CALLING model=${model} file="${fileName}" attempt=${attempt + 1}/${RETRIES_PER_MODEL + 1}`)
 
         try {
           response = await makeRequest(model)
           usedModel = model
-          console.log(`${TAG} OK model=${model} attempt=${attempt + 1} apiTime=${Date.now() - tApi}ms`)
+          console.warn(`${TAG} OK model=${model} attempt=${attempt + 1} apiTime=${Date.now() - tApi}ms`)
           succeeded = true
           break
         } catch (apiErr) {
@@ -133,7 +133,7 @@ export const extractEventsFromPdfWithGemini = traceable(
           console.error(`${TAG} ERROR model=${model} attempt=${attempt + 1} retryable=${retryable} error="${apiMsg}" apiTime=${Date.now() - tApi}ms`)
 
           if (retryable && attempt < RETRIES_PER_MODEL) {
-            console.log(`${TAG} RETRY same model in ${RETRY_DELAY_MS}ms`)
+            console.warn(`${TAG} RETRY same model in ${RETRY_DELAY_MS}ms`)
             await new Promise(r => setTimeout(r, RETRY_DELAY_MS))
             continue
           }
@@ -146,7 +146,7 @@ export const extractEventsFromPdfWithGemini = traceable(
 
       const nextIdx = GEMINI_MODELS.indexOf(model) + 1
       if (nextIdx < GEMINI_MODELS.length) {
-        console.log(`${TAG} FALLBACK from ${model} -> ${GEMINI_MODELS[nextIdx]} file="${fileName}"`)
+        console.warn(`${TAG} FALLBACK from ${model} -> ${GEMINI_MODELS[nextIdx]} file="${fileName}"`)
       }
     }
 
@@ -159,7 +159,7 @@ export const extractEventsFromPdfWithGemini = traceable(
 
     const finishReason = response.candidates?.[0]?.finishReason ?? 'UNKNOWN'
     const usageMetadata = response.usageMetadata
-    console.log(`${TAG} RESPONSE model=${usedModel} file="${fileName}" finishReason=${finishReason} totalTime=${Date.now() - t0}ms promptTokens=${usageMetadata?.promptTokenCount ?? '?'} outputTokens=${usageMetadata?.candidatesTokenCount ?? '?'}`)
+    console.warn(`${TAG} RESPONSE model=${usedModel} file="${fileName}" finishReason=${finishReason} totalTime=${Date.now() - t0}ms promptTokens=${usageMetadata?.promptTokenCount ?? '?'} outputTokens=${usageMetadata?.candidatesTokenCount ?? '?'}`)
 
     const text = response.text
     if (!text?.trim()) {
@@ -167,7 +167,7 @@ export const extractEventsFromPdfWithGemini = traceable(
       throw new Error(`Gemini (${usedModel}) returned no text. Finish reason: ${finishReason}`)
     }
 
-    console.log(`${TAG} PARSING JSON file="${fileName}" textLength=${text.length}`)
+    console.warn(`${TAG} PARSING JSON file="${fileName}" textLength=${text.length}`)
 
     let parsed: EventsBulkOutput
     try {
@@ -197,7 +197,7 @@ export const extractEventsFromPdfWithGemini = traceable(
 
     confidence = Math.max(0, Math.min(1, confidence))
 
-    console.log(`${TAG} DONE model=${usedModel} file="${fileName}" events=${parsed.events?.length ?? 0} confidence=${confidence} totalTime=${Date.now() - t0}ms`)
+    console.warn(`${TAG} DONE model=${usedModel} file="${fileName}" events=${parsed.events?.length ?? 0} confidence=${confidence} totalTime=${Date.now() - t0}ms`)
 
     return {
       extracted: parsed,

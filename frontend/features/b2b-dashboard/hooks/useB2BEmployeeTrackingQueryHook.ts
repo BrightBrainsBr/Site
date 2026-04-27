@@ -9,7 +9,7 @@ import type { B2BEmployeeTrackingData } from '../b2b-dashboard.interface'
 async function fetchEmployeeTracking(
   companyId: string
 ): Promise<B2BEmployeeTrackingData> {
-  const res = await fetch(`/api/b2b/${companyId}/employee-tracking`)
+  const res = await fetch(`/api/brightmonitor/${companyId}/employee-tracking`)
   if (!res.ok) throw new Error('Failed to fetch employee tracking')
   return res.json()
 }

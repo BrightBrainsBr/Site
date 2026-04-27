@@ -103,7 +103,7 @@ export const INITIAL_FORM_DATA: AssessmentFormData = {
   familiaDetalhes: '',
   infoAdicional: '',
 
-  // B2B NR-1 fields
+  // B2B legacy fields
   srq20_answers: [],
   aep_answers: [],
   aep_percepcao_livre: '',
@@ -111,4 +111,63 @@ export const INITIAL_FORM_DATA: AssessmentFormData = {
   b2b_anonymized_consent: false,
   b2c_consent: false,
   b2c_contact_consent: false,
+
+  // NR-1 Perfil
+  department: '',
+  nr1_role: '',
+  nr1_work_time: '',
+
+  // NR-1 Riscos Físicos
+  noise_level: null,
+  temperature_level: null,
+  lighting_level: null,
+  vibration_level: null,
+  humidity_level: null,
+
+  // NR-1 Riscos Químicos
+  chemical_exposures: [],
+  chemical_details: '',
+
+  // NR-1 Riscos Biológicos
+  biological_exposures: [],
+  biological_details: '',
+
+  // NR-1 Riscos Ergonômicos
+  posture_level: null,
+  repetition_level: null,
+  manual_force_level: null,
+  breaks_level: null,
+  screen_level: null,
+  mobility_level: null,
+  cognitive_effort_level: null,
+
+  // NR-1 Fatores Psicossociais
+  workload_level: null,
+  pace_level: null,
+  autonomy_level: null,
+  leadership_level: null,
+  relationships_level: null,
+  recognition_level: null,
+  clarity_level: null,
+  balance_level: null,
+  violence_level: null,
+  harassment_level: null,
+
+  // NR-1 Acidentes e Doenças
+  had_accident: false,
+  accident_description: '',
+  had_near_miss: false,
+  near_miss_description: '',
+  had_work_disease: false,
+  work_disease_description: '',
+  report_harassment: false,
+  harassment_report_description: '',
+
+  // NR-1 Percepção Geral
+  satisfaction_level: null,
+  biggest_risk: '',
+  suggestion: '',
+
+  // NR-1 LGPD consent
+  lgpd_consent: false,
 }

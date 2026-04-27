@@ -30,15 +30,14 @@ export function B2BKpiRowComponent({
   }
 
   const total = data?.total ?? 0
-  const avgScore = data?.avgScore ?? null
+  const scoreOverall = data?.scoreOverall ?? null
   const rd = data?.riskDistribution ?? {
-    critical: 0,
-    elevated: 0,
-    moderate: 0,
-    low: 0,
+    baixo: 0,
+    moderado: 0,
+    alto: 0,
+    critico: 0,
   }
-  const burnout = data?.burnoutIndex ?? null
-  const criticalElevated = rd.critical + rd.elevated
+  const criticalElevated = (rd.critico ?? 0) + (rd.alto ?? 0)
   const coveragePct = complianceData?.coveragePct ?? null
   const groIssued = !!complianceData?.groIssuedAt
 
@@ -60,24 +59,24 @@ export function B2BKpiRowComponent({
       borderColor: '#34D399',
     },
     {
-      label: 'Score cognitivo médio',
-      value: avgScore != null ? avgScore.toFixed(1) : '–',
+      label: 'Score geral médio',
+      value: scoreOverall != null ? scoreOverall.toFixed(1) : '–',
       valueColor: '#3B82F6',
-      sub: 'Benchmark: em construção',
+      sub: 'Média domínios NR-1 · escala 1–5',
       borderColor: '#3B82F6',
     },
     {
-      label: 'Em risco elevado/crítico',
+      label: 'Em risco alto/crítico',
       value: criticalElevated,
       valueColor: '#FB923C',
       sub: 'Delta vs ciclo anterior em construção',
       borderColor: '#FB923C',
     },
     {
-      label: 'Índice de burnout',
-      value: burnout != null ? `${burnout.toFixed(1)}` : '–',
+      label: 'Alertas pendentes',
+      value: data?.alertCount ?? 0,
       valueColor: '#A78BFA',
-      sub: 'MBI médio · escala 0–80',
+      sub: `${data?.incidentsThisCycle ?? 0} incidentes neste ciclo`,
       borderColor: '#A78BFA',
     },
   ]

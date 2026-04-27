@@ -843,3 +843,145 @@ ALTER TABLE public.mental_health_evaluations
 ALTER TABLE public.mental_health_evaluations
   ADD CONSTRAINT mental_health_evaluations_cycle_id_fkey
     FOREIGN KEY (cycle_id) REFERENCES assessment_cycles (id) ON DELETE SET NULL;
+
+
+-- =================================================================
+-- NR-1 REALIGNMENT — Phase 1 Database Changes
+-- Applied 2026-04-27
+-- =================================================================
+
+-- === NR-1 columns on mental_health_evaluations ===
+-- Identification
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS nr1_role TEXT,
+  ADD COLUMN IF NOT EXISTS nr1_work_time TEXT;
+
+-- Physical environment (1–5 Likert)
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS noise_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS temperature_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS lighting_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS vibration_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS humidity_level SMALLINT;
+
+-- Chemical & biological exposures
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS chemical_exposures TEXT[],
+  ADD COLUMN IF NOT EXISTS chemical_details TEXT,
+  ADD COLUMN IF NOT EXISTS biological_exposures TEXT[],
+  ADD COLUMN IF NOT EXISTS biological_details TEXT;
+
+-- Ergonomic factors (1–5 Likert)
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS posture_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS repetition_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS manual_force_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS breaks_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS screen_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS mobility_level SMALLINT;
+
+-- Psychosocial & organizational (1–5 Likert)
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS cognitive_effort_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS workload_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS pace_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS autonomy_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS leadership_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS relationships_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS recognition_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS clarity_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS balance_level SMALLINT;
+
+-- Violence & harassment (1–5 Likert)
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS violence_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS harassment_level SMALLINT;
+
+-- Accident / near-miss / work disease flags
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS had_accident BOOLEAN,
+  ADD COLUMN IF NOT EXISTS accident_description TEXT,
+  ADD COLUMN IF NOT EXISTS had_near_miss BOOLEAN,
+  ADD COLUMN IF NOT EXISTS near_miss_description TEXT,
+  ADD COLUMN IF NOT EXISTS had_work_disease BOOLEAN,
+  ADD COLUMN IF NOT EXISTS work_disease_description TEXT;
+
+-- Satisfaction & open-text
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS satisfaction_level SMALLINT,
+  ADD COLUMN IF NOT EXISTS biggest_risk TEXT,
+  ADD COLUMN IF NOT EXISTS suggestion TEXT;
+
+-- AI-computed domain scores (0.00–1.00)
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS score_physical NUMERIC(3,2),
+  ADD COLUMN IF NOT EXISTS score_ergonomic NUMERIC(3,2),
+  ADD COLUMN IF NOT EXISTS score_psychosocial NUMERIC(3,2),
+  ADD COLUMN IF NOT EXISTS score_violence NUMERIC(3,2),
+  ADD COLUMN IF NOT EXISTS score_overall NUMERIC(3,2);
+
+-- Assessment type discriminator
+ALTER TABLE mental_health_evaluations
+  ADD COLUMN IF NOT EXISTS assessment_kind TEXT DEFAULT 'nr1';
+
+ALTER TABLE mental_health_evaluations
+  ADD CONSTRAINT mental_health_evaluations_assessment_kind_check
+  CHECK (assessment_kind IN ('nr1', 'insights', 'clinical'));
+
+-- Updated report_type to include 'nr1'
+ALTER TABLE mental_health_evaluations DROP CONSTRAINT IF EXISTS mental_health_evaluations_report_type_check;
+ALTER TABLE mental_health_evaluations ADD CONSTRAINT mental_health_evaluations_report_type_check
+  CHECK (report_type IN ('clinical', 'b2b-laudo', 'nr1'));
+
+-- Indexes for NR-1 queries
+CREATE INDEX IF NOT EXISTS idx_mhe_assessment_kind
+  ON mental_health_evaluations(assessment_kind)
+  WHERE assessment_kind = 'nr1';
+
+CREATE INDEX IF NOT EXISTS idx_mhe_company_cycle_kind
+  ON mental_health_evaluations(company_id, cycle_id, assessment_kind);
+
+
+-- === Feature flag on companies ===
+ALTER TABLE companies
+  ADD COLUMN IF NOT EXISTS bright_insights_enabled BOOLEAN NOT NULL DEFAULT false;
+
+COMMENT ON COLUMN companies.bright_insights_enabled
+  IS 'Feature flag: when true, NR-1 form appends clinical scales and dashboard shows Insights tab';
+
+
+-- === Anonymous harassment reports ===
+CREATE TABLE IF NOT EXISTS harassment_reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  cycle_id UUID REFERENCES assessment_cycles(id),
+  department TEXT,
+  description TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE harassment_reports
+  IS 'Anonymous harassment reports from NR-1 Acidentes step. No employee_id, no assessment_id — anonymity is structural.';
+
+CREATE INDEX IF NOT EXISTS idx_harassment_reports_company
+  ON harassment_reports(company_id);
+CREATE INDEX IF NOT EXISTS idx_harassment_reports_cycle
+  ON harassment_reports(cycle_id);
+
+ALTER TABLE harassment_reports ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY harassment_reports_insert_policy
+  ON harassment_reports FOR INSERT WITH CHECK (true);
+
+CREATE POLICY harassment_reports_select_policy
+  ON harassment_reports FOR SELECT USING (
+    company_id IN (
+      SELECT company_id FROM company_users WHERE user_id = auth.uid()
+    )
+  );
+
+
+-- === b2b_events: expanded event_type constraint ===
+ALTER TABLE b2b_events DROP CONSTRAINT IF EXISTS b2b_events_event_type_check;
+ALTER TABLE b2b_events ADD CONSTRAINT b2b_events_event_type_check
+  CHECK (event_type IN ('afastamento', 'relato_canal', 'acidente', 'incidente', 'near_miss', 'work_disease', 'atestado', 'outro'));
