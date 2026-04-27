@@ -12,10 +12,7 @@ export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ) {
-  const { locale, ...modalParams } = (await params) as {
-    locale: string
-    slug: string
-  }
+  const { locale, ...modalParams } = await params
 
   const router = await getHelpersRouter()
   if (!router.localization.locales.includes(locale)) {
@@ -37,10 +34,7 @@ export async function generateMetadata(
 }
 
 async function Page({ params }: Props) {
-  const { locale, ...modalParams } = (await params) as {
-    locale: string
-    slug: string
-  }
+  const { locale, ...modalParams } = await params
 
   const router = await getHelpersRouter()
   router.setRoute({

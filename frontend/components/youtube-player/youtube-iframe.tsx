@@ -50,7 +50,7 @@ const YoutubePlayer: React.FC<IYoutubePlayerProps> = ({
     return new URLSearchParams({
       playlist: id,
       ...obj,
-    } as unknown as Record<string, string>)
+    } as Record<string, string>)
   }, [controls, id, loop, mute, showinfo])
 
   return (

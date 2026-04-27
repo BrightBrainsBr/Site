@@ -1,0 +1,700 @@
+================================================================================
+FRAMEWORK MESTRE — MODELO BRIGHT BRAINS
+================================================================================
+Análise estrutural completa para reuso em novos sites
+Gerado em: 2026-04-20
+Fonte: Branch felipe/seo-bright + site live em localhost:3006
+================================================================================
+
+
+================================================================================
+1. VISÃO GERAL DO MODELO
+================================================================================
+
+TIPO ESTRUTURAL:
+  Hub de Autoridade Orientado a Conversão.
+  Não é um site institucional puro. Não é um e-commerce. Não é uma
+  landing page. É um ecossistema modular que combina autoridade
+  científica, educação do público, prova social e conversão direta
+  numa experiência fluida.
+
+LÓGICA PRINCIPAL DA EXPERIÊNCIA:
+  O visitante segue um funil visual:
+  Awareness → Authority → Education → Social Proof → Action
+
+  Cada página é composta por blocos dinâmicos que o CMS (Strapi)
+  permite reorganizar livremente, mas que seguem essa progressão
+  psicológica de convencimento.
+
+EQUILÍBRIO:
+  - AUTORIDADE: construída via conteúdo clínico, equipe real com
+    fotos, linguagem técnica acessível, schema MedicalClinic
+  - CLAREZA: tipografia grande, espaçamento generoso, seções
+    limpas sem poluição visual
+  - INSTITUCIONAL: manifesto, bloco "sobre", equipe, endereço
+  - CONVERSÃO: CTAs distribuídos após cada seção educativa, WhatsApp
+    flutuante permanente, headline de contato como seção final
+
+SENSAÇÃO TRANSMITIDA:
+  "Tecnologia de ponta com humanidade."
+  O site faz um tema complexo (neuromodulação cerebral) parecer
+  acessível, seguro e premium ao mesmo tempo. Nunca parece
+  vendedor demais. Nunca parece frio demais.
+
+
+================================================================================
+2. ARQUITETURA DE PÁGINAS
+================================================================================
+
+TIPOS DE PÁGINA:
+
+  Tipo               | Exemplo                     | Função
+  --------------------|-----------------------------|---------------------------
+  Home               | /pt-BR/                     | Diretório de confiança
+  Tratamento (lista) | /pt-BR/neuromodulacao       | Vitrine de serviços
+  Tratamento (single)| /pt-BR/neuromodulacao/tdah   | Educação + conversão
+  Blog (lista)       | /pt-BR/noticias             | SEO + autoridade
+  Blog (single)      | /pt-BR/noticias/depressao   | Conteúdo profundo
+  Institucional      | /pt-BR/sobre-nos            | Humanização + manifesto
+  Contato            | /pt-BR/fale-conosco         | Conversão direta
+  Legal              | /pt-BR/politica-privacidade | Compliance
+
+HIERARQUIA DE NAVEGAÇÃO:
+  Home
+  ├── Neuromodulação (dropdown com subcondições)
+  │   ├── Tratamento Clínico
+  │   ├── Tratamento Infantil
+  │   ├── Performance
+  │   ├── {Condição específica}...
+  ├── Sobre Nós
+  ├── Notícias
+  └── Fale Conosco (CTA destacado)
+
+COMO REAPROVEITAR EM OUTROS NICHOS:
+  Substituir "Neuromodulação" por qualquer vertical de serviços:
+  - "Tratamentos" (odontologia, estética)
+  - "Soluções" (tecnologia, consultoria)
+  - "Serviços" (advocacia, arquitetura)
+  A lógica de lista → single → conversão é universal.
+
+
+================================================================================
+3. LINGUAGEM VISUAL
+================================================================================
+
+TIPOGRAFIA:
+  - Font principal: KMR Apparat (local, custom) — headings
+  - Font secundária: Roboto (Google Fonts) — body
+  - Headings responsivos via viewport width (vw) em desktop:
+    heading-6xl = 5.278vw (enorme, impactante)
+    heading-5xl = 4.444vw
+    heading-4xl = 2.917vw
+    heading-3xl = 2.222vw
+  - Line-height de 1.1 em headings — compacto, editorial
+  - Body text também em vw acima de 1024px (1.11vw)
+  - Resultado: tipografia fluida que escala proporcionalmente
+    à viewport, mantendo harmonia em qualquer tela
+
+ESPAÇAMENTO:
+  - Distâncias definidas como tokens:
+    small: 2.5rem (mobile) → 3.5rem (desktop)
+    medium: 4rem → 6rem
+    large: 6rem → 8rem
+  - Seções "respiram" — padding vertical generoso
+  - Grid de 12 colunas com container centralizado
+  - Conteúdo textual nunca ocupa mais de 5/12 colunas
+    (~42% da largura), criando amplo whitespace
+
+GRID:
+  - 12 colunas com Tailwind (grid-cols-12)
+  - Breakpoints: xs(375) / sm(440) / md(768) / lg(1024) /
+    xl(1280) / 1.5xl(1440) / 2xl(1536) / 3xl(1920)
+  - Mobile: 1 coluna empilhada
+  - Desktop: layouts assimétricos (5+7, 3+9, etc.)
+
+PALETA DE CORES:
+  Cor                | Hex Range    | Uso
+  -------------------|-------------|----------------------------------
+  Midnight (azul)    | #091930     | Fundos escuros, header, equipe
+  Lime (verde-limão) | #CFFF22     | Destaque primário, posts, CTAs
+  Green (verde)      | #5DBBA4     | Tratamentos clínicos
+  Blue (azul médio)  | #54A9DA     | Tratamento infantil
+  Violet             | #CE8DE5     | Performance
+  Gray Light         | #D8DEDF     | Fundo padrão de seções
+  White              | #FFFFFF     | Espaços limpos
+  Black              | #000000     | Texto base
+
+SISTEMA DE TEMAS:
+  Cada content type aplica um "themeColor" que afeta:
+  - Cor do logo no header
+  - Cor dos elementos de destaque
+  - Variantes: midnight-950, blue-400, green-400,
+    lime-400, violet-400
+  Isso permite que cada página tenha identidade visual
+  própria sem sair do sistema de design.
+
+HIERARQUIA VISUAL:
+  1. Imagens ocupam metade da viewport (49.31vw)
+  2. Headlines em tamanho impactante (heading-5xl a 6xl)
+  3. Uma barra horizontal decorativa (2.625rem × 0.125rem)
+     antes de cada seção de texto — assinatura visual
+  4. Texto body em tamanho menor e cor atenuada
+  5. CTAs com contraste forte sobre fundo escuro
+
+SENSAÇÃO:
+  Premium + Clínica + Tecnológica
+  O site parece caro. A tipografia grande com peso light
+  cria elegância editorial. Os fundos midnight-950 com
+  textos brancos criam profundidade. As imagens arredondadas
+  (rounded-3xl) suavizam a rigidez clínica.
+
+
+================================================================================
+4. PADRÃO DE SEÇÕES
+================================================================================
+
+SEÇÕES RECORRENTES E SEU PAPEL:
+
+1. MAIN-HERO (block-main-hero)
+   - Slider com slides automáticos
+   - Cada slide: título + conteúdo HTML + CTA
+   - Ocupa viewport inteira
+   - Função: impacto imediato, primeira proposta de valor
+
+2. MANIFESTO (block-manifest)
+   - Texto institucional + vídeo YouTube
+   - Layout alternado (ímpar: vídeo direita / par: vídeo esquerda)
+   - Barra horizontal decorativa antes do texto
+   - Função: posicionamento de marca, "quem somos"
+
+3. MEDIA-TEXT (block-media-text)
+   - Imagem 50% viewport + texto 5/12 colunas
+   - Opção de alinhar imagem esquerda/direita
+   - Fundo com gradiente suave para gray-light
+   - Função: explicação de processos e serviços
+
+4. BENEFITS (block-benefits)
+   - Grid/slider de cards com título + descrição + imagem
+   - Fundo gray-light
+   - Função: diferenciação rápida, "por que nós"
+
+5. NEURO-TYPES (block-neuro-types)
+   - Bloco especializado para tipos de neuromodulação
+   - Função: educação técnica visual (específico do nicho)
+
+6. BRAIN-IMAGE-MAP (block-brain-image-map)
+   - Mapa interativo do cérebro
+   - Função: educação visual (específico do nicho)
+
+7. TREATMENT-GUIDE (block-treatment-guide)
+   - Fundo midnight-950 com graphism overlay
+   - Grid de 3 cards com borda e conteúdo
+   - Variante de cor por tratamento (blue, green, violet)
+   - Função: passo-a-passo do tratamento
+
+8. TEAM (block-team)
+   - Fundo midnight-950
+   - Partners: cards grandes (2 colunas) com foto + bio
+   - Doctors: slider horizontal com cards menores
+   - Campos: title, role, activity, excerpt, linkedin, phone
+   - Função: humanização e credibilidade profissional
+
+9. DEPOSITIONS (block-depositions)
+   - Slider com depoimentos (texto ou vídeo)
+   - Limitado a 2 depoimentos mais recentes
+   - Fundo gray-light
+   - Função: prova social
+
+10. FAQ (block-faq)
+    - Grid 3+9 colunas (título à esquerda, accordion à direita)
+    - Componente Accordion reutilizável
+    - Fundo gray-light
+    - Função: quebra de objeções
+
+11. HEADLINE-CONTACT (block-headline-contact)
+    - Banner full-width com imagem de fundo
+    - Texto CMS + botão CTA
+    - Gradiente from gray-light to transparent
+    - Função: último empurrão para conversão
+
+12. WHATSAPP-FLOATING-CTA (block-whatsapp-floating-cta)
+    - Botão fixo no canto inferior direito
+    - Verde WhatsApp (#25D366)
+    - Texto "Agendar" visível em desktop
+    - Função: conversão passiva permanente
+
+13. ARCHIVE-POSTS (block-archive-posts)
+    - Listagem de posts com filtros (client-side)
+    - Função: hub de conteúdo
+
+14. ARCHIVE-TREATMENTS (block-archive-treatments)
+    - Listagem de tratamentos
+    - Função: vitrine de serviços
+
+15. EBOOK (block-ebook)
+    - Download de material educativo
+    - Função: captura de leads ou educação
+
+16. SPOTIFY-PODCASTS (block-spotify-podcasts)
+    - Integração com Spotify
+    - Função: conteúdo multimídia
+
+17. FORM-CONTACT / FORM-PARTNERSHIP
+    - Formulários de contato e parceria
+    - Função: conversão direta
+
+
+SEQUÊNCIA PADRÃO DA HOME:
+  Hero → Manifest → Media-Text → Benefits →
+  Treatment-Guide → Team → Depositions → FAQ →
+  Headline-Contact → WhatsApp CTA (floating)
+
+
+================================================================================
+5. PADRÃO DE COMPONENTES
+================================================================================
+
+COMPONENTES REUTILIZÁVEIS:
+
+  Componente        | Diretório          | Reuso universal
+  -------------------|--------------------|-----------------------
+  Accordion          | components/accordion | Sim — FAQ, specs, etc.
+  Button (CMS)       | components/button    | Sim — CTA universal
+  Carousel           | components/carousel  | Sim — qualquer slider
+  Form               | components/form      | Sim — contato, lead
+  Loading            | components/loading   | Sim — feedback visual
+  Modal              | components/modal     | Sim — popups, forms
+  Project Frame      | components/project-frame | Adaptável (borda visual)
+  Project Logo       | components/project-logo  | Adaptável (logo)
+  Slider Navigation  | components/slider-navigation | Sim — setas, dots
+  Social Icon        | components/social-icon | Sim — redes sociais
+  Spotify Cards      | components/spotify-cards | Nicho específico
+  Video Player       | components/video-player  | Sim — vídeos nativos
+  YouTube Player     | components/youtube-player | Sim — embeds YT
+  UI (generic)       | components/ui         | Sim — primitivos
+
+WRAPPERS (containers de blocos):
+  - wrapper-background: aplica fundo personalizado ao bloco
+  - wrapper-join: junção visual de blocos (remove espaço entre eles)
+
+PADRÃO DE BLOCO:
+  Todo bloco segue esta interface:
+  ┌─────────────────────────────────────────────┐
+  │ AnimatedSection (scroll-triggered animations)│
+  │   ├── name: identificação do bloco          │
+  │   ├── anchor: ID para navegação interna     │
+  │   ├── spacing: "none" | "padding"           │
+  │   ├── distance: "small" | "medium" | "large"│
+  │   └── className: estilos do container       │
+  │                                             │
+  │   ┌─────────────────────────────────────┐   │
+  │   │ container (max-width centralizado)  │   │
+  │   │   └── grid-cols-12                  │   │
+  │   │       └── conteúdo do bloco         │   │
+  │   └─────────────────────────────────────┘   │
+  └─────────────────────────────────────────────┘
+
+  Toda interação visual é controlada pelo helper:
+  animate({ index }) → staggered fade-in on scroll
+
+
+================================================================================
+6. PADRÃO DE COPY E LINGUAGEM
+================================================================================
+
+TOM DE VOZ:
+  Científico-acessível. A marca fala como um médico que explica
+  ao paciente — técnico o suficiente para gerar confiança, simples
+  o suficiente para ser entendido.
+
+COMO MISTURA CIÊNCIA E MARKETING:
+  - Usa termos médicos reais: "Estimulação Magnética Transcraniana",
+    "plasticidade cerebral", "depressão perinatal"
+  - Mas sempre seguidos de explicação: "uma alternativa segura
+    e validada por estudos científicos"
+  - Nunca usa linguagem de hype ou promessa exagerada
+
+CONSTRUÇÃO DE TÍTULOS:
+  Padrão: [Território de dor]: [solução como benefício]
+  Exemplos reais:
+  - "Neuromodulação: um tratamento sem uso de remédios para
+    depressão perinatal."
+  - "Quando ansiedade vira dor física: como a Neuromodulação
+    pode trazer alívio rápido e duradouro."
+  - "Quando os antidepressivos não funcionam: como a Neuromodulação
+    pode ajudar na depressão resistente?"
+
+  O título SEMPRE começa pela dor do paciente, NUNCA pelo nome
+  do serviço. O serviço aparece como solução.
+
+CONSTRUÇÃO DE SUBTÍTULOS/DESCRIÇÕES:
+  Curtos, diretos, focados em benefício tangível:
+  - "Para crianças e adolescentes com TDAH, TEA ou dificuldades
+    de aprendizado."
+  - "Entenda a tecnologia que trabalha a plasticidade do cérebro."
+
+VOZ RESUMIDA PARA REUSO:
+  "Fale como um especialista que se importa. Use ciência como
+  fundamento, clareza como veículo, e empatia como tom. Cada
+  frase deve responder: 'por que isso importa para o paciente?'
+  Evite jargão sem contexto, promessas sem evidência, ou
+  linguagem de vendas direta."
+
+
+================================================================================
+7. PADRÃO DE CONVERSÃO
+================================================================================
+
+DISTRIBUIÇÃO DE CTAs:
+  1. Hero: CTA no primeiro slide ("Agendar consulta" / "Saiba mais")
+  2. WhatsApp floating: presente em TODAS as páginas, permanente
+  3. Após cada seção educativa: CTA contextual
+  4. Headline-Contact: banner de conversão como penúltima seção
+  5. Footer: links de contato e redes sociais
+
+AGRESSIVIDADE:
+  Institucional na estética, estratégico na estrutura.
+  O site nunca grita "COMPRE AGORA". Em vez disso, cada bloco de
+  educação termina com uma saída natural para ação. O WhatsApp
+  flutuante garante que o momento de compra nunca esteja a mais
+  de um clique.
+
+EQUILÍBRIO CONTEÚDO / CTA:
+  Proporção aproximada: 70% educação / 30% conversão
+  Mas a conversão está embutida na educação (links internos,
+  menções a tratamentos, etc.)
+
+LÓGICA REUTILIZÁVEL:
+  Após cada bloco que ENSINA algo, coloque um bloco que
+  CONVIDA a agir. Nunca termine uma seção educativa sem
+  saída. Nunca empilhe 2+ CTAs seguidos sem conteúdo entre eles.
+
+
+================================================================================
+8. ESTRUTURA TÉCNICA REAPROVEITÁVEL
+================================================================================
+
+STACK:
+  - Next.js 15 (App Router) + TypeScript
+  - Tailwind CSS 4 (via @theme, custom tokens)
+  - Strapi 5 (CMS headless, Dynamic Zones)
+  - next-intl (internacionalização)
+  - @futurebrand/helpers-nextjs (lib proprietária para:
+    router, SEO, blocos dinâmicos, animações, imagens)
+  - React Query + NuqsProvider (state client-side)
+  - Swiper (sliders)
+  - tailwind-merge + tailwind-variants (merge de classes)
+
+PADRÃO DE ROTAS:
+  app/[locale]/(routes)/[[...slug]]/page.tsx
+  → catch-all que resolve via content-slugs.ts
+  → ContentService busca dados → DynamicPage renderiza
+
+PADRÃO DE BLOCOS:
+  blocks.tsx registra todos os blocos via lazy import
+  → createBlocksComponents da lib monta o layout
+  → cada bloco recebe { blockData } com campos do CMS
+  → AnimatedSection + grid-cols-12 + container
+
+PADRÃO DE SEO:
+  → generateMetadata lê pageSeo do CMS
+  → robots.ts + sitemap.ts dinâmicos
+  → Schema global no layout.tsx
+
+O QUE SERVE COMO TEMPLATE:
+  ✓ Catch-all route pattern
+  ✓ content-slugs mapping
+  ✓ blocks.tsx registry pattern
+  ✓ AnimatedSection wrapper
+  ✓ Temas por content type
+  ✓ robots.ts + sitemap.ts
+  ✓ generateMetadata via CMS
+  ✓ Middleware i18n com redirect 308
+  ✓ Design tokens em index.css
+
+
+================================================================================
+9. PADRÕES DE SEO E CONTEÚDO
+================================================================================
+
+ORGANIZAÇÃO ATUAL:
+  - Home: SEO global, schema Organization + WebSite
+  - Tratamentos: páginas de serviço (MedicalProcedure ideal)
+  - Posts: artigos educativos (Article ideal)
+  - Cada content tem pageSeo no CMS (metaTitle, metaDescription)
+  - Sitemap dinâmico por locale
+  - robots.ts permite tudo
+
+FRAMEWORK DE SEO REUTILIZÁVEL:
+
+  1. TODA página deve ter generateMetadata
+  2. TODA página de conteúdo deve ter JSON-LD específico
+  3. O layout global deve ter Organization + WebSite
+  4. Sitemap e robots devem ser dinâmicos
+  5. Canonical deve ser automático por locale
+  6. Cada content type deve ter excerpt obrigatório
+  7. Cada content type deve ter publishedDateTime obrigatório
+  8. Cada content type deve ter metaImage obrigatório
+
+PADRÕES QUE DEVEM VIRAR REGRA:
+  - Post → Article schema + excerpt + image + date
+  - Serviço → Service/MedicalProcedure + description + image
+  - Listagem → BreadcrumbList + paginação SSR
+  - FAQ blocks → FAQPage schema automático
+
+
+================================================================================
+10. O QUE TORNA ESSE SITE FORTE
+================================================================================
+
+1. MODULARIDADE EXTREMA
+   Cada seção é um bloco independente. O cliente pode reorganizar
+   a home inteira sem tocar em código. Isso é raro e valioso.
+
+2. SISTEMA DE TEMAS
+   Cada content type tem sua paleta (blue, green, violet, etc.)
+   que afeta header, logo, destaques — sem classes manuais.
+
+3. TIPOGRAFIA FLUIDA
+   Headings em viewport width (vw) criam impacto visual
+   proporcional em qualquer tela. Não é Tailwind padrão.
+
+4. ANIMAÇÕES DE SCROLL
+   AnimatedSection + animate() criam entrada suave staggered
+   sem ser intrusivo. O site "respira".
+
+5. EQUILÍBRIO CONTEÚDO/CONVERSÃO
+   Nunca parece landing page barata. Nunca parece site
+   institucional sem propósito. Cada seção ensina e convida.
+
+6. SCHEMA GLOBAL RICO
+   Organization + MedicalClinic + WebSite com specialties,
+   services, sameAs — raro em sites brasileiros.
+
+O QUE JAMAIS DEVE SER PERDIDO AO REPLICAR:
+  - Whitespace generoso entre seções
+  - Tipografia com peso light em headings grandes
+  - Barra decorativa horizontal (2.625rem) antes de títulos
+  - AnimatedSection em todo bloco
+  - Grid assimétrico (5+7, 3+9) em vez de centrado
+  - WhatsApp flutuante permanente
+  - Sistema de temas por content type
+
+
+================================================================================
+11. O QUE É ESPECÍFICO DA BRIGHT (NÃO COPIAR CEGAMENTE)
+================================================================================
+
+ESPECÍFICO DO NICHO DE NEUROMODULAÇÃO:
+  - block-brain-image-map (mapa cerebral interativo)
+  - block-neuro-types (tipos de neuromodulação)
+  - Termos: TMS, tDCS, plasticidade cerebral
+  - MedicalClinic / MedicalTherapy / MedicalProcedure schemas
+  - medicalSpecialty field
+  - Relação condição → tratamento (TDAH → TMS)
+
+ESPECÍFICO DA IDENTIDADE BRIGHT:
+  - Paleta específica (midnight-950 + lime-400)
+  - Font KMR Apparat (licenciada)
+  - Graphism SVG (brain illustrations)
+  - Frame visual nas bordas (ProjectFrame)
+  - Logo variantes por tema
+  - Programa "Bright Precision" (AI assessment)
+  - Portal Clínico (autenticado)
+
+O QUE É LINGUAGEM ESTRUTURAL UNIVERSAL:
+  - Padrão hero → manifesto → benefícios → prova → FAQ → CTA
+  - Grid 12 colunas com container
+  - Blocos dinâmicos via CMS
+  - Sistema de temas por content type
+  - Tipografia fluida responsiva
+  - Animações de scroll staggered
+  - WhatsApp/contato flutuante
+  - Footer com endereço + social + legal
+
+
+================================================================================
+12. FRAMEWORK REUTILIZÁVEL
+================================================================================
+
+PRINCÍPIOS VISUAIS:
+  1. Whitespace é conteúdo — nunca preencha por preencher
+  2. Tipografia grande com peso light = elegância editorial
+  3. Grid assimétrico (5+7, 3+9) cria dinamismo
+  4. Fundos alternam entre claro (gray-light) e escuro (midnight)
+  5. Imagens arredondadas (rounded-3xl) suavizam
+  6. Barra decorativa horizontal antes de cada seção de texto
+  7. Animações de scroll devem ser sutis e staggered
+
+PRINCÍPIOS ESTRUTURAIS:
+  1. Toda página é composta por blocos independentes
+  2. Blocos seguem: AnimatedSection → container → grid
+  3. Hero é full-viewport, demais seções têm padding
+  4. Conteúdo textual nunca excede 42% da largura
+  5. Imagens ocupam ~50% da viewport em blocos media-text
+  6. Sequência de seções segue funil psicológico
+
+PRINCÍPIOS DE COPY:
+  1. Título: DOR → SOLUÇÃO como benefício
+  2. Subtítulo: público-alvo + benefício tangível
+  3. Tom: especialista empático
+  4. CTA: verbo de ação + resultado ("Agendar consulta")
+  5. Nunca hype, sempre evidência
+  6. Termos técnicos sempre seguidos de explicação
+
+PRINCÍPIOS DE CONVERSÃO:
+  1. CTA após cada bloco educativo
+  2. WhatsApp flutuante permanente
+  3. Headline-contact como penúltima seção
+  4. Proporção 70% educação / 30% ação
+  5. Nunca empilhar 2+ CTAs sem conteúdo entre eles
+
+PRINCÍPIOS TÉCNICOS:
+  1. Next.js App Router + TypeScript
+  2. Tailwind com design tokens customizados
+  3. CMS headless com Dynamic Zones
+  4. Server Components para todo conteúdo
+  5. Blocos lazy-loaded via dynamic import
+  6. Catch-all route com content-slug mapping
+
+PRINCÍPIOS DE SEO:
+  1. generateMetadata em TODA página
+  2. Schema global: Organization + WebSite
+  3. Schema por página: Article / Service / FAQPage
+  4. Sitemap + robots dinâmicos
+  5. Canonical + hreflang automáticos
+  6. Excerpt + date + image OBRIGATÓRIOS no CMS
+
+
+================================================================================
+13. PROMPT-MESTRE PARA NOVOS SITES
+================================================================================
+
+Use este prompt como base ao criar qualquer novo site no Antigravity
+seguindo o modelo Bright:
+
+---
+
+PROMPT INÍCIO
+
+Crie um site profissional para [NOME_DO_CLIENTE] no nicho de
+[NICHO/CATEGORIA], seguindo rigorosamente o framework estrutural,
+visual e estratégico descrito abaixo.
+
+STACK TÉCNICA:
+- Next.js (App Router) + TypeScript
+- Tailwind CSS com design tokens customizados
+- CMS headless (Strapi ou equivalente) com Dynamic Zones
+- Server Components para todo conteúdo público
+- Internacionalização via next-intl (se aplicável)
+
+ARQUITETURA DE PÁGINAS:
+- Home: hub de confiança com sequência de blocos
+- [SERVIÇO](lista): vitrine de serviços/produtos
+- [SERVIÇO](single): educação profunda + conversão
+- Blog/Artigos: conteúdo SEO + autoridade
+- Sobre: manifesto + equipe
+- Contato: formulário + mapa
+
+SEQUÊNCIA DA HOME (nesta ordem):
+1. HERO: Slider com dor principal → solução → CTA
+2. MANIFESTO: Texto de posicionamento + vídeo (opcional)
+3. MEDIA-TEXT: 2-3 blocos alternando imagem/texto sobre serviços
+4. BENEFÍCIOS: Grid de 3-6 cards com ícones
+5. GUIA: Passo-a-passo do serviço (cards em grid 3 colunas)
+6. EQUIPE: Sócios (cards grandes) + profissionais (slider)
+7. DEPOIMENTOS: Slider com prova social (texto ou vídeo)
+8. FAQ: Accordion com título à esquerda, items à direita
+9. HEADLINE CONTACT: Banner de imagem + CTA final
+10. WHATSAPP/CONTATO FLUTUANTE: botão fixo canto inferior
+
+DIRETRIZES VISUAIS:
+- Estilo: Premium Minimalist
+- Tipografia: Sans-serif limpa, headings grandes com peso light
+  que escalam com viewport (vw) em desktop
+- Grid: 12 colunas, layouts assimétricos (5+7, 3+9)
+- Espaçamento: padding vertical generoso entre seções
+- Whitespace: conteúdo textual máximo 42% da largura
+- Cores: paleta de [CORES_DO_CLIENTE] com variantes para temas
+- Imagens: arredondadas (border-radius grande), ocupam ~50% viewport
+- Animações: fade-in staggered no scroll, transições suaves
+- Marca registrada visual: barra horizontal decorativa antes
+  de cada título de seção
+
+SISTEMA DE TEMAS:
+- Cada tipo de serviço tem uma cor de destaque própria
+- A cor afeta: logo, header, CTAs, bordas, ícones
+- Variantes devem cobrir: escuro, claro, acento
+
+DIRETRIZES DE COPY:
+- Tom: [CIENTÍFICO/PROFISSIONAL/EMPÁTICO] e acessível
+- Títulos: comece pela dor do cliente, termine com solução
+- Subtítulos: público-alvo + benefício tangível
+- CTAs: verbo de ação + resultado esperado
+- Nunca use linguagem de hype ou promessas sem fundamento
+
+DIRETRIZES DE CONVERSÃO:
+- CTA após cada bloco educativo (nunca empilhar sem conteúdo)
+- Botão de contato flutuante permanente
+- Banner de conversão como penúltima seção de toda página
+- Proporção: 70% educação, 30% ação
+- Estética institucional, estrutura estratégica
+
+SEO OBRIGATÓRIO:
+- generateMetadata em toda página via CMS
+- Schema Organization + WebSite no layout global
+- Schema [Article/Service/FAQPage] em cada página de conteúdo
+- Sitemap e robots.ts dinâmicos
+- Canonical e alternates automáticos
+- Campos obrigatórios no CMS: title, excerpt, image, date, pageSeo
+
+RESULTADO:
+Um site modular onde cada seção é um componente React independente,
+editável e reorganizável via CMS. O site deve parecer premium,
+transmitir autoridade, educar o visitante e converter com
+elegância — nunca com agressividade.
+
+Adapte o conteúdo para [NICHO], mantendo intactas a estrutura,
+a lógica de conversão e os princípios visuais.
+
+PROMPT FIM
+
+---
+
+
+================================================================================
+14. RESUMO EXECUTIVO FINAL
+================================================================================
+
+DNA ESTRUTURAL DA BRIGHT BRAINS:
+  Site modular de autoridade orientado a conversão, construído
+  sobre Next.js + CMS headless com blocos dinâmicos, que combina
+  elegância editorial (tipografia fluida, whitespace generoso)
+  com estratégia de funil visual (educação→prova→ação) numa
+  experiência premium que transforma complexidade técnica em
+  clareza acessível.
+
+EM UMA FRASE:
+  "Hub de autoridade modular que educa com elegância e converte
+  com sutileza."
+
+TIPO DE SITE:
+  Authority Hub — não é landing page, não é institucional puro,
+  não é blog. É um ecossistema que usa conteúdo como combustível
+  de confiança e blocos visuais como motor de conversão.
+
+COMO REPRODUZIR COM CONSISTÊNCIA:
+  1. Clone a stack (Next.js + Tailwind + CMS headless)
+  2. Replique o registro de blocos (blocks.tsx pattern)
+  3. Mantenha a sequência de seções da home
+  4. Aplique os princípios visuais (whitespace, grid assimétrico,
+     tipografia fluida, animações de scroll)
+  5. Siga os princípios de copy (dor→solução, tom empático)
+  6. Implemente o padrão de conversão (CTA após educação,
+     contato flutuante, headline contact no fim)
+  7. Use o prompt-mestre acima como ponto de partida
+
+
+================================================================================
+FIM DO FRAMEWORK MESTRE
+================================================================================
