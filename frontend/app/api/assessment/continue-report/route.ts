@@ -1,5 +1,6 @@
 import { awaitAllCallbacks } from '@langchain/core/callbacks/promises'
 import { createClient } from '@supabase/supabase-js'
+import { Client as LangSmithClient } from 'langsmith'
 import { traceable } from 'langsmith/traceable'
 import type { NextRequest } from 'next/server'
 import { after, NextResponse } from 'next/server'
@@ -193,6 +194,8 @@ function handleStage1(
         })
     }
 
+    const lsClient = new LangSmithClient()
+
     const runStage1 = traceable(
       async () => {
         try {
@@ -257,6 +260,7 @@ function handleStage1(
       {
         name: `Report Stage 1 (Sections 1-5): ${nome}`,
         run_type: 'chain',
+        client: lsClient,
         metadata: {
           evaluation_id: evaluationId,
           patient_name: nome,
@@ -270,6 +274,7 @@ function handleStage1(
 
     await runStage1()
     await awaitAllCallbacks()
+    await lsClient.awaitPendingTraceBatches()
   })
 }
 
@@ -322,6 +327,8 @@ function handleStage2(
           }
         })
     }
+
+    const lsClient = new LangSmithClient()
 
     const runStage2 = traceable(
       async () => {
@@ -430,6 +437,7 @@ function handleStage2(
       {
         name: `Report Stage 2 (Sections 6-10) + PDF: ${nome}`,
         run_type: 'chain',
+        client: lsClient,
         metadata: {
           evaluation_id: evaluationId,
           patient_name: nome,
@@ -443,5 +451,6 @@ function handleStage2(
 
     await runStage2()
     await awaitAllCallbacks()
+    await lsClient.awaitPendingTraceBatches()
   })
 }
