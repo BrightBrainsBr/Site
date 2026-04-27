@@ -1,4 +1,5 @@
 // frontend/app/api/assessment/submit/route.ts
+/* eslint-disable max-lines -- assessment submit handles many side-effects */
 
 import Anthropic from '@anthropic-ai/sdk'
 import { awaitAllCallbacks } from '@langchain/core/callbacks/promises'
@@ -185,8 +186,7 @@ export async function POST(request: NextRequest) {
 
       insertPayload.satisfaction_level = formData.satisfaction_level
       insertPayload.biggest_risk = formData.biggest_risk || null
-      insertPayload.suggestion =
-        formData.suggestion || null
+      insertPayload.suggestion = formData.suggestion || null
 
       insertPayload.score_physical = scores.nr1_physical ?? null
       insertPayload.score_ergonomic = scores.nr1_ergonomic ?? null
@@ -292,6 +292,7 @@ export async function POST(request: NextRequest) {
             .from('b2b_events')
             .insert({
               company_id,
+              cycle_id: resolvedCycleId || null,
               event_date: eventDate,
               event_type: 'acidente',
               description: formData.accident_description.trim(),
@@ -309,6 +310,7 @@ export async function POST(request: NextRequest) {
             .from('b2b_events')
             .insert({
               company_id,
+              cycle_id: resolvedCycleId || null,
               event_date: eventDate,
               event_type: 'near_miss',
               description: formData.near_miss_description.trim(),
@@ -329,6 +331,7 @@ export async function POST(request: NextRequest) {
             .from('b2b_events')
             .insert({
               company_id,
+              cycle_id: resolvedCycleId || null,
               event_date: eventDate,
               event_type: 'work_disease',
               description: formData.work_disease_description.trim(),
