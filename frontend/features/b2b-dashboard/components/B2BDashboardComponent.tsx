@@ -1,13 +1,13 @@
 // frontend/features/b2b-dashboard/components/B2BDashboardComponent.tsx
-// TODO: rename feature folder from b2b-dashboard to brightmonitor-dashboard
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { BookOpen, ChevronDown, LogOut, Menu, Settings, User } from 'lucide-react'
+import { BookOpen, ChevronDown, LogOut, Menu, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
 
+import { useB2BAlerts } from '../hooks/useB2BAlerts'
 import { useB2BCompliance } from '../hooks/useB2BCompliance'
 import { useB2BEmployeeTrackingQueryHook } from '../hooks/useB2BEmployeeTrackingQueryHook'
 import { useB2BLocaleHook } from '../hooks/useB2BLocaleHook'
@@ -15,6 +15,8 @@ import { useB2BOverview } from '../hooks/useB2BOverview'
 import { useB2BSession } from '../hooks/useB2BSession'
 import { B2BEmployeeTrackingComponent } from './shared/B2BEmployeeTrackingComponent'
 import { B2BActionPlanTab } from './tabs/B2BActionPlanTab'
+import { B2BAlertsTab } from './tabs/B2BAlertsTab'
+import { B2BAvaliacoesTab } from './tabs/B2BAvaliacoesTab'
 import { B2BComplianceTab } from './tabs/B2BComplianceTab'
 import { B2BEventsTab } from './tabs/B2BEventsTab'
 import { B2BGROTab } from './tabs/B2BGROTab'
@@ -26,38 +28,80 @@ import { B2BSettingsTab } from './tabs/B2BSettingsTab'
 
 type TabId =
   | 'visao-geral'
+  | 'alertas'
   | 'setores'
   | 'gro'
   | 'plano-acao'
   | 'eventos'
+  | 'avaliacoes'
   | 'percepcao'
   | 'compliance'
   | 'relatorios'
+  | 'analise-ia'
   | 'insights'
   | 'settings'
 
-interface TabDef {
+interface SidebarSection {
+  label: string
+  items: SidebarItem[]
+}
+
+interface SidebarItem {
   id: TabId
   label: string
   icon: string
+  badge?: number | null
+  isNew?: boolean
+  hidden?: boolean
 }
 
-const DASHBOARD_TABS: TabDef[] = [
-  { id: 'visao-geral', label: 'Visão Geral', icon: '📊' },
-  { id: 'setores', label: 'Setores', icon: '🏢' },
-  { id: 'gro', label: 'GRO Psicossocial', icon: '⚖️' },
-  { id: 'plano-acao', label: 'Plano de Ação', icon: '🔄' },
-  { id: 'eventos', label: 'Incidentes', icon: '🚨' },
-  { id: 'percepcao', label: 'Percepção Organizacional', icon: '💬' },
-  { id: 'compliance', label: 'Compliance', icon: '✅' },
-  { id: 'relatorios', label: 'Relatórios', icon: '📄' },
-]
-
-const INSIGHTS_TAB: TabDef = { id: 'insights', label: 'Insights', icon: '💡' }
-
-const PORTAL_EXTRA_TABS: TabDef[] = [
-  { id: 'settings', label: 'Configurações', icon: '⚙️' },
-]
+function buildSidebarSections(
+  alertCount: number,
+  insightsEnabled: boolean,
+  isPortalMode: boolean
+): SidebarSection[] {
+  return [
+    {
+      label: 'Visão Geral',
+      items: [
+        { id: 'visao-geral', label: 'Dashboard', icon: '📊' },
+        { id: 'alertas', label: 'Alertas', icon: '🔔', badge: alertCount > 0 ? alertCount : null },
+      ],
+    },
+    {
+      label: 'Gestão NR-1',
+      items: [
+        { id: 'gro', label: 'Inventário de Riscos', icon: '📋' },
+        { id: 'plano-acao', label: 'Plano de Ação', icon: '✅' },
+        { id: 'eventos', label: 'Incidentes', icon: '⚠️' },
+        { id: 'avaliacoes', label: 'Avaliações Individuais', icon: '📝' },
+      ],
+    },
+    {
+      label: 'Configuração',
+      items: [
+        { id: 'settings', label: 'Perfil da Empresa', icon: '🏭' },
+      ],
+    },
+    {
+      label: 'Documentos',
+      items: [
+        { id: 'relatorios', label: 'Gerar PGR', icon: '📄' },
+        { id: 'analise-ia', label: 'Análise IA', icon: '🤖' },
+      ],
+    },
+    ...(insightsEnabled
+      ? [
+          {
+            label: 'Saúde Mental',
+            items: [
+              { id: 'insights' as TabId, label: 'Insights', icon: '🧬', isNew: true },
+            ],
+          },
+        ]
+      : []),
+  ]
+}
 
 interface CycleShape {
   id: string
@@ -132,18 +176,18 @@ export function B2BDashboardComponent({
   const { data: compliance } = useB2BCompliance(companyId, cycleId)
   const { data: tracking, isLoading: trackingLoading } =
     useB2BEmployeeTrackingQueryHook(companyId)
+  const { data: alertsData } = useB2BAlerts(companyId, cycleId)
 
   const hasValidGro =
     !!compliance?.groValidUntil &&
     new Date(compliance.groValidUntil) > new Date()
 
-  const baseTabs = session.brightInsightsEnabled
-    ? [...DASHBOARD_TABS, INSIGHTS_TAB]
-    : DASHBOARD_TABS
-
-  const visibleTabs = isPortalMode
-    ? [...baseTabs, ...PORTAL_EXTRA_TABS]
-    : baseTabs
+  const alertCount = alertsData?.alerts?.length ?? 0
+  const sidebarSections = buildSidebarSections(
+    alertCount,
+    session.brightInsightsEnabled,
+    isPortalMode
+  )
 
   const showOnboarding =
     !isPortalMode &&
@@ -216,42 +260,61 @@ export function B2BDashboardComponent({
           </div>
         )}
 
-        {/* Nav tabs */}
+        {/* Nav tabs — grouped sections */}
         <nav className="flex-1 overflow-y-auto px-2 py-3">
-          <div className="mb-1.5 px-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">
-            Módulos
-          </div>
-          {visibleTabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => {
-                void setActiveTab(t.id)
-                setSidebarOpen(false)
-              }}
-              className={`mb-0.5 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[15px] transition-all ${
-                activeTab === t.id
-                  ? 'bg-[rgba(197,225,85,0.15)] font-semibold text-[#c5e155]'
-                  : 'font-normal text-[#94a3b8] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]'
-              }`}
-            >
-              <span className="text-[17px]">{t.icon}</span>
-              {t.label}
-            </button>
+          {sidebarSections.map((section) => (
+            <div key={section.label} className="mb-2">
+              <div className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#475569]">
+                {section.label}
+              </div>
+              {section.items.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    void setActiveTab(item.id)
+                    setSidebarOpen(false)
+                  }}
+                  className={`mb-0.5 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[14px] transition-all ${
+                    activeTab === item.id
+                      ? item.isNew
+                        ? 'bg-[rgba(124,106,247,0.12)] font-semibold text-[#a99df7]'
+                        : 'bg-[rgba(197,225,85,0.15)] font-semibold text-[#c5e155]'
+                      : 'font-normal text-[#94a3b8] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]'
+                  }`}
+                >
+                  <span className="shrink-0 text-[16px]">{item.icon}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge != null && item.badge > 0 && (
+                    <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#ef4444] px-1 text-[11px] font-bold text-white">
+                      {item.badge}
+                    </span>
+                  )}
+                  {item.isNew && (
+                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: 'rgba(124,106,247,.2)', color: '#a99df7' }}>
+                      Novo
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
           ))}
-        </nav>
 
-        {/* Guia link */}
-        <div className="border-t border-[rgba(255,255,255,0.06)] px-3 py-2">
-          <a
-            href="/pt-BR/brightmonitor/guia"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            Guia de Metodologia NR-1
-          </a>
-        </div>
+          {/* Ajuda section */}
+          <div className="mb-2">
+            <div className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#475569]">
+              Ajuda
+            </div>
+            <a
+              href="/pt-BR/brightmonitor/guia"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mb-0.5 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[14px] font-normal text-[#94a3b8] transition-all hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
+            >
+              <BookOpen className="h-4 w-4 shrink-0" />
+              <span>Guia de Uso</span>
+            </a>
+          </div>
+        </nav>
 
         {/* Footer */}
         <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-3">
@@ -354,8 +417,8 @@ export function B2BDashboardComponent({
                         }}
                         className="flex w-full items-center gap-2.5 px-4 py-2 text-[15px] text-[#94a3b8] transition-colors hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]"
                       >
-                        <Settings className="h-4 w-4" />
-                        Configurações
+                        <span className="text-[15px]">🏭</span>
+                        Perfil da Empresa
                       </button>
                     </div>
                     <div className="border-t border-[rgba(255,255,255,0.06)] pt-1">
@@ -389,6 +452,9 @@ export function B2BDashboardComponent({
                   onNavigateToSettings={() => void setActiveTab('settings')}
                 />
               )}
+              {activeTab === 'alertas' && (
+                <B2BAlertsTab companyId={companyId} cycleId={cycleId} />
+              )}
               {activeTab === 'setores' && (
                 <B2BSetoresTab companyId={companyId} cycleId={cycleId} />
               )}
@@ -401,6 +467,9 @@ export function B2BDashboardComponent({
               {activeTab === 'eventos' && (
                 <B2BEventsTab companyId={companyId} cycleId={cycleId} />
               )}
+              {activeTab === 'avaliacoes' && (
+                <B2BAvaliacoesTab companyId={companyId} cycleId={cycleId} />
+              )}
               {activeTab === 'percepcao' && (
                 <B2BPercepcaoTab companyId={companyId} cycleId={cycleId} />
               )}
@@ -408,7 +477,10 @@ export function B2BDashboardComponent({
                 <B2BComplianceTab companyId={companyId} cycleId={cycleId} />
               )}
               {activeTab === 'relatorios' && (
-                <B2BReportsTab companyId={companyId} cycleId={cycleId} />
+                <B2BReportsTab companyId={companyId} cycleId={cycleId} defaultSection="pgr" />
+              )}
+              {activeTab === 'analise-ia' && (
+                <B2BReportsTab companyId={companyId} cycleId={cycleId} defaultSection="analise-ia" />
               )}
               {activeTab === 'insights' && session.brightInsightsEnabled && (
                 <B2BPercepcaoTab companyId={companyId} cycleId={cycleId} />

@@ -3,10 +3,7 @@
 
 import { useMemo } from 'react'
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
-  Cell,
   Line,
   LineChart,
   PolarAngleAxis,
@@ -14,6 +11,7 @@ import {
   PolarRadiusAxis,
   Radar,
   RadarChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -112,40 +110,39 @@ export function B2BOverviewTab({
       label: 'Avaliações',
       value: total,
       sub: 'no ciclo',
-      color: '#c5e155',
-      borderColor: 'rgba(197,225,85,0.3)',
+      badge: null as string | null,
+      badgeColor: null as string | null,
     },
     {
       label: 'Score Médio',
       value: scoreOverall != null ? scoreOverall.toFixed(1) : '–',
-      sub: overallBand ? NR1_BAND_LABELS[overallBand] : '–',
-      color: scoreToColor(scoreOverall),
-      borderColor: `${scoreToColor(scoreOverall)}50`,
+      sub: null,
+      badge: overallBand ? NR1_BAND_LABELS[overallBand] : null,
+      badgeColor: overallBand ? NR1_BAND_COLORS[overallBand] : null,
     },
     {
       label: 'Ações Pendentes',
       value: overview?.pendingActions ?? 0,
       sub: 'em aberto',
-      color: '#eab308',
-      borderColor: 'rgba(234,179,8,0.3)',
+      badge: null,
+      badgeColor: null,
     },
     {
       label: 'Incidentes',
       value: overview?.incidentsThisCycle ?? 0,
       sub: 'neste ciclo',
-      color: '#ef4444',
-      borderColor: 'rgba(239,68,68,0.3)',
+      badge: null,
+      badgeColor: null,
     },
   ]
 
-  const domainBarData = useMemo(() => {
+  const domainLineData = useMemo(() => {
     if (!overview) return []
     return DOMAIN_LABELS.map(({ key, label }) => {
       const score = overview[key]
       return {
         name: label,
-        score: score ?? 0,
-        color: scoreToColor(score),
+        score: score != null ? +score.toFixed(2) : null,
       }
     })
   }, [overview])
@@ -225,17 +222,25 @@ export function B2BOverviewTab({
         {kpis.map((k) => (
           <div
             key={k.label}
-            className="rounded-[14px] border bg-[rgba(255,255,255,0.03)] p-4 text-center"
-            style={{ borderColor: k.borderColor }}
+            className="rounded-[14px] border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)] p-4 text-center"
           >
-            <div
-              className="mt-1 font-mono text-[32px] font-bold leading-none tracking-tight"
-              style={{ color: k.color }}
-            >
+            <div className="font-mono text-[34px] font-bold leading-none tracking-tight text-[#e2e8f0]">
               {k.value}
             </div>
-            <div className="mt-1.5 text-[15px] text-[#94a3b8]">{k.label}</div>
-            <div className="mt-0.5 text-[14px] text-[#64748b]">{k.sub}</div>
+            <div className="mt-2 text-[14px] font-medium text-[#94a3b8]">{k.label}</div>
+            {k.sub && (
+              <div className="mt-0.5 text-[12px] text-[#475569]">{k.sub}</div>
+            )}
+            {k.badge && k.badgeColor && (
+              <div className="mt-1.5 flex justify-center">
+                <span
+                  className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+                  style={{ color: k.badgeColor, backgroundColor: `${k.badgeColor}22` }}
+                >
+                  {k.badge}
+                </span>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -288,17 +293,17 @@ export function B2BOverviewTab({
           )}
         </div>
 
-        {/* Domain bar chart */}
+        {/* Domain line chart */}
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
           <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
             Score por Domínio NR-1
           </h3>
-          {domainBarData.length > 0 ? (
+          {domainLineData.length > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart
-                  data={domainBarData}
-                  margin={{ top: 5, right: 5, left: -10, bottom: 5 }}
+                <LineChart
+                  data={domainLineData}
+                  margin={{ top: 10, right: 10, left: -10, bottom: 5 }}
                 >
                   <CartesianGrid
                     vertical={false}
@@ -312,35 +317,57 @@ export function B2BOverviewTab({
                   />
                   <YAxis
                     domain={[0, 5]}
+                    ticks={[1, 2, 3, 4, 5]}
                     tick={{ fontSize: 11, fill: '#64748b' }}
                     axisLine={false}
                     tickLine={false}
                   />
+                  {/* Risk zone reference lines */}
+                  <ReferenceLine y={2} stroke="rgba(234,179,8,0.2)" strokeDasharray="4 3" />
+                  <ReferenceLine y={3} stroke="rgba(249,115,22,0.2)" strokeDasharray="4 3" />
+                  <ReferenceLine y={4} stroke="rgba(239,68,68,0.2)" strokeDasharray="4 3" />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#111b2e',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.08)',
                       borderRadius: 8,
                       fontSize: 13,
                     }}
                     itemStyle={{ color: '#e2e8f0' }}
                     formatter={(value) => [
-                      Number(value).toFixed(2),
+                      value != null ? Number(value).toFixed(2) : '–',
                       'Score',
                     ]}
                   />
-                  <Bar dataKey="score" radius={[4, 4, 0, 0]} barSize={48}>
-                    {domainBarData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#c5e155"
+                    strokeWidth={2}
+                    dot={(props) => {
+                      const score = props.payload?.score as number | null
+                      const color = scoreToColor(score)
+                      return (
+                        <circle
+                          key={`dot-${props.index}`}
+                          cx={props.cx}
+                          cy={props.cy}
+                          r={5}
+                          fill={color}
+                          stroke="#0c1425"
+                          strokeWidth={2}
+                        />
+                      )
+                    }}
+                    connectNulls
+                  />
+                </LineChart>
               </ResponsiveContainer>
-              <div className="mt-2 flex justify-center gap-4 text-[14px] text-[#64748b]">
+              <div className="mt-2 flex justify-center gap-4 text-[12px] text-[#64748b]">
                 {Object.entries(NR1_BAND_COLORS).map(([key, color]) => (
                   <span key={key} className="flex items-center gap-1.5">
                     <span
-                      className="h-2.5 w-2.5 rounded-sm"
+                      className="h-2 w-2 rounded-full"
                       style={{ background: color }}
                     />
                     {NR1_BAND_LABELS[key as NR1RiskBand]}
@@ -410,16 +437,17 @@ export function B2BOverviewTab({
       )}
 
       {/* Alerts section */}
-      <div
-        className="rounded-[14px] border p-5"
-        style={{
-          borderColor: 'rgba(239,68,68,0.2)',
-          background: 'rgba(239,68,68,0.04)',
-        }}
-      >
-        <h3 className="mb-3 text-[17px] font-semibold text-[#ef4444]">
-          🚨 Alertas Ativos
-        </h3>
+      <div className="rounded-[14px] border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.02)] p-5">
+        <div className="mb-3 flex items-center gap-2">
+          <h3 className="text-[17px] font-semibold text-[#e2e8f0]">
+            🔔 Alertas Ativos
+          </h3>
+          {alerts.length > 0 && (
+            <span className="rounded-full bg-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[12px] font-semibold text-[#94a3b8]">
+              {alerts.length}
+            </span>
+          )}
+        </div>
         {alerts.length > 0 ? (
           <div className="space-y-2">
             {alerts.map((alert: B2BAlertData, i: number) => {
@@ -428,22 +456,19 @@ export function B2BOverviewTab({
               return (
                 <div
                   key={i}
-                  className="flex items-center gap-3 rounded-lg bg-[rgba(255,255,255,0.02)] px-4 py-2.5"
+                  className="flex items-center gap-3 rounded-lg border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] px-4 py-2.5"
                 >
                   <span
-                    className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{
-                      backgroundColor: dotColor,
-                      boxShadow: `0 0 6px ${dotColor}40`,
-                    }}
+                    className="inline-block h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: dotColor }}
                   />
-                  <span className="flex-1 text-[15px] text-[#e2e8f0]">
+                  <span className="flex-1 text-[14px] text-[#c8d0dc]">
                     {alert.message}
                   </span>
                   <span
-                    className="shrink-0 rounded-md px-2 py-0.5 text-[12px] font-semibold"
+                    className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
                     style={{
-                      backgroundColor: `${dotColor}20`,
+                      backgroundColor: `${dotColor}1a`,
                       color: dotColor,
                     }}
                   >
@@ -454,9 +479,10 @@ export function B2BOverviewTab({
             })}
           </div>
         ) : (
-          <p className="py-4 text-center text-[14px] text-[#64748b]">
+          <div className="flex items-center gap-2 py-3 text-[14px] text-[#64748b]">
+            <span className="text-[16px]">✅</span>
             Nenhum alerta neste ciclo
-          </p>
+          </div>
         )}
       </div>
     </div>

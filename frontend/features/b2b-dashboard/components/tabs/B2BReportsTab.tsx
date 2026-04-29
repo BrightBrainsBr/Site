@@ -99,6 +99,7 @@ const ANALISE_CARDS: AnaliseCardDef[] = [
 interface B2BReportsTabProps {
   companyId?: string | null
   cycleId?: string | null
+  defaultSection?: 'pgr' | 'analise-ia'
 }
 
 function MarkdownPreview({ content }: { content: string }) {
@@ -124,7 +125,8 @@ function LoadingSpinner() {
   )
 }
 
-export function B2BReportsTab({ companyId }: B2BReportsTabProps) {
+export function B2BReportsTab({ companyId, defaultSection = 'pgr' }: B2BReportsTabProps) {
+  const [activeSection, setActiveSection] = useState<'pgr' | 'analise-ia'>(defaultSection)
   const [pgrResults, setPgrResults] = useState<Record<string, PGRResult>>({})
   const [analiseResults, setAnaliseResults] = useState<
     Record<string, string>
@@ -160,9 +162,33 @@ export function B2BReportsTab({ companyId }: B2BReportsTabProps) {
   )
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Section toggle */}
+      <div className="flex gap-1 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-1 w-fit">
+        <button
+          onClick={() => setActiveSection('pgr')}
+          className={`rounded-lg px-4 py-2 text-[13px] font-semibold transition-all ${
+            activeSection === 'pgr'
+              ? 'bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
+              : 'text-[#64748b] hover:text-[#94a3b8]'
+          }`}
+        >
+          📄 Gerar PGR
+        </button>
+        <button
+          onClick={() => setActiveSection('analise-ia')}
+          className={`rounded-lg px-4 py-2 text-[13px] font-semibold transition-all ${
+            activeSection === 'analise-ia'
+              ? 'bg-[rgba(197,225,85,0.15)] text-[#c5e155]'
+              : 'text-[#64748b] hover:text-[#94a3b8]'
+          }`}
+        >
+          🤖 Análise IA
+        </button>
+      </div>
+
       {/* ── Section 1: Documentos PGR ──────────────────────────────── */}
-      <section>
+      {activeSection === 'pgr' && <section>
         <div className="mb-4">
           <div className="flex items-center gap-2">
             <span className="text-[20px]">📋</span>
@@ -281,10 +307,10 @@ export function B2BReportsTab({ companyId }: B2BReportsTabProps) {
             <MarkdownPreview content={pgrResults[expandedPgr].markdown} />
           </div>
         )}
-      </section>
+      </section>}
 
       {/* ── Section 2: Análise IA ──────────────────────────────────── */}
-      <section>
+      {activeSection === 'analise-ia' && <section>
         <div className="mb-4">
           <div className="flex items-center gap-2">
             <span className="text-[20px]">🤖</span>
@@ -379,7 +405,7 @@ export function B2BReportsTab({ companyId }: B2BReportsTabProps) {
             <MarkdownPreview content={analiseResults[expandedAnalise]} />
           </div>
         )}
-      </section>
+      </section>}
     </div>
   )
 }
