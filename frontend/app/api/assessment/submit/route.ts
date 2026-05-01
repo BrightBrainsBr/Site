@@ -434,13 +434,42 @@ export async function POST(request: NextRequest) {
               processing_logs: [],
             })
 
-            // NR-1 only (no Bright Insights) — skip report generation
+            // NR-1 only (no Bright Insights) — generate the lightweight
+            // individual NR-1 laudo (LLM-written analysis + PDF) instead of
+            // the full clinical b2b-laudo / multi-stage report pipeline.
             if (isB2B && !insightsEnabled) {
-              p(`NR-1 only — skipping report generation`)
-              await sb
-                .from('mental_health_evaluations')
-                .update({ status: 'completed' })
-                .eq('id', evaluationId)
+              p(`NR-1 only — generating individual NR-1 laudo`)
+              await setStatus('processing_nr1_laudo')
+              await appendLog('Gerando análise individual NR-1…')
+              try {
+                const { generateNR1IndividualLaudo } = await import(
+                  '~/app/api/assessment/lib/generate-nr1-laudo'
+                )
+                const { pdfUrl } = await generateNR1IndividualLaudo({
+                  evaluationId,
+                })
+                p(`✅ NR-1 laudo generated | url=${pdfUrl}`)
+                await appendLog('Laudo individual gerado com sucesso')
+              } catch (laudoErr) {
+                const errMsg =
+                  laudoErr instanceof Error
+                    ? laudoErr.message
+                    : 'Erro ao gerar laudo NR-1'
+                console.error(
+                  `[submit:${requestId}] NR-1 laudo generation failed:`,
+                  errMsg
+                )
+                // Mark evaluation as completed anyway — submission is valid,
+                // PDF is a nice-to-have. The dashboard still gets the data.
+                await sb
+                  .from('mental_health_evaluations')
+                  .update({
+                    status: 'completed',
+                    processing_error: `Laudo PDF: ${errMsg}`,
+                  })
+                  .eq('id', evaluationId)
+                await appendLog(`Laudo PDF não pôde ser gerado: ${errMsg}`)
+              }
               return
             }
 

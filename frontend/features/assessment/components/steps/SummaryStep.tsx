@@ -32,7 +32,13 @@ function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
         if (!res.ok) return
         const data = (await res.json()) as LaudoStatus
         setLaudo(data)
-        if (data.laudo_pdf_url || data.status === 'error') {
+        // Stop polling on any terminal state: PDF ready, error, or
+        // completed-without-PDF (NR-1-only flow that skips report gen).
+        const terminal =
+          !!data.laudo_pdf_url ||
+          data.status === 'error' ||
+          data.status === 'completed'
+        if (terminal) {
           if (intervalRef.current) clearInterval(intervalRef.current)
           if (timeoutRef.current) clearTimeout(timeoutRef.current)
         }
@@ -391,6 +397,19 @@ export function SummaryStep({
                       >
                         Baixar PDF
                       </a>
+                    </div>
+                  ) : laudo?.status === 'completed' ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">✅</span>
+                      <div>
+                        <p className="text-xs font-medium text-lime-400">
+                          Avaliação registrada
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Suas respostas foram contabilizadas no PGR da empresa.
+                          Você já pode fechar esta página.
+                        </p>
+                      </div>
                     </div>
                   ) : laudo?.status === 'error' ? (
                     <div className="flex items-center gap-3">
