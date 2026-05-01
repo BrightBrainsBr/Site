@@ -42,10 +42,11 @@ export async function GET() {
         })
       }
 
+      const userEmail = user.email?.toLowerCase().trim() ?? ''
       const { data: invite } = await sb
         .from('company_access_codes')
         .select('id, company_id')
-        .eq('employee_email', user.email!)
+        .eq('employee_email', userEmail)
         .eq('active', true)
         .order('created_at', { ascending: false })
         .limit(1)

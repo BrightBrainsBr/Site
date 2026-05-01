@@ -51,10 +51,11 @@ async function resolveUserDestination(
     return redirectTo(request, REDIRECT_EMPRESA_DASHBOARD)
   }
 
+  const inviteEmail = user.email?.toLowerCase().trim() ?? ''
   const { data: invite } = await serviceClient
     .from('company_access_codes')
     .select('id')
-    .eq('employee_email', user.email!)
+    .eq('employee_email', inviteEmail)
     .is('used_at', null)
     .eq('active', true)
     .limit(1)

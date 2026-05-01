@@ -374,7 +374,7 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
     saveCurrentStep(currentStepIndex)
   }, [currentStepIndex, isLoaded])
 
-  const isB2B = mode === 'b2b' && !!companyContext.company_id
+  const isB2B = mode === 'b2b'
 
   const stepSource = useMemo(() => {
     if (!isB2B) return ALL_STEPS
@@ -477,6 +477,41 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+      </div>
+    )
+  }
+
+  // Hard guard: a B2B form submission MUST be tied to a company.
+  // If the auth user reached this page without a resolvable company link
+  // (no active company_access_codes row, no user_metadata.company_id, no
+  // matching domain), block the form so we never produce orphan submissions.
+  const devModeActive =
+    process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
+  if (mode === 'b2b' && !devModeActive && !companyContext.company_id) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-md space-y-4 rounded-2xl border border-amber-500/30 bg-zinc-900/80 p-6 text-center shadow-xl backdrop-blur-sm">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/15 text-amber-300">
+            !
+          </div>
+          <h2 className="text-base font-semibold text-zinc-100">
+            Acesso não vinculado a uma empresa
+          </h2>
+          <p className="text-sm text-zinc-400">
+            Sua conta está autenticada, mas não encontramos um convite ativo
+            ligando você a uma empresa. Use o link de convite enviado pelo RH
+            ou peça uma nova convocação.
+          </p>
+          <p className="text-xs text-zinc-500">
+            Email autenticado: <span className="text-zinc-300">{sessionEmail ?? '—'}</span>
+          </p>
+          <a
+            href={`${getLocalePrefix()}/login`}
+            className="inline-flex w-full items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700"
+          >
+            Voltar ao login
+          </a>
+        </div>
       </div>
     )
   }

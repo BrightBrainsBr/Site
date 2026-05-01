@@ -11,7 +11,6 @@ import {
   PolarRadiusAxis,
   Radar,
   RadarChart,
-  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -41,13 +40,6 @@ const NR1_BAND_LABELS: Record<NR1RiskBand, string> = {
 
 const MIN_EVALUATIONS = 10
 
-function scoreToColor(score: number | null): string {
-  if (score == null) return '#64748b'
-  if (score < 2) return '#22c55e'
-  if (score < 3) return '#eab308'
-  if (score < 4) return '#f97316'
-  return '#ef4444'
-}
 
 function scoreToBand(score: number | null): NR1RiskBand | null {
   if (score == null) return null
@@ -77,6 +69,9 @@ const DOMAIN_LABELS: Array<{
   { key: 'scorePsychosocial', label: 'Psicossocial' },
   { key: 'scoreViolence', label: 'Violência' },
 ]
+
+// Fixed colors per NR-1 domain (Físico, Ergonômico, Psicossocial, Violência)
+const DOMAIN_BAR_COLORS = ['#2dd4bf', '#a78bfa', '#fb923c', '#f472b6']
 
 const SEVERITY_LABELS: Record<string, string> = {
   critico: 'Crítico',
@@ -293,88 +288,50 @@ export function B2BOverviewTab({
           )}
         </div>
 
-        {/* Domain line chart */}
+        {/* Domain score bars */}
         <div className="rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] p-5">
-          <h3 className="mb-3 text-[17px] font-semibold text-[#e2e8f0]">
-            Score por Domínio NR-1
-          </h3>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-[17px] font-semibold text-[#e2e8f0]">
+              Scores por Domínio de Risco
+            </h3>
+            <span className="text-[12px] text-[#64748b]">
+              Média das avaliações
+            </span>
+          </div>
           {domainLineData.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart
-                  data={domainLineData}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 5 }}
-                >
-                  <CartesianGrid
-                    vertical={false}
-                    stroke="rgba(255,255,255,0.04)"
-                  />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: 12, fill: '#94a3b8' }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    domain={[0, 5]}
-                    ticks={[1, 2, 3, 4, 5]}
-                    tick={{ fontSize: 11, fill: '#64748b' }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  {/* Risk zone reference lines */}
-                  <ReferenceLine y={2} stroke="rgba(234,179,8,0.2)" strokeDasharray="4 3" />
-                  <ReferenceLine y={3} stroke="rgba(249,115,22,0.2)" strokeDasharray="4 3" />
-                  <ReferenceLine y={4} stroke="rgba(239,68,68,0.2)" strokeDasharray="4 3" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#111b2e',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      borderRadius: 8,
-                      fontSize: 13,
-                    }}
-                    itemStyle={{ color: '#e2e8f0' }}
-                    formatter={(value) => [
-                      value != null ? Number(value).toFixed(2) : '–',
-                      'Score',
-                    ]}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#c5e155"
-                    strokeWidth={2}
-                    dot={(props) => {
-                      const score = props.payload?.score as number | null
-                      const color = scoreToColor(score)
-                      return (
-                        <circle
-                          key={`dot-${props.index}`}
-                          cx={props.cx}
-                          cy={props.cy}
-                          r={5}
-                          fill={color}
-                          stroke="#0c1425"
-                          strokeWidth={2}
-                        />
-                      )
-                    }}
-                    connectNulls
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="mt-2 flex justify-center gap-4 text-[12px] text-[#64748b]">
-                {Object.entries(NR1_BAND_COLORS).map(([key, color]) => (
-                  <span key={key} className="flex items-center gap-1.5">
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ background: color }}
-                    />
-                    {NR1_BAND_LABELS[key as NR1RiskBand]}
-                  </span>
-                ))}
-              </div>
-            </>
+            <div className="space-y-5">
+              {domainLineData.map(({ name, score }, i) => {
+                const color = DOMAIN_BAR_COLORS[i] ?? '#c5e155'
+                const pct = score != null ? Math.min((score / 5) * 100, 100) : 0
+                return (
+                  <div key={name}>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="text-[14px] font-medium text-[#cbd5e1]">
+                        {name}
+                      </span>
+                      <span
+                        className="font-mono text-[14px] font-semibold"
+                        style={{ color }}
+                      >
+                        {score != null ? score.toFixed(1) : '–'}
+                        <span className="ml-0.5 text-[12px] text-[#475569]">
+                          /5
+                        </span>
+                      </span>
+                    </div>
+                    <div className="h-[10px] w-full overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${pct}%`,
+                          background: `linear-gradient(90deg, ${color}cc, ${color})`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           ) : (
             <div className="flex h-[220px] items-center justify-center text-[14px] text-[#64748b]">
               Sem dados de domínio

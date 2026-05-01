@@ -236,6 +236,8 @@ export async function POST(
               data: {
                 needs_password_setup: true,
                 invite_role: 'collaborator',
+                company_id: companyId,
+                ...(effectiveDept ? { department: effectiveDept } : {}),
               },
             })
           if (

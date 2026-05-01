@@ -19,10 +19,16 @@ async function resolveCompanyContext(
   sb: SupabaseClient,
   user: User
 ): Promise<CompanyContext | null> {
+  const userEmail = user.email?.toLowerCase().trim()
+  if (!userEmail) {
+    console.warn('[assessment/check-session] No email on auth user', user.id)
+    return null
+  }
+
   const { data: invite } = await sb
     .from('company_access_codes')
     .select('id, company_id, department, cycle_id')
-    .eq('employee_email', user.email!)
+    .eq('employee_email', userEmail)
     .eq('active', true)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -50,7 +56,7 @@ async function resolveCompanyContext(
     return await buildContextFromCompanyId(sb, metaCompanyId)
   }
 
-  const domain = user.email?.split('@')[1]
+  const domain = userEmail.split('@')[1]
   if (domain) {
     const { data: domainCompany } = await sb
       .from('companies')

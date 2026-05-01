@@ -851,27 +851,11 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
 
       {/* Action bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={() => {
-            resetForm()
-            setShowForm(true)
-          }}
-          className="rounded-lg bg-[rgba(197,225,85,0.15)] px-3 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)]"
-        >
-          + Novo Evento
-        </button>
-        <button
-          onClick={() => setShowUploadModal(true)}
-          className="rounded-lg bg-[rgba(96,165,250,0.15)] border border-[rgba(96,165,250,0.3)] px-4 py-2 text-[14px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.25)]"
-        >
-          Upload PDF
-        </button>
-
-        {/* Type filter */}
+        {/* Type filter — left */}
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="ml-auto rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-1.5 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+          className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0c1425] px-3 py-1.5 text-[13px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
         >
           <option value="">Todos os tipos</option>
           {(
@@ -885,6 +869,25 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             </option>
           ))}
         </select>
+
+        {/* Action buttons — right-aligned */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="rounded-lg border border-[rgba(96,165,250,0.3)] bg-[rgba(96,165,250,0.1)] px-4 py-2 text-[13px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.2)]"
+          >
+            Upload PDF
+          </button>
+          <button
+            onClick={() => {
+              resetForm()
+              setShowForm(true)
+            }}
+            className="rounded-lg bg-[#c5e155] px-4 py-2 text-[13px] font-semibold text-[#060d1a] transition-colors hover:bg-[#d4ee6b]"
+          >
+            + Novo Evento
+          </button>
+        </div>
       </div>
 
       {/* PDF extraction review panel */}
@@ -1008,23 +1011,23 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
               </div>
             )}
           </div>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              onClick={resetForm}
+              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-2 text-[13px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
+            >
+              Cancelar
+            </button>
             <button
               onClick={handleSubmit}
               disabled={createEvent.isPending || updateEvent.isPending}
-              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
+              className="rounded-lg bg-[#c5e155] px-4 py-2 text-[13px] font-semibold text-[#060d1a] transition-colors hover:bg-[#d4ee6b] disabled:opacity-50"
             >
               {createEvent.isPending || updateEvent.isPending
                 ? 'Salvando…'
                 : editingId
                   ? 'Salvar'
                   : 'Criar'}
-            </button>
-            <button
-              onClick={resetForm}
-              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[14px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
-            >
-              Cancelar
             </button>
           </div>
         </div>
