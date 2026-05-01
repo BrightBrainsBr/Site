@@ -95,11 +95,20 @@ export interface B2BActionPlanItem {
 }
 
 export interface B2BAlertData {
-  type: 'critical_dept' | 'violence_dept' | 'incident' | 'harassment'
+  type:
+    | 'action_overdue'
+    | 'psychosocial_high'
+    | 'nr1_docs_missing'
+    | 'incident'
+    | 'harassment'
   severity: 'critico' | 'alto' | 'moderado'
   department: string | null
   message: string
   value?: number
+  /** Optional foreign-key to the underlying entity (e.g. action plan id) */
+  refId?: string
+  /** ISO date string for time-based alerts (e.g. action deadline) */
+  dueDate?: string
 }
 
 export interface B2BAlertsData {

@@ -13,6 +13,7 @@ export const B2B_STEPS: StepDefinition[] = [
   { id: 'nr1_psicossocial', label: 'Fatores Psicossociais', show: () => true },
   { id: 'nr1_acidentes', label: 'Acidentes e Doenças', show: () => true },
   { id: 'nr1_percepcao', label: 'Percepção', show: () => true },
+  { id: 'denuncia_anonima', label: 'Denúncia Anônima', show: () => true },
   { id: 'resumo', label: 'Resumo & Envio', show: () => true },
 ]
 

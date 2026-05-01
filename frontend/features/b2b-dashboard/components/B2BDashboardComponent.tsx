@@ -18,10 +18,12 @@ import { B2BActionPlanTab } from './tabs/B2BActionPlanTab'
 import { B2BAlertsTab } from './tabs/B2BAlertsTab'
 import { B2BAvaliacoesTab } from './tabs/B2BAvaliacoesTab'
 import { B2BComplianceTab } from './tabs/B2BComplianceTab'
+import { B2BDenunciasTab } from './tabs/B2BDenunciasTab'
 import { B2BEventsTab } from './tabs/B2BEventsTab'
 import { B2BGROTab } from './tabs/B2BGROTab'
 import { B2BOverviewTab } from './tabs/B2BOverviewTab'
 import { B2BPercepcaoTab } from './tabs/B2BPercepcaoTab'
+import { B2BPsychosocialInventoryTab } from './tabs/B2BPsychosocialInventoryTab'
 import { B2BReportsTab } from './tabs/B2BReportsTab'
 import { B2BSetoresTab } from './tabs/B2BSetoresTab'
 import { B2BSettingsTab } from './tabs/B2BSettingsTab'
@@ -31,8 +33,10 @@ type TabId =
   | 'alertas'
   | 'setores'
   | 'gro'
+  | 'gro-legacy'
   | 'plano-acao'
   | 'eventos'
+  | 'denuncias'
   | 'avaliacoes'
   | 'percepcao'
   | 'compliance'
@@ -74,6 +78,7 @@ function buildSidebarSections(
         { id: 'gro', label: 'Inventário de Riscos', icon: '📋' },
         { id: 'plano-acao', label: 'Plano de Ação', icon: '✅' },
         { id: 'eventos', label: 'Incidentes', icon: '⚠️' },
+        { id: 'denuncias', label: 'Denúncias Anônimas', icon: '🔒' },
         { id: 'avaliacoes', label: 'Avaliações Individuais', icon: '📝' },
       ],
     },
@@ -459,6 +464,12 @@ export function B2BDashboardComponent({
                 <B2BSetoresTab companyId={companyId} cycleId={cycleId} />
               )}
               {activeTab === 'gro' && (
+                <B2BPsychosocialInventoryTab
+                  companyId={companyId}
+                  cycleId={cycleId}
+                />
+              )}
+              {activeTab === 'gro-legacy' && (
                 <B2BGROTab companyId={companyId} cycleId={cycleId} />
               )}
               {activeTab === 'plano-acao' && (
@@ -466,6 +477,9 @@ export function B2BDashboardComponent({
               )}
               {activeTab === 'eventos' && (
                 <B2BEventsTab companyId={companyId} cycleId={cycleId} />
+              )}
+              {activeTab === 'denuncias' && (
+                <B2BDenunciasTab companyId={companyId} cycleId={cycleId} />
               )}
               {activeTab === 'avaliacoes' && (
                 <B2BAvaliacoesTab companyId={companyId} cycleId={cycleId} />

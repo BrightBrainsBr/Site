@@ -365,9 +365,27 @@ export async function POST(request: NextRequest) {
           cycle_id: resolvedCycleId || null,
           department: employee_department || null,
           description: formData.harassment_report_description.trim(),
+          report_type: 'harassment',
         })
         .then(({ error: hrErr }) => {
           if (hrErr) console.error('Harassment report write failed:', hrErr)
+        })
+    }
+
+    // Anonymous general complaint (DenunciaAnonimaStep) — stored without any user link
+    if (company_id && formData.anonymous_complaint_description?.trim()) {
+      await sb
+        .from('harassment_reports')
+        .insert({
+          company_id,
+          cycle_id: resolvedCycleId || null,
+          department: employee_department || null,
+          description: formData.anonymous_complaint_description.trim(),
+          report_type: 'general',
+        })
+        .then(({ error: acErr }) => {
+          if (acErr)
+            console.error('Anonymous complaint write failed:', acErr)
         })
     }
 

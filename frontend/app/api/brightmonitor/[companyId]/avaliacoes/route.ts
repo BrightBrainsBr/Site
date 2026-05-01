@@ -32,7 +32,29 @@ export async function GET(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: rows, error } = await sb
+  type EvalRow = {
+    id: string
+    created_at: string
+    patient_name: string | null
+    patient_email: string | null
+    employee_department: string | null
+    nr1_role: string | null
+    score_physical: number | null
+    score_ergonomic: number | null
+    score_psychosocial: number | null
+    score_violence: number | null
+    score_overall: number | null
+    workload_level: string | null
+    pace_level: string | null
+    autonomy_level: string | null
+    leadership_level: string | null
+    relationships_level: string | null
+    recognition_level: string | null
+    clarity_level: string | null
+    balance_level: string | null
+  }
+
+  const queryResult = await sb
     .from('mental_health_evaluations')
     .select(
       [
@@ -61,6 +83,9 @@ export async function GET(
     .eq('cycle_id', cycleRes.cycleId)
     .eq('assessment_kind', 'nr1')
     .order('created_at', { ascending: false })
+
+  const rows = queryResult.data as EvalRow[] | null
+  const error = queryResult.error
 
   if (error) {
     console.error('[brightmonitor/avaliacoes]', error)

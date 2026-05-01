@@ -35,6 +35,7 @@ import {
   BiologicoStep,
   CanalPercepcaoStep,
   ClinicalProfileStep,
+  DenunciaAnonimaStep,
   ErgonomicoStep,
   FamilyHistoryStep,
   FisicoStep,
@@ -562,6 +563,8 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
         return <AcidentesStep {...stepProps} />
       case 'nr1_percepcao':
         return <PercepcaoNR1Step {...stepProps} />
+      case 'denuncia_anonima':
+        return <DenunciaAnonimaStep {...stepProps} />
       case 'resumo':
         return <SummaryStep {...stepProps} />
       default: {

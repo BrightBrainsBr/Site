@@ -31,8 +31,9 @@ const SEVERITY_CONFIG: Record<
 }
 
 const TYPE_ICONS: Record<B2BAlertData['type'], string> = {
-  critical_dept: '⚠️',
-  violence_dept: '🚨',
+  action_overdue: '⏰',
+  psychosocial_high: '🧠',
+  nr1_docs_missing: '📑',
   incident: '📋',
   harassment: '🔴',
 }

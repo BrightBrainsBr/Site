@@ -755,9 +755,15 @@ CREATE TABLE public.companies (
   -- NR-1 compliance — set manually by Bright Brains admin
   gro_issued_at timestamp with time zone NULL,
   gro_valid_until timestamp with time zone NULL,
+  -- NR-1 required documents config: array of {slug,name,legal_deadline_days}
+  -- consumed by alerts/route.ts (nr1_docs_missing rule). Default [] until populated.
+  nr1_required_documents jsonb NOT NULL DEFAULT '[]'::jsonb,
   CONSTRAINT companies_pkey PRIMARY KEY (id),
   CONSTRAINT companies_cnpj_key UNIQUE (cnpj)
 ) TABLESPACE pg_default;
+
+ALTER TABLE public.companies
+  ADD COLUMN IF NOT EXISTS nr1_required_documents jsonb NOT NULL DEFAULT '[]'::jsonb;
 
 
 -- Semiannual assessment cycles per company (e.g. "Jan–Jun 2026")
@@ -957,16 +963,28 @@ CREATE TABLE IF NOT EXISTS harassment_reports (
   cycle_id UUID REFERENCES assessment_cycles(id),
   department TEXT,
   description TEXT NOT NULL,
+  report_type TEXT NOT NULL DEFAULT 'harassment',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Backfill + constraint for existing deployments
+ALTER TABLE harassment_reports
+  ADD COLUMN IF NOT EXISTS report_type TEXT NOT NULL DEFAULT 'harassment';
+UPDATE harassment_reports SET report_type = 'harassment' WHERE report_type IS NULL;
+ALTER TABLE harassment_reports DROP CONSTRAINT IF EXISTS harassment_reports_report_type_check;
+ALTER TABLE harassment_reports
+  ADD CONSTRAINT harassment_reports_report_type_check
+  CHECK (report_type IN ('harassment', 'general'));
+
 COMMENT ON TABLE harassment_reports
-  IS 'Anonymous harassment reports from NR-1 Acidentes step. No employee_id, no assessment_id — anonymity is structural.';
+  IS 'Anonymous reports from the NR-1 questionnaire. No employee_id, no assessment_id — anonymity is structural. report_type discriminates: harassment (from AcidentesStep) or general (from DenunciaAnonimaStep).';
 
 CREATE INDEX IF NOT EXISTS idx_harassment_reports_company
   ON harassment_reports(company_id);
 CREATE INDEX IF NOT EXISTS idx_harassment_reports_cycle
   ON harassment_reports(cycle_id);
+CREATE INDEX IF NOT EXISTS idx_harassment_reports_type
+  ON harassment_reports(report_type);
 
 ALTER TABLE harassment_reports ENABLE ROW LEVEL SECURITY;
 

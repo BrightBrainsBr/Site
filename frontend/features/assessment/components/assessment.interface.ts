@@ -219,6 +219,9 @@ export interface AssessmentFormData {
   report_harassment?: boolean
   harassment_report_description?: string
 
+  // NR-1 Denúncia Anônima (free-text general complaint, not linked to user)
+  anonymous_complaint_description?: string
+
   // NR-1 Percepção Geral
   satisfaction_level?: number | null
   biggest_risk?: string

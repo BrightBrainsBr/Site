@@ -6,8 +6,15 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { LOGO_PNG_RAW } from '../../../assessment/generate-pdf/pdf-helpers'
+import { COPSOQ_RISKS } from '../../lib/copsoqRisks'
 import { getB2BUser, resolveCycle } from '../../lib/getB2BUser'
-import { computeNormalizedScore, getRiskLevel } from '../../lib/riskUtils'
+import {
+  computeDomainMean,
+  computeNormalizedScore,
+  COPSOQ_CLASSIFICATION_LABELS,
+  getCopsoqClassification,
+  getRiskLevel,
+} from '../../lib/riskUtils'
 
 export const runtime = 'nodejs'
 
@@ -137,6 +144,24 @@ const SCALE_MAX: Record<string, number> = {
 interface InventoryField {
   label: string
   value: string
+}
+
+function computeCopsoqInventoryField(
+  evaluations: Array<Record<string, unknown>>
+): InventoryField | null {
+  if (evaluations.length === 0) return null
+  const lines: string[] = []
+  for (const risk of COPSOQ_RISKS) {
+    const mean = computeDomainMean(evaluations, risk.axis)
+    const cls = getCopsoqClassification(mean)
+    const label = cls ? COPSOQ_CLASSIFICATION_LABELS[cls] : 'Sem dados'
+    const score = mean != null ? mean.toFixed(1) : '—'
+    lines.push(`• ${risk.name}: ${label} (média ${score}/5)`)
+  }
+  return {
+    label: '0. Inventário de Riscos Psicossociais (COPSOQ II)',
+    value: lines.join('\n'),
+  }
 }
 
 // eslint-disable-next-line complexity
@@ -339,10 +364,17 @@ export async function POST(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  const psychosocialCols = Array.from(
+    new Set(COPSOQ_RISKS.map((r) => r.axis))
+  )
+  const evalSelect = ['scores', 'employee_department', ...psychosocialCols].join(
+    ', '
+  )
+
   const [evalResult, companyResult] = await Promise.all([
     sb
       .from('mental_health_evaluations')
-      .select('scores, employee_department')
+      .select(evalSelect)
       .eq('company_id', companyId)
       .eq('cycle_id', cycleRes.cycleId),
     sb.from('companies').select('*').eq('id', companyId).single(),
@@ -365,12 +397,17 @@ export async function POST(
   }
 
   const company = companyResult.data
-  const evaluations = (evalResult.data ?? []).map((r) => ({
+  const rawEvals = (evalResult.data ?? []) as unknown as Array<
+    Record<string, unknown>
+  >
+  const evaluations = rawEvals.map((r) => ({
     scores: r.scores as Record<string, number> | null,
     employee_department: r.employee_department as string | null,
   }))
 
   const automated = computeAutomatedFields(evaluations)
+  const copsoqField = computeCopsoqInventoryField(rawEvals)
+  if (copsoqField) automated.unshift(copsoqField)
 
   const companyFields: InventoryField[] = [
     {

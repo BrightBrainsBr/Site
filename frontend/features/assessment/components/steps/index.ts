@@ -13,6 +13,7 @@ export { MedicationsStep } from './MedicationsStep'
 export {
   AcidentesStep,
   BiologicoStep,
+  DenunciaAnonimaStep,
   ErgonomicoStep,
   FisicoStep,
   PercepcaoNR1Step,

@@ -136,3 +136,38 @@ export const NR1_PSYCHOSOCIAL_COLUMNS = [
   'clarity_level',
   'balance_level',
 ] as const
+
+// ── COPSOQ-II-style classification (baixo / médio / alto) ──
+// A 1–5 Likert score is converted to a classification compatible with the
+// COPSOQ II methodology (probability × severity → classification). For mean
+// scores from negative-direction items (where higher = worse), the bands are:
+//   < 2.5 → baixo   |   < 3.5 → medio   |   ≥ 3.5 → alto
+
+export type CopsoqClassification = 'baixo' | 'medio' | 'alto'
+
+export function getCopsoqClassification(
+  score: number | null | undefined
+): CopsoqClassification | null {
+  if (score == null || Number.isNaN(score)) return null
+  if (score < 2.5) return 'baixo'
+  if (score < 3.5) return 'medio'
+  return 'alto'
+}
+
+export const COPSOQ_CLASSIFICATION_COLORS: Record<
+  CopsoqClassification,
+  string
+> = {
+  baixo: '#22c55e',
+  medio: '#eab308',
+  alto: '#ef4444',
+}
+
+export const COPSOQ_CLASSIFICATION_LABELS: Record<
+  CopsoqClassification,
+  string
+> = {
+  baixo: 'Baixo',
+  medio: 'Médio',
+  alto: 'Alto',
+}

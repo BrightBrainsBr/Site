@@ -136,7 +136,7 @@ export function B2BAvaliacoesTab({ companyId, cycleId }: Props) {
 
   const evaluations = data?.evaluations ?? []
 
-  const departments = [...new Set(evaluations.map((e) => e.department).filter(Boolean))] as string[]
+  const departments = Array.from(new Set(evaluations.map((e) => e.department).filter(Boolean))) as string[]
 
   const filtered = evaluations.filter((av) => {
     const q = search.toLowerCase()
