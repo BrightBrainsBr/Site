@@ -15,7 +15,6 @@ import { useB2BEventsMutationHook } from '../../hooks/useB2BEventsMutationHook'
 import { useB2BEventsQueryHook } from '../../hooks/useB2BEventsQueryHook'
 import type { PdfJobDetail } from '../../hooks/useB2BPdfJobsHook'
 import { useB2BPdfJobsHook } from '../../hooks/useB2BPdfJobsHook'
-import { useB2BPercepcaoQueryHook } from '../../hooks/useB2BPercepcaoQueryHook'
 import { B2BPdfUploadModal } from '../shared/B2BPdfUploadModal'
 
 function CIDSearchSelect({
@@ -720,11 +719,6 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
   })
   const { createEvent, updateEvent, deleteEvent, bulkCreate } =
     useB2BEventsMutationHook(companyId)
-  const { data: percepcao } = useB2BPercepcaoQueryHook(
-    companyId,
-    cycleId ?? undefined
-  )
-
   const departments = deptData?.departments ?? []
   const events = eventsData?.events ?? []
   const kpis = eventsData?.kpis ?? {
@@ -857,27 +851,11 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
 
       {/* Action bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={() => {
-            resetForm()
-            setShowForm(true)
-          }}
-          className="rounded-lg bg-[rgba(197,225,85,0.15)] px-3 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)]"
-        >
-          + Novo Evento
-        </button>
-        <button
-          onClick={() => setShowUploadModal(true)}
-          className="rounded-lg bg-[rgba(96,165,250,0.15)] border border-[rgba(96,165,250,0.3)] px-4 py-2 text-[14px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.25)]"
-        >
-          Upload PDF
-        </button>
-
-        {/* Type filter */}
+        {/* Type filter — left */}
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="ml-auto rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#111b2e] px-3 py-1.5 text-[14px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
+          className="rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#0c1425] px-3 py-1.5 text-[13px] text-[#e2e8f0] outline-none focus:border-[rgba(197,225,85,0.3)]"
         >
           <option value="">Todos os tipos</option>
           {(
@@ -891,6 +869,25 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
             </option>
           ))}
         </select>
+
+        {/* Action buttons — right-aligned */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="rounded-lg border border-[rgba(96,165,250,0.3)] bg-[rgba(96,165,250,0.1)] px-4 py-2 text-[13px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.2)]"
+          >
+            Upload PDF
+          </button>
+          <button
+            onClick={() => {
+              resetForm()
+              setShowForm(true)
+            }}
+            className="rounded-lg bg-[#c5e155] px-4 py-2 text-[13px] font-semibold text-[#060d1a] transition-colors hover:bg-[#d4ee6b]"
+          >
+            + Novo Evento
+          </button>
+        </div>
       </div>
 
       {/* PDF extraction review panel */}
@@ -1014,23 +1011,23 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
               </div>
             )}
           </div>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              onClick={resetForm}
+              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-2 text-[13px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
+            >
+              Cancelar
+            </button>
             <button
               onClick={handleSubmit}
               disabled={createEvent.isPending || updateEvent.isPending}
-              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
+              className="rounded-lg bg-[#c5e155] px-4 py-2 text-[13px] font-semibold text-[#060d1a] transition-colors hover:bg-[#d4ee6b] disabled:opacity-50"
             >
               {createEvent.isPending || updateEvent.isPending
                 ? 'Salvando…'
                 : editingId
                   ? 'Salvar'
                   : 'Criar'}
-            </button>
-            <button
-              onClick={resetForm}
-              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[14px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
-            >
-              Cancelar
             </button>
           </div>
         </div>
@@ -1194,41 +1191,9 @@ export function B2BEventsTab({ companyId, cycleId }: B2BEventsTabProps) {
           </div>
         </div>
 
-        {!percepcao?.correlations?.length ? (
-          <div className="flex h-24 items-center justify-center text-[15px] text-[#64748b]">
-            Nenhuma correlação identificada
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {percepcao.correlations.map((c, i) => {
-              const isHigh =
-                c.severity === 'alta' ||
-                c.severity === 'critical' ||
-                c.severity === 'high'
-              return (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 rounded-lg border border-[rgba(255,255,255,0.04)] bg-[#111b2e] px-3 py-2.5"
-                >
-                  <span
-                    className="mt-0.5 shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[12px] font-semibold"
-                    style={{
-                      color: isHigh ? '#F87171' : '#FBBF24',
-                      backgroundColor: isHigh
-                        ? 'rgba(239,68,68,0.15)'
-                        : 'rgba(245,158,11,0.15)',
-                    }}
-                  >
-                    {isHigh ? 'Alta' : 'Média'}
-                  </span>
-                  <p className="text-[14px] leading-relaxed text-[#94a3b8]">
-                    {c.description}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-        )}
+        <div className="flex h-24 items-center justify-center text-[15px] text-[#64748b]">
+          Nenhuma correlação identificada
+        </div>
       </div>
     </div>
   )

@@ -10,6 +10,17 @@ export { HistoryStep } from './HistoryStep'
 export { LifestyleStep } from './LifestyleStep'
 export { MDQStep } from './MDQStep'
 export { MedicationsStep } from './MedicationsStep'
+export {
+  AcidentesStep,
+  BiologicoStep,
+  DenunciaAnonimaStep,
+  ErgonomicoStep,
+  FisicoStep,
+  PercepcaoNR1Step,
+  PerfilStep,
+  PsicossocialStep,
+  QuimicoStep,
+} from './nr1'
 export { PersonalDataStep } from './PersonalDataStep'
 export { PriorReportsStep } from './PriorReportsStep'
 export { SCALE_STEP_CONFIGS } from './scaleStepConfigs'

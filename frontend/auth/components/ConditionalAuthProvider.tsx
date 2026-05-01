@@ -24,7 +24,7 @@ export function ConditionalAuthProvider({
   const pathname = usePathname()
   const shouldLoadAuth = needsAuth(pathname)
 
-  console.log(
+  console.warn(
     `[ConditionalAuthProvider] Path: ${pathname}, Needs Auth: ${shouldLoadAuth}`
   )
 

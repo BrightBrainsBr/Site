@@ -11,49 +11,49 @@ import { createClient } from '@/utils/supabase/client'
  * Run in the console with window.diagnoseAuth()
  */
 export async function diagnoseAuthIssue() {
-  console.group('🔍 Auth State Diagnosis')
+  console.warn('🔍 Auth State Diagnosis')
 
   try {
     // Check Supabase Session directly
     const supabase = createClient()
-    console.log('Checking direct Supabase session...')
+    console.warn('Checking direct Supabase session...')
     const { data: sessionData } = await supabase.auth.getSession()
-    console.log('Supabase Session:', sessionData.session ? 'Exists' : 'None')
+    console.warn('Supabase Session:', sessionData.session ? 'Exists' : 'None')
     if (sessionData.session) {
-      console.log(
+      console.warn(
         '  Session expires:',
         new Date(sessionData.session.expires_at! * 1000).toLocaleString()
       )
-      console.log('  User ID in session:', sessionData.session.user?.id)
+      console.warn('  User ID in session:', sessionData.session.user?.id)
     }
 
     // Check Supabase User directly
-    console.log('Checking direct Supabase user...')
+    console.warn('Checking direct Supabase user...')
     const { data: userData } = await supabase.auth.getUser()
-    console.log('Supabase User:', userData.user ? 'Exists' : 'None')
+    console.warn('Supabase User:', userData.user ? 'Exists' : 'None')
     if (userData.user) {
-      console.log('  User ID:', userData.user.id)
-      console.log('  User email:', userData.user.email)
+      console.warn('  User ID:', userData.user.id)
+      console.warn('  User email:', userData.user.email)
     }
 
     // Check via auth service
-    console.log('Checking via auth service...')
+    console.warn('Checking via auth service...')
     const serviceSession = await authService.getSession()
-    console.log(
+    console.warn(
       'Auth Service Session:',
       serviceSession.data ? 'Exists' : 'None'
     )
 
     const serviceUser = await authService.getUser()
-    console.log('Auth Service User:', serviceUser.data ? 'Exists' : 'None')
+    console.warn('Auth Service User:', serviceUser.data ? 'Exists' : 'None')
 
     // Check Auth Store
-    console.log('Checking Zustand store state...')
+    console.warn('Checking Zustand store state...')
     const authStore = useAuthStore.getState()
-    console.log('  isLoading:', authStore.isLoading)
-    console.log('  isAuthenticated:', authStore.isAuthenticated)
-    console.log('  User exists:', !!authStore.user)
-    console.log('  Session exists:', !!authStore.session)
+    console.warn('  isLoading:', authStore.isLoading)
+    console.warn('  isAuthenticated:', authStore.isAuthenticated)
+    console.warn('  User exists:', !!authStore.user)
+    console.warn('  Session exists:', !!authStore.session)
 
     // Check for mismatches
     if (!!sessionData.session !== !!authStore.session) {
@@ -80,14 +80,14 @@ export async function diagnoseAuthIssue() {
 
     // Check localStorage
     const authStoreData = localStorage.getItem('auth-store')
-    console.log(
+    console.warn(
       'Auth Store in localStorage:',
       authStoreData ? 'Exists' : 'None'
     )
     if (authStoreData) {
       try {
         const parsedData = JSON.parse(authStoreData)
-        console.log('  State from localStorage:', parsedData.state)
+        console.warn('  State from localStorage:', parsedData.state)
 
         // Check for localStorage vs memory mismatches
         if (!!parsedData.state.user !== !!authStore.user) {
@@ -111,20 +111,19 @@ export async function diagnoseAuthIssue() {
       !!userData.user !== !!authStore.user
 
     if (hasMismatch && sessionData.session && userData.user) {
-      console.log('🔧 Found mismatch with valid session - attempting to fix...')
+      console.warn('🔧 Found mismatch with valid session - attempting to fix...')
       useAuthStore.setState({
         user: userData.user,
         session: sessionData.session,
         isAuthenticated: true,
         isLoading: false,
       })
-      console.log('✅ Auth store state updated')
+      console.warn('✅ Auth store state updated')
     }
   } catch (error) {
     console.error('Error during auth diagnosis:', error)
   }
 
-  console.groupEnd()
   return 'Auth diagnosis complete. Check console for details.'
 }
 

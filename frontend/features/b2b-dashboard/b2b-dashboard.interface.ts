@@ -1,25 +1,37 @@
 // frontend/features/b2b-dashboard/b2b-dashboard.interface.ts
 
 export type RiskLevel = 'critical' | 'elevated' | 'moderate' | 'low'
+export type NR1RiskBand = 'baixo' | 'moderado' | 'alto' | 'critico'
 
 export interface B2BOverviewTimeline {
   month: string
-  baixo: number
-  moderado: number
-  elevado: number
-  critico: number
+  scoreOverall: number | null
+}
+
+export interface B2BOverviewPsychosocialAxes {
+  workload: number | null
+  pace: number | null
+  autonomy: number | null
+  leadership: number | null
+  relationships: number | null
+  recognition: number | null
+  clarity: number | null
+  balance: number | null
 }
 
 export interface B2BOverviewData {
   total: number
-  avgScore: number | null
-  riskDistribution: Record<RiskLevel, number>
-  burnoutIndex: number | null
   cycleId: string
-  phq9Avg: number | null
-  gad7Avg: number | null
-  srq20Avg: number | null
-  aepAvg: number | null
+  scorePhysical: number | null
+  scoreErgonomic: number | null
+  scorePsychosocial: number | null
+  scoreViolence: number | null
+  scoreOverall: number | null
+  riskDistribution: Record<NR1RiskBand, number>
+  psychosocialAxes: B2BOverviewPsychosocialAxes
+  pendingActions: number
+  incidentsThisCycle: number
+  harassmentCount: number
   alertCount: number
   timeline: B2BOverviewTimeline[]
 }
@@ -27,13 +39,11 @@ export interface B2BOverviewData {
 export interface B2BDepartmentData {
   name: string
   n: number
-  avgScore: number
-  riskBreakdown: Record<RiskLevel, number>
-  trend: 'up' | 'down' | 'stable' | null
-  phq9Avg: number | null
-  gad7Avg: number | null
-  srq20Avg: number | null
-  aepAvg: number | null
+  scorePhysical: number | null
+  scoreErgonomic: number | null
+  scorePsychosocial: number | null
+  scoreViolence: number | null
+  scoreOverall: number | null
   pendingActions: number
 }
 
@@ -85,15 +95,20 @@ export interface B2BActionPlanItem {
 }
 
 export interface B2BAlertData {
-  id: string
-  riskLevel: string
+  type:
+    | 'action_overdue'
+    | 'psychosocial_high'
+    | 'nr1_docs_missing'
+    | 'incident'
+    | 'harassment'
+  severity: 'critico' | 'alto' | 'moderado'
   department: string | null
-  domainScores?: Record<string, number>
-  srq20Score?: number
-  srq20Risk?: string
-  aepScore?: number
-  aepRisk?: string
-  reasons?: string[]
+  message: string
+  value?: number
+  /** Optional foreign-key to the underlying entity (e.g. action plan id) */
+  refId?: string
+  /** ISO date string for time-based alerts (e.g. action deadline) */
+  dueDate?: string
 }
 
 export interface B2BAlertsData {
@@ -101,18 +116,21 @@ export interface B2BAlertsData {
   cycleId: string
 }
 
-// --- GRO Psicossocial ---
+// --- GRO / NR-1 Risk Inventory ---
+
+export interface B2BGRODomainSummary {
+  label: string
+  score: number | null
+  band: NR1RiskBand | null
+}
 
 export interface B2BGROData {
-  scaleAverages: Record<string, number>
-  aepDimensions: Record<string, number>
-  srq20Distribution: {
-    negative: number
-    moderate: number
-    elevated: number
-    critical: number
-  }
+  domainSummary: B2BGRODomainSummary[]
+  chemicalExposures: Record<string, number>
+  biologicalExposures: Record<string, number>
+  incidentsByType: Record<string, number>
   riskMatrix: number[][]
+  cycleId: string
 }
 
 // --- Action Plans ---
@@ -186,34 +204,23 @@ export interface B2BEventsData {
   kpis: B2BEventsKPIs
 }
 
-// --- Percepcao ---
+// --- Percepcao / Insights ---
 
-export interface B2BPercepcaoReport {
-  id: string
-  report_type: string
-  urgencia: string
-  department?: string
-  impacto?: string
-  descricao: string
-  sugestao?: string
-  source: string
-  created_at: string
+export interface B2BInsightsScaleAverages {
+  phq9: number | null
+  gad7: number | null
+  isi: number | null
+  mbi: number | null
 }
 
-export interface B2BPercepcaoCorrelation {
-  description: string
-  severity: string
-}
-
-export interface B2BPercepcaoData {
-  total: number
-  byType: Record<string, number>
-  urgentes: number
-  topSetor: string
-  reports: B2BPercepcaoReport[]
-  correlations: B2BPercepcaoCorrelation[]
-  cycleId: string
-}
+export type B2BPercepcaoData =
+  | { enabled: false }
+  | {
+      enabled: true
+      scaleAverages: B2BInsightsScaleAverages
+      assessmentCount: number
+      cycleId: string
+    }
 
 // --- Reports ---
 

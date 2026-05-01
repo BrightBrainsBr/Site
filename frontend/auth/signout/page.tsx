@@ -21,7 +21,7 @@ export default function SignOutPage() {
     setError(null)
 
     try {
-      console.log('[SignOut] Starting sign out process...')
+      console.warn('[SignOut] Starting sign out process...')
 
       // First, call our server API endpoint to clear the server-side session
       const response = await fetch('/api/auth/signout', {
@@ -40,7 +40,7 @@ export default function SignOutPage() {
       // Then clear client-side state
       await signOutAsync()
 
-      console.log('[SignOut] Sign out completed successfully')
+      console.warn('[SignOut] Sign out completed successfully')
       setSuccess(true)
 
       // Automatically redirect to login after 2 seconds
@@ -63,7 +63,7 @@ export default function SignOutPage() {
         handleSignOut()
       } else {
         // Already signed out
-        console.log('[SignOut] User already signed out')
+        console.warn('[SignOut] User already signed out')
         setSuccess(true)
         setTimeout(() => {
           router.push('/pt-BR/login')

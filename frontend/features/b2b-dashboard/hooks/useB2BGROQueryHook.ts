@@ -15,7 +15,7 @@ async function fetchGRO(
   companyId: string,
   filters?: GROFilters
 ): Promise<B2BGROData> {
-  const url = new URL(`/api/b2b/${companyId}/gro`, window.location.origin)
+  const url = new URL(`/api/brightmonitor/${companyId}/gro`, window.location.origin)
   if (filters?.department) url.searchParams.set('department', filters.department)
   if (filters?.cycle) url.searchParams.set('cycle', filters.cycle)
   const res = await fetch(url.toString())

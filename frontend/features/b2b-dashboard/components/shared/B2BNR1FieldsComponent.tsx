@@ -102,7 +102,7 @@ export function B2BNR1FieldsComponent({
       bucket: string
     ): Promise<{ publicUrl: string } | null> => {
       try {
-        const signedRes = await fetch(`/api/b2b/${companyId}/settings`, {
+        const signedRes = await fetch(`/api/brightmonitor/${companyId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -126,7 +126,7 @@ export function B2BNR1FieldsComponent({
         })
         if (!uploadRes.ok) return null
 
-        const publicRes = await fetch(`/api/b2b/${companyId}/settings`, {
+        const publicRes = await fetch(`/api/brightmonitor/${companyId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

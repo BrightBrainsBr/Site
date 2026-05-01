@@ -6,7 +6,7 @@ import { RetryableError } from '~/agents/shared/errors'
 import {
   computeNormalizedScore,
   getRiskLevel,
-} from '~/app/api/b2b/lib/riskUtils'
+} from '~/app/api/brightmonitor/lib/riskUtils'
 import {
   getAnthropicConfigForTask,
   llmService,

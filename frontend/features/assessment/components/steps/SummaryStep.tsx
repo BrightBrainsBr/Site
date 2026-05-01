@@ -15,9 +15,14 @@ interface LaudoStatus {
   laudo_pdf_url?: string | null
 }
 
+const LAUDO_POLL_INTERVAL_MS = 5_000
+const LAUDO_TIMEOUT_MS = 4 * 60 * 1000
+
 function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
   const [laudo, setLaudo] = useState<LaudoStatus | null>(null)
+  const [timedOut, setTimedOut] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!enabled || !evaluationId) return
@@ -30,6 +35,7 @@ function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
         setLaudo(data)
         if (data.laudo_pdf_url || data.status === 'error') {
           if (intervalRef.current) clearInterval(intervalRef.current)
+          if (timeoutRef.current) clearTimeout(timeoutRef.current)
         }
       } catch {
         // silently ignore polling errors
@@ -37,13 +43,19 @@ function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
     }
 
     void poll()
-    intervalRef.current = setInterval(() => void poll(), 12_000)
+    intervalRef.current = setInterval(() => void poll(), LAUDO_POLL_INTERVAL_MS)
+    timeoutRef.current = setTimeout(() => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      setTimedOut(true)
+    }, LAUDO_TIMEOUT_MS)
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [evaluationId, enabled])
 
-  return laudo
+  return { laudo, timedOut }
 }
 
 const PROFILE_LABELS: Record<string, string> = {
@@ -73,7 +85,7 @@ export function SummaryStep({
   const [error, setError] = useState<string | null>(null)
   const [evaluationId, setEvaluationId] = useState<string | null>(null)
   const isCorporate = !!companyContext?.company_id
-  const laudo = useLaudoPolling(evaluationId, isCorporate && phase === 'submitted')
+  const { laudo, timedOut } = useLaudoPolling(evaluationId, isCorporate && phase === 'submitted')
 
   const scores = computeAllScores(data)
 
@@ -341,19 +353,7 @@ export function SummaryStep({
 
                 {/* Laudo PDF polling status */}
                 <div className="mt-4 rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-4">
-                  {!laudo || !laudo.laudo_pdf_url ? (
-                    <div className="flex items-center gap-3">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
-                      <div>
-                        <p className="text-xs font-medium text-zinc-300">
-                          Gerando Laudo Individual…
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-zinc-500">
-                          Aguarde enquanto processamos sua avaliação
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
+                  {laudo?.laudo_pdf_url ? (
                     <div className="flex items-center gap-3">
                       <span className="text-lg">📄</span>
                       <div className="flex-1">
@@ -372,6 +372,42 @@ export function SummaryStep({
                       >
                         Baixar PDF
                       </a>
+                    </div>
+                  ) : laudo?.status === 'error' ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">⚠️</span>
+                      <div>
+                        <p className="text-xs font-medium text-amber-400">
+                          Erro ao gerar laudo
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Nossa equipe foi notificada e entrará em contato
+                        </p>
+                      </div>
+                    </div>
+                  ) : timedOut ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">⏳</span>
+                      <div>
+                        <p className="text-xs font-medium text-zinc-300">
+                          Laudo ainda em processamento
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Está demorando mais que o esperado. Você receberá o laudo por e-mail em breve.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+                      <div>
+                        <p className="text-xs font-medium text-zinc-300">
+                          Gerando Laudo Individual…
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Aguarde enquanto processamos sua avaliação (1–2 min)
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>

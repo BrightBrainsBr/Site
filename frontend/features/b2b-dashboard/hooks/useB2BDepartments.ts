@@ -11,7 +11,7 @@ async function fetchDepartments(
   cycleId?: string | null
 ): Promise<{ departments: B2BDepartmentData[]; cycleId: string }> {
   const url = new URL(
-    `/api/b2b/${companyId}/departments`,
+    `/api/brightmonitor/${companyId}/departments`,
     window.location.origin
   )
   if (cycleId) url.searchParams.set('cycle', cycleId)

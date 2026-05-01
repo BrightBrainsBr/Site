@@ -85,6 +85,72 @@ export function scoreAEP(answers: number[]): AEPScoreResult {
   }
 }
 
+function avgNonNull(values: (number | null | undefined)[]): number | null {
+  const valid = values.filter((v): v is number => v != null)
+  return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null
+}
+
+export function scorePhysical(data: AssessmentFormData): number | null {
+  return avgNonNull([
+    data.noise_level as number | null | undefined,
+    data.temperature_level as number | null | undefined,
+    data.lighting_level as number | null | undefined,
+    data.vibration_level as number | null | undefined,
+    data.humidity_level as number | null | undefined,
+  ])
+}
+
+export function scoreErgonomic(data: AssessmentFormData): number | null {
+  return avgNonNull([
+    data.posture_level as number | null | undefined,
+    data.repetition_level as number | null | undefined,
+    data.manual_force_level as number | null | undefined,
+    data.breaks_level as number | null | undefined,
+    data.screen_level as number | null | undefined,
+    data.mobility_level as number | null | undefined,
+    data.cognitive_effort_level as number | null | undefined,
+  ])
+}
+
+export function scorePsychosocial(data: AssessmentFormData): number | null {
+  return avgNonNull([
+    data.workload_level as number | null | undefined,
+    data.pace_level as number | null | undefined,
+    data.autonomy_level as number | null | undefined,
+    data.leadership_level as number | null | undefined,
+    data.relationships_level as number | null | undefined,
+    data.recognition_level as number | null | undefined,
+    data.clarity_level as number | null | undefined,
+    data.balance_level as number | null | undefined,
+  ])
+}
+
+export function scoreViolence(data: AssessmentFormData): number | null {
+  return avgNonNull([
+    data.violence_level as number | null | undefined,
+    data.harassment_level as number | null | undefined,
+  ])
+}
+
+export function scoreOverall(domains: {
+  physical: number | null
+  ergonomic: number | null
+  psychosocial: number | null
+  violence: number | null
+}): number | null {
+  const values = Object.values(domains).filter((v): v is number => v != null)
+  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : null
+}
+
+export function getNR1RiskBand(
+  score: number
+): 'baixo' | 'moderado' | 'alto' | 'critico' {
+  if (score < 2) return 'baixo'
+  if (score < 3) return 'moderado'
+  if (score < 4) return 'alto'
+  return 'critico'
+}
+
 export function computeAllScores(
   data: AssessmentFormData
 ): Record<string, number> {
@@ -139,6 +205,19 @@ export function computeAllScores(
     result.aep_cognitive = aepResult.cognitive
     result.aep_environment = aepResult.environment
   }
+
+  const physical = scorePhysical(data)
+  const ergonomic = scoreErgonomic(data)
+  const psychosocial = scorePsychosocial(data)
+  const violence = scoreViolence(data)
+
+  if (physical != null) result.nr1_physical = physical
+  if (ergonomic != null) result.nr1_ergonomic = ergonomic
+  if (psychosocial != null) result.nr1_psychosocial = psychosocial
+  if (violence != null) result.nr1_violence = violence
+
+  const overall = scoreOverall({ physical, ergonomic, psychosocial, violence })
+  if (overall != null) result.nr1_overall = overall
 
   return result
 }

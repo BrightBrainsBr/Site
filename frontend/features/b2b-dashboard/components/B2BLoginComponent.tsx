@@ -49,7 +49,7 @@ export function B2BLoginComponent() {
 
       await queryClient.resetQueries({ queryKey: ['b2b'] })
 
-      const meRes = await fetch('/api/b2b/me')
+      const meRes = await fetch('/api/brightmonitor/me')
       const meData = await meRes.json()
 
       if (meData.isCompanyUser) {

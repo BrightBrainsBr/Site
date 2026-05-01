@@ -11,7 +11,7 @@ async function fetchCompliance(
   cycleId?: string | null
 ): Promise<B2BComplianceData> {
   const url = new URL(
-    `/api/b2b/${companyId}/compliance`,
+    `/api/brightmonitor/${companyId}/compliance`,
     window.location.origin
   )
   if (cycleId) url.searchParams.set('cycle', cycleId)

@@ -33,7 +33,7 @@ export const authService = {
    */
   async signIn({ email, password }: LoginCredentials): Promise<AuthResponse> {
     try {
-      console.log(`Signing in user with email: ${email}`)
+      console.warn(`Signing in user with email: ${email}`)
 
       const supabase = createClient()
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -43,7 +43,7 @@ export const authService = {
 
       if (error) {
         if (error.message.toLowerCase().includes('email not confirmed')) {
-          console.log(
+          console.warn(
             '[signIn] User email not confirmed. Initiating OTP resend...'
           )
 
@@ -57,7 +57,7 @@ export const authService = {
             return { error: resendResult.error }
           }
 
-          console.log(
+          console.warn(
             '[signIn] OTP resent successfully. Redirecting to verification page.'
           )
           if (typeof window !== 'undefined') {
@@ -103,7 +103,7 @@ export const authService = {
    */
   async signUp({ email, password }: SignupCredentials): Promise<AuthResponse> {
     try {
-      console.log(`Signing up user with email: ${email}`)
+      console.warn(`Signing up user with email: ${email}`)
 
       const supabase = createClient()
 
@@ -127,7 +127,7 @@ export const authService = {
       }
 
       if (signUpData?.user?.identities?.length === 0) {
-        console.log(
+        console.warn(
           'User exists but email not confirmed. Redirecting to verification...'
         )
 
@@ -138,7 +138,7 @@ export const authService = {
       }
 
       if (signUpData.session && signUpData.user) {
-        console.log(
+        console.warn(
           'Signup successful and email confirmation disabled. Updating store and redirecting to onboarding.'
         )
 
@@ -156,7 +156,7 @@ export const authService = {
       }
 
       if (!signUpData.session && signUpData.user) {
-        console.log(
+        console.warn(
           'Signup successful, email confirmation enabled. Supabase already sent confirmation email.'
         )
 
@@ -196,7 +196,7 @@ export const authService = {
     token: string
   }): Promise<AuthResponse> {
     try {
-      console.log(`Verifying OTP for email: ${email}`)
+      console.warn(`Verifying OTP for email: ${email}`)
 
       const supabase = createClient()
       const { data, error } = await supabase.auth.verifyOtp({
@@ -216,7 +216,7 @@ export const authService = {
       }
 
       if (data.session && data.user) {
-        console.log(
+        console.warn(
           'OTP verification successful. Updating store and redirecting to onboarding.'
         )
 
@@ -250,7 +250,7 @@ export const authService = {
    */
   async resendOtp({ email }: { email: string }): Promise<AuthResponse> {
     try {
-      console.log(`Resending OTP for email: ${email}`)
+      console.warn(`Resending OTP for email: ${email}`)
 
       const supabase = createClient()
       const { error } = await supabase.auth.signInWithOtp({
@@ -301,7 +301,7 @@ export const authService = {
    */
   async signOut(): Promise<AuthResponse> {
     try {
-      console.log('Initiating sign out process...')
+      console.warn('Initiating sign out process...')
 
       const response = await fetch('/api/auth/signout', {
         method: 'POST',
@@ -319,10 +319,10 @@ export const authService = {
         throw new Error('Server failed to sign out')
       }
 
-      console.log('Server-side signout successful.')
+      console.warn('Server-side signout successful.')
 
       if (typeof window !== 'undefined') {
-        console.log('Redirecting to /login?logout=success')
+        console.warn('Redirecting to /login?logout=success')
         window.location.href = '/pt-BR/login?logout=success'
       }
 
@@ -332,7 +332,7 @@ export const authService = {
       console.error('Sign out error:', err)
 
       if (typeof window !== 'undefined') {
-        console.log('Redirecting to /login?error=signout_failed due to error')
+        console.warn('Redirecting to /login?error=signout_failed due to error')
         window.location.href = '/pt-BR/login?error=signout_failed'
       }
 
@@ -475,7 +475,7 @@ export const authService = {
   async getUserProfile(
     userId: string
   ): Promise<AuthResponse<UserProfile | null>> {
-    console.log(`[authService] Getting user profile for user: ${userId}`)
+    console.warn(`[authService] Getting user profile for user: ${userId}`)
     try {
       const supabase = createClient()
       const { data, error } = await supabase
@@ -499,7 +499,7 @@ export const authService = {
       }
 
       if (data) {
-        console.log(
+        console.warn(
           `[authService] Successfully fetched profile for user ${userId}.`
         )
       } else {
@@ -600,15 +600,15 @@ export const authService = {
    */
   async forceSignOut(): Promise<AuthResponse> {
     try {
-      console.log('[EMERGENCY] Force sign out initiated')
+      console.warn('[EMERGENCY] Force sign out initiated')
 
       if (typeof window !== 'undefined') {
-        console.log('[EMERGENCY] Clearing localStorage...')
+        console.warn('[EMERGENCY] Clearing localStorage...')
         localStorage.clear()
-        console.log('[EMERGENCY] Clearing sessionStorage...')
+        console.warn('[EMERGENCY] Clearing sessionStorage...')
         sessionStorage.clear()
 
-        console.log('[EMERGENCY] Attempting cookie clearing...')
+        console.warn('[EMERGENCY] Attempting cookie clearing...')
         document.cookie.split(';').forEach((c) => {
           document.cookie = c
             .replace(/^ +/, '')
@@ -617,7 +617,7 @@ export const authService = {
       }
 
       try {
-        console.log('[EMERGENCY] Calling server-side signout endpoint...')
+        console.warn('[EMERGENCY] Calling server-side signout endpoint...')
         await fetch('/api/auth/signout', {
           method: 'POST',
           headers: {
@@ -632,7 +632,7 @@ export const authService = {
       }
 
       if (typeof window !== 'undefined') {
-        console.log('[EMERGENCY] Redirecting to /login?force_reset=true')
+        console.warn('[EMERGENCY] Redirecting to /login?force_reset=true')
         window.location.href = '/pt-BR/login?force_reset=true'
       }
 
@@ -641,7 +641,7 @@ export const authService = {
       const err = error as Error
       console.error('[EMERGENCY] Error during force sign out:', err)
       if (typeof window !== 'undefined') {
-        console.log(
+        console.warn(
           '[EMERGENCY] Redirecting to /login?force_reset=true after error'
         )
         window.location.href = '/pt-BR/login?force_reset=true'
@@ -749,7 +749,7 @@ export const authService = {
    */
   async refreshSession(): Promise<AuthResponse> {
     try {
-      console.log('[Auth Service] Refreshing session')
+      console.warn('[Auth Service] Refreshing session')
       const supabase = createClient()
       const { data, error } = await supabase.auth.refreshSession()
 
@@ -763,7 +763,7 @@ export const authService = {
         }
       }
 
-      console.log('[Auth Service] Session refreshed successfully')
+      console.warn('[Auth Service] Session refreshed successfully')
       return { data }
     } catch (error: unknown) {
       const err = error as Error

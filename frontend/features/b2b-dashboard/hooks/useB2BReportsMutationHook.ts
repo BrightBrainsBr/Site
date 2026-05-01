@@ -23,7 +23,7 @@ async function downloadBlob(res: Response, fallbackFilename: string): Promise<vo
 export function useB2BReportsMutationHook(companyId: string | null) {
   return useMutation<B2BReportDownloadResult, Error, B2BReportRequest>({
     mutationFn: async (request) => {
-      const res = await fetch(`/api/b2b/${companyId}/reports`, {
+      const res = await fetch(`/api/brightmonitor/${companyId}/reports`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),

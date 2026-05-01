@@ -20,12 +20,12 @@ export function useB2BExtractPdfMutationHook(companyId: string | null) {
         const formData = new FormData()
         formData.append('file', input.file)
         formData.append('extractionType', input.extractionType)
-        res = await fetch(`/api/b2b/${companyId}/extract-pdf`, {
+        res = await fetch(`/api/brightmonitor/${companyId}/extract-pdf`, {
           method: 'POST',
           body: formData,
         })
       } else {
-        res = await fetch(`/api/b2b/${companyId}/extract-pdf`, {
+        res = await fetch(`/api/brightmonitor/${companyId}/extract-pdf`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

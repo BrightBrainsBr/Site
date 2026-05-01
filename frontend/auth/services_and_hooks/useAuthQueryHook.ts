@@ -518,7 +518,7 @@ export function useAuthQueryHook() {
 
 //           // Also update the user store with the profile
 //           if (profileData) {
-//             console.log('[useAuthQueryHook] Updating user store with profile from auth session query.');
+//             console.warn('[useAuthQueryHook] Updating user store with profile from auth session query.');
 //             setUserStoreProfile(profileData);
 //           }
 //         }

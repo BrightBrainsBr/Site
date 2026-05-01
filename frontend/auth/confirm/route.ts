@@ -32,10 +32,10 @@ async function resolveUserDestination(
     return redirectTo(request, REDIRECT_ON_ERROR)
   }
 
-  console.log(`[Auth Confirm] User: ${user.id}, Email: ${user.email}`)
+  console.warn(`[Auth Confirm] User: ${user.id}, Email: ${user.email}`)
 
   if (user.user_metadata?.needs_password_setup) {
-    console.log('[Auth Confirm] Invited user needs password setup.')
+    console.warn('[Auth Confirm] Invited user needs password setup.')
     return redirectTo(request, `${REDIRECT_UPDATE_PASSWORD}?from=invite`)
   }
 
@@ -47,25 +47,26 @@ async function resolveUserDestination(
     .maybeSingle()
 
   if (companyUser) {
-    console.log('[Auth Confirm] User is a company admin.')
+    console.warn('[Auth Confirm] User is a company admin.')
     return redirectTo(request, REDIRECT_EMPRESA_DASHBOARD)
   }
 
+  const inviteEmail = user.email?.toLowerCase().trim() ?? ''
   const { data: invite } = await serviceClient
     .from('company_access_codes')
     .select('id')
-    .eq('employee_email', user.email!)
+    .eq('employee_email', inviteEmail)
     .is('used_at', null)
     .eq('active', true)
     .limit(1)
     .maybeSingle()
 
   if (invite) {
-    console.log('[Auth Confirm] User is a collaborator with active invite.')
+    console.warn('[Auth Confirm] User is a collaborator with active invite.')
     return redirectTo(request, '/pt-BR/monitor/form')
   }
 
-  console.log('[Auth Confirm] User not in company_users or invites.')
+  console.warn('[Auth Confirm] User not in company_users or invites.')
   return redirectTo(request, `${REDIRECT_LOGIN}?error=not_company_user`)
 }
 
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
 
   // Handle token_hash verification (bypasses PKCE, works across browsers)
   if (tokenHash && type) {
-    console.log(
+    console.warn(
       `[Auth Confirm] Received token_hash with type=${type}. Verifying OTP.`
     )
     const supabase = await createClient()
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest) {
         return redirectTo(request, `${REDIRECT_ON_ERROR}&details=${encodeURIComponent(error.message)}`)
       }
 
-      console.log(`[Auth Confirm] OTP verified successfully for type=${type}.`)
+      console.warn(`[Auth Confirm] OTP verified successfully for type=${type}.`)
 
       if (type === 'recovery') {
         return redirectTo(request, REDIRECT_UPDATE_PASSWORD)
@@ -112,7 +113,7 @@ export async function GET(request: NextRequest) {
 
   // Handle PKCE code exchange (original flow)
   if (code) {
-    console.log(
+    console.warn(
       '[Auth Confirm] Received code. Attempting PKCE exchange.'
     )
     const supabase = await createClient()
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
         return redirectTo(request, REDIRECT_ON_ERROR)
       }
 
-      console.log('[Auth Confirm] Code exchanged successfully.')
+      console.warn('[Auth Confirm] Code exchanged successfully.')
       return resolveUserDestination(request)
     } catch (e: unknown) {
       const err = e as Error

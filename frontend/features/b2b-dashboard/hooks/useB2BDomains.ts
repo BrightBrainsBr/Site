@@ -10,7 +10,7 @@ async function fetchDomains(
   companyId: string,
   cycleId?: string | null
 ): Promise<B2BDomainsData> {
-  const url = new URL(`/api/b2b/${companyId}/domains`, window.location.origin)
+  const url = new URL(`/api/brightmonitor/${companyId}/domains`, window.location.origin)
   if (cycleId) url.searchParams.set('cycle', cycleId)
   const res = await fetch(url.toString())
   if (!res.ok) throw new Error('Failed to fetch domains')

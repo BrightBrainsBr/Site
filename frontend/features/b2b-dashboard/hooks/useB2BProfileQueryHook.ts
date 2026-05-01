@@ -11,7 +11,7 @@ export function useB2BProfileQueryHook() {
   return useQuery<B2BProfile, Error>({
     queryKey: ['b2b', 'profile'],
     queryFn: async () => {
-      const response = await fetch('/api/b2b/profile')
+      const response = await fetch('/api/brightmonitor/profile')
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Erro ao buscar perfil')
