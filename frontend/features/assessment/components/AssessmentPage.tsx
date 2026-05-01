@@ -9,6 +9,7 @@ import {
 } from '../helpers/generate-test-data'
 import {
   clearFormData,
+  ensureOwner,
   loadCurrentStep,
   loadFormData,
   saveCurrentStep,
@@ -349,10 +350,12 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
   useEffect(() => {
     if (!authorized) return
     if (isLoaded) return
-    const loaded = loadFormData()
+    // Wipe any drafts that belong to a previous user before loading.
+    ensureOwner(sessionEmail ?? null)
+    const loaded = loadFormData(sessionEmail ?? null)
     if (sessionEmail) loaded.email = sessionEmail
     setData(loaded)
-    const savedStep = loadCurrentStep()
+    const savedStep = loadCurrentStep(sessionEmail ?? null)
     setCurrentStepIndex(savedStep >= 0 ? savedStep : 0)
     setIsLoaded(true)
   }, [authorized, sessionEmail, isLoaded])
@@ -366,13 +369,13 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
 
   useEffect(() => {
     if (!isLoaded) return
-    saveFormData(data)
-  }, [data, isLoaded])
+    saveFormData(data, sessionEmail ?? null)
+  }, [data, isLoaded, sessionEmail])
 
   useEffect(() => {
     if (!isLoaded) return
-    saveCurrentStep(currentStepIndex)
-  }, [currentStepIndex, isLoaded])
+    saveCurrentStep(currentStepIndex, sessionEmail ?? null)
+  }, [currentStepIndex, isLoaded, sessionEmail])
 
   const isB2B = mode === 'b2b'
 
@@ -396,7 +399,7 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
   useEffect(() => {
     if (!isLoaded) return
     if (visibleSteps.length === 0) {
-      clearFormData()
+      clearFormData(sessionEmail ?? null)
       setData({ ...INITIAL_FORM_DATA })
       setCurrentStepIndex(0)
       return
@@ -428,7 +431,10 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
 
   const handleReset = () => {
     if (confirm('Tem certeza? Todos os dados serão perdidos.')) {
-      clearFormData()
+      // Pass null to also wipe legacy/anon drafts in case any stale data
+      // exists from previous sessions.
+      clearFormData(null)
+      clearFormData(sessionEmail ?? null)
       setData({ ...INITIAL_FORM_DATA })
       setCurrentStepIndex(0)
     }

@@ -190,7 +190,8 @@ export function SummaryStep({
       }
       if (resData.evaluationId) setEvaluationId(resData.evaluationId)
 
-      clearFormData()
+      clearFormData(data.email ?? null)
+      clearFormData(null)
       setPhase('submitted')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
