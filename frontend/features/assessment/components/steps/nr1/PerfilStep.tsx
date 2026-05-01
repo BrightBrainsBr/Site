@@ -26,6 +26,7 @@ export function PerfilStep({
   }
 
   const isValid =
+    (data.nome as string)?.trim().length > 0 &&
     (data.department as string)?.trim().length > 0 &&
     (data.nr1_role as string)?.trim().length > 0 &&
     (data.nr1_work_time as string)?.trim().length > 0
@@ -35,11 +36,19 @@ export function PerfilStep({
       <SectionTitle
         icon="👤"
         title="Perfil"
-        subtitle="Informações sobre seu cargo e setor para contextualizar as respostas."
+        subtitle="Informações sobre você, seu cargo e setor para contextualizar as respostas."
         required
       />
 
       <div className="space-y-5">
+        <Input
+          label="Nome completo"
+          value={(data.nome as string) ?? ''}
+          onChange={(v) => update('nome', v)}
+          placeholder="Seu nome completo"
+          required
+        />
+
         {departmentOptions.length > 0 ? (
           <Select
             label="Setor / Departamento"

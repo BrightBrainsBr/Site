@@ -6,7 +6,6 @@ import { computeAllScores } from '../../helpers/compute-scores'
 import { clearFormData } from '../../services/localStorage'
 import type { StepComponentProps } from '../assessment.interface'
 import { InfoBox, SectionTitle } from '../fields'
-import { StepNavigation } from '../StepNavigation'
 
 type Phase = 'review' | 'submitting' | 'submitted'
 
@@ -215,11 +214,17 @@ export function SummaryStep({
               title="Dados Pessoais"
               items={[
                 `Nome: ${data.nome || '—'}`,
-                `Nascimento: ${data.nascimento || '—'}`,
+                data.nascimento ? `Nascimento: ${data.nascimento}` : null,
                 data.email ? `E-mail: ${data.email}` : null,
                 data.sexo ? `Sexo: ${data.sexo}` : null,
-                isCorporate && companyContext?.department
-                  ? `Setor: ${companyContext.department}`
+                isCorporate &&
+                (data.nr1_role as string | undefined)?.trim()
+                  ? `Cargo: ${data.nr1_role}`
+                  : null,
+                isCorporate &&
+                ((data.department as string | undefined)?.trim() ||
+                  companyContext?.department)
+                  ? `Setor: ${data.department || companyContext?.department}`
                   : null,
               ].filter(Boolean) as string[]}
             />
@@ -286,13 +291,26 @@ export function SummaryStep({
 
           {error && <InfoBox variant="warning">{error}</InfoBox>}
 
-          <button
-            type="button"
-            onClick={() => void handleSubmit()}
-            className="mt-4 w-full rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 py-3.5 text-sm font-bold text-zinc-900 shadow-lg shadow-lime-400/20 transition-opacity hover:opacity-90"
-          >
-            Enviar Avaliação
-          </button>
+          <div className="mt-4 flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {onPrev ? (
+              <button
+                type="button"
+                onClick={onPrev}
+                className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+              >
+                Anterior
+              </button>
+            ) : (
+              <div />
+            )}
+            <button
+              type="button"
+              onClick={() => void handleSubmit()}
+              className="flex-1 rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 px-6 py-3 text-sm font-bold text-zinc-900 shadow-lg shadow-lime-400/20 transition-opacity hover:opacity-90 sm:flex-none sm:px-10"
+            >
+              Enviar Avaliação
+            </button>
+          </div>
         </>
       )}
 
@@ -475,7 +493,6 @@ export function SummaryStep({
         </div>
       )}
 
-      {phase === 'review' && <StepNavigation onPrev={onPrev} onNext={null} />}
     </div>
   )
 }
