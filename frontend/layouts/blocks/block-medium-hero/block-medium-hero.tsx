@@ -33,7 +33,8 @@ const BlockMediumHero: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
           className="absolute top-1/2 -translate-y-1/2 left-0 w-auto lg:w-full h-full lg:h-auto object-cover lg:object-contain opacity-30"
           width="1920"
           height="1242"
-          alt="graphism-neuro"
+          alt=""
+          aria-hidden="true"
         />
       )}
       <div className="container grid grid-cols-1 lg:grid-cols-12 lg:pt-[20vh]">

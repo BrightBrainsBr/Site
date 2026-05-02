@@ -61,107 +61,112 @@ const kmr = localFont({
   preload: true,
 })
 
-export const revalidate = 60
+export const revalidate = 300
 export const dynamicParams = true
 
 const SITE_URL = 'https://www.brightbrains.com.br'
 
-const globalSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Organization',
-      '@id': `${SITE_URL}/#organization`,
-      name: 'Bright Brains - Instituto da Mente',
-      url: SITE_URL,
-      inLanguage: 'pt-BR',
-      logo: {
-        '@type': 'ImageObject',
-        url: `${SITE_URL}/logo-light.svg`,
-      },
-      description:
-        'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica, utilizando técnicas como Estimulação Magnética Transcraniana (TMS) e Estimulação Transcraniana por Corrente Contínua (tDCS) para tratamento de transtornos neuropsiquiátricos, doenças neurológicas e otimização cognitiva.',
-      telephone: '+55-11-3042-2857',
-      email: 'contato@brightbrains.com.br',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: 'Rua Joaquim Floriano, 72',
-        addressLocality: 'São Paulo',
-        addressRegion: 'SP',
-        addressCountry: 'BR',
-      },
-      sameAs: [
-        'https://www.instagram.com/brightbrainsbr/',
-        'https://br.linkedin.com/company/bright-brains-brasil',
-        'https://www.youtube.com/@BrightBrainsBr',
-      ],
-    },
-    {
-      '@type': 'MedicalClinic',
-      '@id': `${SITE_URL}/#clinic`,
-      name: 'Bright Brains - Instituto da Mente',
-      url: SITE_URL,
-      inLanguage: 'pt-BR',
-      isPartOf: {
+function buildGlobalSchema(locale: string) {
+  const langCode = locale === 'en' ? 'en' : 'pt-BR'
+  const searchLocale = locale === 'en' ? 'en' : 'pt-BR'
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
         '@id': `${SITE_URL}/#organization`,
-      },
-      description:
-        'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica.',
-      telephone: '+55-11-3042-2857',
-      email: 'contato@brightbrains.com.br',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: 'Rua Joaquim Floriano, 72',
-        addressLocality: 'São Paulo',
-        addressRegion: 'SP',
-        addressCountry: 'BR',
-      },
-      openingHoursSpecification: {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-        opens: '09:00',
-        closes: '18:00',
-      },
-      areaServed: {
-        '@type': 'Country',
-        name: 'Brazil',
-      },
-      availableService: [
-        {
-          '@type': 'MedicalTherapy',
-          name: 'Estimulação Magnética Transcraniana (TMS)',
+        name: 'Bright Brains - Instituto da Mente',
+        url: SITE_URL,
+        inLanguage: langCode,
+        logo: {
+          '@type': 'ImageObject',
+          url: `${SITE_URL}/logo-light.svg`,
         },
-        {
-          '@type': 'MedicalTherapy',
-          name: 'Estimulação Transcraniana por Corrente Contínua (tDCS)',
+        description:
+          'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica, utilizando técnicas como Estimulação Magnética Transcraniana (TMS) e Estimulação Transcraniana por Corrente Contínua (tDCS) para tratamento de transtornos neuropsiquiátricos, doenças neurológicas e otimização cognitiva.',
+        telephone: '+55-11-3042-2857',
+        email: 'contato@brightbrains.com.br',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Rua Joaquim Floriano, 72',
+          addressLocality: 'São Paulo',
+          addressRegion: 'SP',
+          addressCountry: 'BR',
         },
-      ],
-      medicalSpecialty: [
-        'Neuromodulation',
-        'Neurology',
-        'Psychiatry',
-        'MentalHealth',
-      ],
-    },
-    {
-      '@type': 'WebSite',
-      '@id': `${SITE_URL}/#website`,
-      name: 'Bright Brains - Instituto da Mente',
-      url: SITE_URL,
-      inLanguage: 'pt-BR',
-      publisher: {
-        '@id': `${SITE_URL}/#organization`,
+        sameAs: [
+          'https://www.instagram.com/brightbrainsbr/',
+          'https://br.linkedin.com/company/bright-brains-brasil',
+          'https://www.youtube.com/@BrightBrainsBr',
+        ],
       },
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: `${SITE_URL}/pt-BR/noticias?q={search_term_string}`,
+      {
+        '@type': 'MedicalClinic',
+        '@id': `${SITE_URL}/#clinic`,
+        name: 'Bright Brains - Instituto da Mente',
+        url: SITE_URL,
+        inLanguage: langCode,
+        isPartOf: {
+          '@id': `${SITE_URL}/#organization`,
         },
-        'query-input': 'required name=search_term_string',
+        description:
+          'Clínica especializada em neuromodulação não invasiva aplicada à saúde mental e neurológica.',
+        telephone: '+55-11-3042-2857',
+        email: 'contato@brightbrains.com.br',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Rua Joaquim Floriano, 72',
+          addressLocality: 'São Paulo',
+          addressRegion: 'SP',
+          addressCountry: 'BR',
+        },
+        openingHoursSpecification: {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          opens: '09:00',
+          closes: '18:00',
+        },
+        areaServed: {
+          '@type': 'Country',
+          name: 'Brazil',
+        },
+        availableService: [
+          {
+            '@type': 'MedicalTherapy',
+            name: 'Estimulação Magnética Transcraniana (TMS)',
+          },
+          {
+            '@type': 'MedicalTherapy',
+            name: 'Estimulação Transcraniana por Corrente Contínua (tDCS)',
+          },
+        ],
+        medicalSpecialty: [
+          'Neuromodulation',
+          'Neurology',
+          'Psychiatry',
+          'MentalHealth',
+        ],
       },
-    },
-  ],
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
+        name: 'Bright Brains - Instituto da Mente',
+        url: SITE_URL,
+        inLanguage: langCode,
+        publisher: {
+          '@id': `${SITE_URL}/#organization`,
+        },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${SITE_URL}/${searchLocale}/noticias?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  }
 }
 
 const RootLayout = async ({ children, params }: any) => {
@@ -202,7 +207,7 @@ const RootLayout = async ({ children, params }: any) => {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(globalSchema),
+            __html: JSON.stringify(buildGlobalSchema(locale)),
           }}
         />
 

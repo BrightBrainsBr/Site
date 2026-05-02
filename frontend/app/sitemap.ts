@@ -44,6 +44,9 @@ export default async function sitemap({
       return {
         ...item,
         url,
+        lastModified: item.lastModified || new Date().toISOString(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
       }
     })
   } catch {
