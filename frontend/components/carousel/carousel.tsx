@@ -36,6 +36,23 @@ const SwiperCarousel: React.FC<Props> = ({
   const shouldShowGrabCursor =
     slidesPerView !== 'auto' && renders.length > Number(slidesPerView)
 
+  if (renders.length === 1) {
+    return (
+      <div
+        key={sliderKey}
+        className={twMerge(className, 'w-full block overflow-hidden relative')}
+        style={{
+          ...styleVariables,
+          ...rest.style,
+        }}
+      >
+        <div className="w-full h-full relative">
+          {renders[0].Layout}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <Swiper
       {...rest}

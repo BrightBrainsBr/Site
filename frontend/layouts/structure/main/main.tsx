@@ -1,10 +1,7 @@
-'use client'
-
-import { useLocalizations } from '@futurebrand/hooks'
 import type { ILocalizationRoute } from '@futurebrand/types/contents'
-import React, { useEffect } from 'react'
+import React from 'react'
 
-import useStateController from '~/hooks/use-state-controller'
+import ClientHydrator from './client-hydrator'
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   localizations?: ILocalizationRoute[]
@@ -23,19 +20,9 @@ const PageMain: React.FC<React.PropsWithChildren<Props>> = ({
   themeVariant,
   ...rest
 }) => {
-  const { setThemeVariant } = useStateController()
-  const { updateRoutes } = useLocalizations()
-
-  useEffect(() => {
-    setThemeVariant(themeVariant ?? 'midnight-950')
-  }, [themeVariant, setThemeVariant])
-
-  useEffect(() => {
-    updateRoutes(localizations)
-  }, [localizations, updateRoutes])
-
   return (
     <main className={`block min-h-screen ${className ?? ''}`} {...rest}>
+      <ClientHydrator localizations={localizations} themeVariant={themeVariant} />
       {children}
     </main>
   )

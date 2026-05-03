@@ -3,6 +3,8 @@ import type { IPost } from '@futurebrand/types/contents'
 import React from 'react'
 
 import JsonLd from '~/components/seo/JsonLd'
+import MedicalReviewer from '~/components/seo/medical-reviewer'
+import VisualBreadcrumbs from '~/components/seo/visual-breadcrumbs'
 import BlocksLayout from '~/layouts/blocks'
 import Main from '~/layouts/structure/main'
 
@@ -86,18 +88,27 @@ async function PostsSingle({ locale, params, previewData }: Props) {
     <Main
       contentType={'posts'}
       localizations={pageData.localizations}
-      // className="pt-16 lg:pt-20"
       themeVariant="lime-400"
     >
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
+      
+      <div className="container mx-auto px-4 mt-8 lg:mt-12 relative z-10">
+        <VisualBreadcrumbs items={breadcrumbSchema.itemListElement.map(item => ({ name: item.name, item: item.item }))} />
+      </div>
+
       <Title
         title={pageData.title}
         description={pageData.excerpt}
-        // tags={pageData.tags?.map((tag) => tag.name) || []}
         featuredImage={pageData.featuredImage}
       />
       <div className="relative z-10 flex flex-col gap-10 bg-gray-light py-10 lg:py-20">
+        <div className="container mx-auto px-4">
+           <MedicalReviewer 
+            datePublished={pageData.publishedDateTime || pageData.publishedAt}
+            dateUpdated={pageData.updatedAt}
+          />
+        </div>
         <BlocksLayout
           blocks={pageData.blocks}
           content={pageData}
@@ -111,4 +122,3 @@ async function PostsSingle({ locale, params, previewData }: Props) {
 }
 
 export default PostsSingle
-

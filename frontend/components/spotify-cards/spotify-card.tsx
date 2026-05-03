@@ -4,6 +4,8 @@ import { twMerge } from 'tailwind-merge'
 
 import type { ISpotifyCard } from './types'
 
+import SpotifyFacade from './spotify-facade'
+
 const SpotifyCard: React.FC<ISpotifyCard> = ({ podcast, priority = false }) => {
   const { attributes } = podcast
 
@@ -31,14 +33,10 @@ const SpotifyCard: React.FC<ISpotifyCard> = ({ podcast, priority = false }) => {
 
       {/* Spotify Embed Player */}
       <div className="w-full">
-        <iframe
-          src={embedUrl}
-          width="100%"
-          height="300"
-          frameBorder="0"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
+        <SpotifyFacade
+          embedUrl={embedUrl}
           title={title}
+          height={300}
           className="rounded-lg w-full"
         />
       </div>

@@ -196,3 +196,10 @@
     margin-top: 2.5rem;
   }
 }
+
+/* HERO LCP — bypass animation so hero text is visible on first paint */
+.block-main-hero.animation-visible.animation-keyframes .animation-content {
+  opacity: 1;
+  translate: none;
+  animation: none;
+}

@@ -10,11 +10,11 @@ const PROJECT_FRAME: Partial<Record<string, string>> = {
 }
 
 const PROJECT_IMAGE_MB: Partial<Record<string, string>> = {
-  'midnight-950': '/frame-midnight-950.svg',
-  'blue-400': '/frame-blue-400.svg',
-  'green-400': '/frame-green-400.svg',
-  'lime-400': '/frame-midnight-950.svg',
-  'violet-400': '/frame-violet-400.svg',
+  'midnight-950': '/frame-midnight-950.webp',
+  'blue-400': '/frame-blue-400.webp',
+  'green-400': '/frame-green-400.webp',
+  'lime-400': '/frame-midnight-950.webp',
+  'violet-400': '/frame-violet-400.webp',
 }
 
 type Properties = {

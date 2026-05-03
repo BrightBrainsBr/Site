@@ -8,6 +8,7 @@ import { getHelpersRouter } from '~/hooks/get-helpers-router'
 import ContentModalWrapper from '~/layouts/structure/content-wrappers'
 import Footer from '~/layouts/structure/footer'
 import Header from '~/layouts/structure/header'
+import JsonLd from '~/components/seo/JsonLd'
 
 interface IRootLayoutProps {
   children: React.ReactNode
@@ -63,6 +64,34 @@ const RootLayout: React.FC<IRootLayoutProps> = async ({
 
   const dictionary = options?.dictionary ?? {}
 
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.brightbrains.com.br'
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${SITE_URL}/#organization`,
+    name: 'Bright Brains',
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon.png`,
+  }
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
+    url: SITE_URL,
+    name: 'Bright Brains',
+    publisher: { '@id': `${SITE_URL}/#organization` },
+  }
+
+  const medicalClinicSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'MedicalClinic',
+    '@id': `${SITE_URL}/#medicalclinic`,
+    name: 'Bright Brains',
+    url: SITE_URL,
+  }
+
   return (
     <HelpersContexts
       {...router.localization}
@@ -70,6 +99,9 @@ const RootLayout: React.FC<IRootLayoutProps> = async ({
       locale={locale}
     >
       <StateControllerProvider>
+        <JsonLd data={organizationSchema} />
+        <JsonLd data={websiteSchema} />
+        <JsonLd data={medicalClinicSchema} />
         {structure?.header && <Header {...structure.header} locale={locale} />}
         {children}
         {structure?.footer && <Footer {...structure.footer} locale={locale} />}

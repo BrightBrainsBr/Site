@@ -33,12 +33,12 @@ const Scripts: React.FC = () => {
       {/* --- CookieYes (Gestão de Cookies) --- */}
       <Script
         id="cookieyes"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         src="https://cdn-cookieyes.com/client_data/85e361dd486ebb7ad2fa8289/script.js"
       />
 
       {/* --- Meta Pixel (Facebook/Instagram) --- */}
-      <Script id="meta-pixel" strategy="afterInteractive">
+      <Script id="meta-pixel" strategy="lazyOnload">
         {`
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -64,7 +64,7 @@ const Scripts: React.FC = () => {
       </noscript>
 
       {/* --- TikTok Pixel --- */}
-      <Script id="tiktok-pixel" strategy="afterInteractive">
+      <Script id="tiktok-pixel" strategy="lazyOnload">
         {`
           !function (w, d, t) {
             w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];
