@@ -34,38 +34,38 @@ const ImageMap: React.FC<Properties> = ({ accent = 'green-400', data }) => {
     switch (accent) {
       case 'blue-400': {
         return [
-          '/brain-blue-2.svg',
-          '/brain-blue-2.svg',
-          '/brain-blue-2.svg',
-          '/brain-blue-2.svg',
-          '/brain-blue-1.svg',
-          '/brain-blue-1.svg',
-          '/brain-blue-3.svg',
-          '/brain-blue-3.svg',
+          '/brain-blue-2.webp',
+          '/brain-blue-2.webp',
+          '/brain-blue-2.webp',
+          '/brain-blue-2.webp',
+          '/brain-blue-1.webp',
+          '/brain-blue-1.webp',
+          '/brain-blue-3.webp',
+          '/brain-blue-3.webp',
         ]
       }
       case 'green-400': {
         return [
-          '/brain-green-2.svg',
-          '/brain-green-2.svg',
-          '/brain-green-2.svg',
-          '/brain-green-2.svg',
-          '/brain-green-1.svg',
-          '/brain-green-1.svg',
-          '/brain-green-3.svg',
-          '/brain-green-3.svg',
+          '/brain-green-2.webp',
+          '/brain-green-2.webp',
+          '/brain-green-2.webp',
+          '/brain-green-2.webp',
+          '/brain-green-1.webp',
+          '/brain-green-1.webp',
+          '/brain-green-3.webp',
+          '/brain-green-3.webp',
         ]
       }
       case 'violet-400': {
         return [
-          '/brain-violet-2.svg',
-          '/brain-violet-2.svg',
-          '/brain-violet-2.svg',
-          '/brain-violet-2.svg',
-          '/brain-violet-1.svg',
-          '/brain-violet-1.svg',
-          '/brain-violet-3.svg',
-          '/brain-violet-3.svg',
+          '/brain-violet-2.webp',
+          '/brain-violet-2.webp',
+          '/brain-violet-2.webp',
+          '/brain-violet-2.webp',
+          '/brain-violet-1.webp',
+          '/brain-violet-1.webp',
+          '/brain-violet-3.webp',
+          '/brain-violet-3.webp',
         ]
       }
     }
@@ -123,9 +123,9 @@ const ImageMap: React.FC<Properties> = ({ accent = 'green-400', data }) => {
             activeIndex === -1 ? 'opacity-100' : 'opacity-0'
           )}
           src={
-            (accent === 'blue-400' && '/brain-blue-default.svg') ||
-            (accent === 'green-400' && '/brain-green-default.svg') ||
-            (accent === 'violet-400' && '/brain-violet-default.svg') ||
+            (accent === 'blue-400' && '/brain-blue-default.webp') ||
+            (accent === 'green-400' && '/brain-green-default.webp') ||
+            (accent === 'violet-400' && '/brain-violet-default.webp') ||
             ''
           }
           width={308}
@@ -141,9 +141,9 @@ const ImageMap: React.FC<Properties> = ({ accent = 'green-400', data }) => {
             key={`image-${index}`}
             src={
               selectMapGroup()[activeIndex] ||
-              (accent === 'blue-400' && '/brain-blue-default.svg') ||
-              (accent === 'green-400' && '/brain-green-default.svg') ||
-              (accent === 'violet-400' && '/brain-violet-default.svg')
+              (accent === 'blue-400' && '/brain-blue-default.webp') ||
+              (accent === 'green-400' && '/brain-green-default.webp') ||
+              (accent === 'violet-400' && '/brain-violet-default.webp')
             }
             width={308}
             height={302}

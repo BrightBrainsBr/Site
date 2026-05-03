@@ -11,16 +11,18 @@ interface Props {
 
 /**
  * @ISR
- * Disabled in AWS Amplify Deployment
- * If is not Amplify, you can enable it
+ * Enabled for Vercel Deployment
  */
-// export async function generateStaticParams() {
-//   const router = await getHelpersRouter()
-//   return await router.map.generateStaticPath({
-//     pages: 10,
-//     posts: 10,
-//   })
-// }
+export const revalidate = 600
+export const dynamicParams = true
+
+export async function generateStaticParams() {
+  const router = await getHelpersRouter()
+  return await router.map.generateStaticPath({
+    pages: 10,
+    posts: 10,
+  })
+}
 
 export async function generateMetadata(
   { params }: Props,

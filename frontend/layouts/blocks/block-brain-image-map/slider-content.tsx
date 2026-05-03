@@ -49,9 +49,9 @@ const SliderContent: React.FC<Properties> = ({
       <picture className="flex items-center justify-center">
         <Image
           src={
-            (accent === 'blue-400' && '/brain-blue-default.svg') ||
-            (accent === 'green-400' && '/brain-green-default.svg') ||
-            (accent === 'violet-400' && '/brain-violet-default.svg') ||
+            (accent === 'blue-400' && '/brain-blue-default.webp') ||
+            (accent === 'green-400' && '/brain-green-default.webp') ||
+            (accent === 'violet-400' && '/brain-violet-default.webp') ||
             ''
           }
           width={308}

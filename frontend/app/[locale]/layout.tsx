@@ -6,6 +6,7 @@ import '~/styles/index.css'
 
 import { Roboto } from 'next/font/google'
 import localFont from 'next/font/local'
+import Script from 'next/script'
 import React from 'react'
 
 import Scripts from '~/layouts/structure/scripts'
@@ -17,6 +18,8 @@ const roboto = Roboto({
   weight: ['400', '500', '700'],
   variable: '--font-roboto',
   preload: true,
+  display: 'optional',
+  adjustFontFallback: true,
 })
 
 const kmr = localFont({
@@ -59,6 +62,8 @@ const kmr = localFont({
   ],
   variable: '--font-kmr',
   preload: true,
+  display: 'optional',
+  adjustFontFallback: 'Arial',
 })
 
 export const revalidate = 300
@@ -212,7 +217,9 @@ const RootLayout = async ({ children, params }: any) => {
         />
 
         {/* Google Tag Manager */}
-        <script
+        <Script
+          id="gtm-script"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -223,7 +230,9 @@ const RootLayout = async ({ children, params }: any) => {
         />
 
         {/* Facebook Pixel Code */}
-        <script
+        <Script
+          id="fb-pixel-1"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
             !function(f,b,e,v,n,t,s)
@@ -241,7 +250,9 @@ const RootLayout = async ({ children, params }: any) => {
         />
 
         {/* Facebook Pixel Code - Second Pixel */}
-        <script
+        <Script
+          id="fb-pixel-2"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
             !function(f,b,e,v,n,t,s)

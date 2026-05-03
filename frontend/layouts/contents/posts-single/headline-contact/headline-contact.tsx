@@ -17,7 +17,7 @@ const HeadlineContact = () => {
       <div className="container h-full">
         <div className="relative rounded-3xl overflow-hidden h-full p-5 lg:p-0 grid grid-cols-1 lg:grid-cols-12 gap-5">
           <Image
-            src="/headline-contact.png"
+            src="/headline-contact.webp"
             width={1300}
             height={480}
             alt="headline contact background image"

@@ -6,6 +6,8 @@ import { Navigation, Pagination } from 'swiper/modules'
 import type { Swiper as SwiperType } from 'swiper'
 import Image from 'next/image'
 
+import SpotifyFacade from '~/components/spotify-cards/spotify-facade'
+
 export interface IEpisode {
   title: string
   description: string
@@ -82,6 +84,157 @@ const CarouselContent: React.FC<Props> = ({ episodes }) => {
     swiper.pagination.update()
   }, [])
 
+  const renderCard = (episode: IEpisode, idx: number) => (
+    <div
+      className="flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
+      style={{
+        background: 'linear-gradient(165deg, rgba(15,25,45,0.95) 0%, rgba(8,16,32,0.98) 100%)',
+        border: '1px solid rgba(132,255,160,0.08)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'rgba(132,255,160,0.2)'
+        e.currentTarget.style.boxShadow =
+          '0 8px 40px rgba(0,0,0,0.4), 0 0 30px rgba(132,255,160,0.06), inset 0 1px 0 rgba(255,255,255,0.05)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'rgba(132,255,160,0.08)'
+        e.currentTarget.style.boxShadow =
+          '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03)'
+      }}
+    >
+      {/* ─── Card Header: Visual area ─── */}
+      <div
+        className="relative h-36 flex items-center justify-between px-5 overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #0c1a30 0%, #0f2318 50%, #0a1628 100%)',
+        }}
+      >
+        {/* Noise texture overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.15] mix-blend-soft-light"
+          style={{
+            backgroundImage:
+              'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
+          }}
+        />
+        {/* Glow orb */}
+        <div
+          className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(132,255,160,0.12) 0%, transparent 70%)',
+          }}
+        />
+
+        {/* Logo & episode badge */}
+        <div className="relative z-10 flex flex-col gap-2">
+          <Image
+            src="/logo-light.svg"
+            alt="Bright Brains"
+            width={100}
+            height={28}
+            className="opacity-60"
+          />
+          <span
+            className="text-[10px] font-bold tracking-[0.15em] uppercase mt-1"
+            style={{ color: 'rgba(132,255,160,0.7)' }}
+          >
+            Episódio {episodes.length - idx}
+          </span>
+        </div>
+
+        {/* Waveform bars decoration */}
+        <div className="relative z-10">
+          <WaveformBars />
+        </div>
+      </div>
+
+      {/* ─── Card Body ─── */}
+      <div className="p-5 flex-grow flex flex-col gap-3">
+        {/* Date */}
+        <span
+          className="text-[11px] font-semibold tracking-widest uppercase"
+          style={{ color: 'rgba(132,255,160,0.6)' }}
+        >
+          {episode.date}
+        </span>
+
+        {/* Title */}
+        <h3
+          className="text-[15px] leading-snug font-bold text-white line-clamp-2"
+          title={episode.title}
+        >
+          {episode.title}
+        </h3>
+
+        {/* Description */}
+        <p
+          className="text-sm leading-relaxed line-clamp-2"
+          style={{ color: 'rgba(255,255,255,0.4)' }}
+        >
+          {episode.description}
+        </p>
+
+        {/* Divider */}
+        <div
+          className="w-full h-px mt-auto"
+          style={{ background: 'rgba(255,255,255,0.06)' }}
+        />
+
+        {/* Spotify Player */}
+        <div className="w-full pt-1">
+          {episode.embedUrl ? (
+            <SpotifyFacade
+              embedUrl={episode.embedUrl}
+              title={episode.title}
+              height={152}
+              className="rounded-xl w-full"
+            />
+          ) : (
+            <a
+              href={episode.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center w-full font-bold py-3 px-4 rounded-xl transition-all duration-300 text-sm"
+              style={{
+                background: 'linear-gradient(135deg, #84ffa0 0%, #3ecf8e 100%)',
+                color: '#0b1220',
+              }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLElement).style.transform = 'scale(1.02)'
+                ;(e.currentTarget as HTMLElement).style.boxShadow =
+                  '0 4px 20px rgba(132,255,160,0.3)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLElement).style.transform = 'scale(1)'
+                ;(e.currentTarget as HTMLElement).style.boxShadow = 'none'
+              }}
+            >
+              ▶ Ouvir Episódio
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
+  if (episodes.length === 1) {
+    return (
+      <div className="relative w-full block-rss-carousel">
+        {/* Global keyframes for waveform animation */}
+        <style jsx global>{`
+          @keyframes podcast-bar {
+            0%   { transform: scaleY(0.4); }
+            100% { transform: scaleY(1); }
+          }
+        `}</style>
+        <div className="w-full lg:w-1/3">
+          {renderCard(episodes[0], 0)}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative w-full block-rss-carousel">
       {/* Global keyframes for waveform animation */}
@@ -121,142 +274,7 @@ const CarouselContent: React.FC<Props> = ({ episodes }) => {
       >
         {episodes.map((episode, idx) => (
           <SwiperSlide key={idx} className="h-auto">
-            <div
-              className="flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
-              style={{
-                background: 'linear-gradient(165deg, rgba(15,25,45,0.95) 0%, rgba(8,16,32,0.98) 100%)',
-                border: '1px solid rgba(132,255,160,0.08)',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(132,255,160,0.2)'
-                e.currentTarget.style.boxShadow =
-                  '0 8px 40px rgba(0,0,0,0.4), 0 0 30px rgba(132,255,160,0.06), inset 0 1px 0 rgba(255,255,255,0.05)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(132,255,160,0.08)'
-                e.currentTarget.style.boxShadow =
-                  '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03)'
-              }}
-            >
-              {/* ─── Card Header: Visual area ─── */}
-              <div
-                className="relative h-36 flex items-center justify-between px-5 overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #0c1a30 0%, #0f2318 50%, #0a1628 100%)',
-                }}
-              >
-                {/* Noise texture overlay */}
-                <div
-                  className="absolute inset-0 opacity-[0.15] mix-blend-soft-light"
-                  style={{
-                    backgroundImage:
-                      'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
-                  }}
-                />
-                {/* Glow orb */}
-                <div
-                  className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
-                  style={{
-                    background: 'radial-gradient(circle, rgba(132,255,160,0.12) 0%, transparent 70%)',
-                  }}
-                />
-
-                {/* Logo & episode badge */}
-                <div className="relative z-10 flex flex-col gap-2">
-                  <Image
-                    src="/logo-light.svg"
-                    alt="Bright Brains"
-                    width={100}
-                    height={28}
-                    className="opacity-60"
-                  />
-                  <span
-                    className="text-[10px] font-bold tracking-[0.15em] uppercase mt-1"
-                    style={{ color: 'rgba(132,255,160,0.7)' }}
-                  >
-                    Episódio {episodes.length - idx}
-                  </span>
-                </div>
-
-                {/* Waveform bars decoration */}
-                <div className="relative z-10">
-                  <WaveformBars />
-                </div>
-              </div>
-
-              {/* ─── Card Body ─── */}
-              <div className="p-5 flex-grow flex flex-col gap-3">
-                {/* Date */}
-                <span
-                  className="text-[11px] font-semibold tracking-widest uppercase"
-                  style={{ color: 'rgba(132,255,160,0.6)' }}
-                >
-                  {episode.date}
-                </span>
-
-                {/* Title */}
-                <h3
-                  className="text-[15px] leading-snug font-bold text-white line-clamp-2"
-                  title={episode.title}
-                >
-                  {episode.title}
-                </h3>
-
-                {/* Description */}
-                <p
-                  className="text-sm leading-relaxed line-clamp-2"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
-                >
-                  {episode.description}
-                </p>
-
-                {/* Divider */}
-                <div
-                  className="w-full h-px mt-auto"
-                  style={{ background: 'rgba(255,255,255,0.06)' }}
-                />
-
-                {/* Spotify Player */}
-                <div className="w-full pt-1">
-                  {episode.embedUrl ? (
-                    <iframe
-                      src={episode.embedUrl}
-                      width="100%"
-                      height="152"
-                      frameBorder="0"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      loading="lazy"
-                      title={episode.title}
-                      className="rounded-xl w-full"
-                      style={{ colorScheme: 'normal' }}
-                    />
-                  ) : (
-                    <a
-                      href={episode.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center w-full font-bold py-3 px-4 rounded-xl transition-all duration-300 text-sm"
-                      style={{
-                        background: 'linear-gradient(135deg, #84ffa0 0%, #3ecf8e 100%)',
-                        color: '#0b1220',
-                      }}
-                      onMouseEnter={(e) => {
-                        ;(e.currentTarget as HTMLElement).style.transform = 'scale(1.02)'
-                        ;(e.currentTarget as HTMLElement).style.boxShadow =
-                          '0 4px 20px rgba(132,255,160,0.3)'
-                      }}
-                      onMouseLeave={(e) => {
-                        ;(e.currentTarget as HTMLElement).style.transform = 'scale(1)'
-                        ;(e.currentTarget as HTMLElement).style.boxShadow = 'none'
-                      }}
-                    >
-                      ▶ Ouvir Episódio
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
+            {renderCard(episode, idx)}
           </SwiperSlide>
         ))}
       </Swiper>
