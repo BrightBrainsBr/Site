@@ -34,6 +34,8 @@ const Title: React.FC<Properties> = ({
         <StrapiImageResponsive
           components={featuredImage}
           className="absolute top-0 left-0 w-full h-full object-cover object-center"
+          priority
+          sizes="100vw"
         />
       )}
       <div className="container grid grid-cols-1 lg:grid-cols-12">

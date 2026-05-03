@@ -4,9 +4,12 @@ import { getContentSingle } from '@futurebrand/hooks'
 import type { IPageData } from '@futurebrand/types/contents'
 import React from 'react'
 
+import JsonLd from '~/components/seo/JsonLd'
 import BlocksLayout from '~/layouts/blocks'
 import BlockEbook from '~/layouts/blocks/block-ebook'
 import Main from '~/layouts/structure/main'
+
+const SITE_URL = 'https://www.brightbrains.com.br'
 
 interface Props {
   params: Record<string, any>
@@ -53,12 +56,46 @@ const PageLayout: React.FC<Props> = async ({ locale, params, previewData }) => {
     }
   }
 
+  // Build MedicalWebPage schema from existing page data
+  const pagePath = pageData.path || (pageData.slug === '/' || pageData.slug === 'home' ? '' : `/${pageData.slug || ''}`)
+  const pageUrl = `${SITE_URL}/${locale}${pagePath}`.replace(/([^:]\/)\/+/g, '$1')
+
+  const pageSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'MedicalWebPage',
+    url: pageUrl,
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+  }
+  if (pageData.pageSeo?.metaTitle) pageSchema.name = pageData.pageSeo.metaTitle
+  if (pageData.pageSeo?.metaDescription) pageSchema.description = pageData.pageSeo.metaDescription
+  if (pageData.updatedAt) pageSchema.dateModified = pageData.updatedAt
+
+  // Build BreadcrumbList schema
+  const breadcrumbItems = [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/${locale}` },
+  ]
+  if (!isHomePage && pageData.pageSeo?.metaTitle) {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: pageData.pageSeo.metaTitle,
+      item: pageUrl,
+    })
+  }
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems,
+  }
+
   return (
     <Main
       contentType="pages"
       localizations={pageData.localizations}
       themeVariant={pageData.themeColor ?? 'midnight-950'}
     >
+      <JsonLd data={pageSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <BlocksLayout
         content={pageData}
         contentType="pages"

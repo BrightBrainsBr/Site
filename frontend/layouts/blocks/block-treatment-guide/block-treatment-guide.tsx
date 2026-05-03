@@ -47,7 +47,8 @@ const BlockTreatmentGuide: React.FC<IBlockProps<Properties>> = ({
         className="absolute top-0 left-0 w-auto lg:w-full h-full lg:h-auto object-cover object-left lg:object-center lg:object-contain opacity-30"
         width="1920"
         height="1242"
-        alt="graphism-neuro"
+        alt=""
+        aria-hidden="true"
       />
       <div className="relative z-10 container flex flex-col gap-10">
         {content && (
