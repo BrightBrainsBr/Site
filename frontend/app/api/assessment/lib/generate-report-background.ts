@@ -112,7 +112,7 @@ const MIME_MAP: Record<string, string> = {
 }
 function inferMime(u: Upload): string {
   if (u.type) return u.type
-  const ext = u.name.split('.').pop()?.toLowerCase()
+  const ext = u.name?.split('.').pop()?.toLowerCase()
   return (ext && MIME_MAP[ext]) || 'application/octet-stream'
 }
 

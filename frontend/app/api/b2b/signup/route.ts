@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const domain = email.split('@')[1]
+    const domain = email.includes('@') ? email.split('@')[1] : null
     if (!domain) {
       return NextResponse.json({ error: 'Email inválido' }, { status: 400 })
     }

@@ -90,7 +90,7 @@ export function SummaryStep({
           size: number
           data?: string
         }[]) {
-          if (!f.data) continue
+          if (!f.data || typeof f.data !== 'string') continue
 
           const [header, b64] = f.data.split(',')
           const mime = header?.match(/:(.*?);/)?.[1] || 'application/pdf'

@@ -32,6 +32,7 @@ const STATUS_CONFIG: Record<
 }
 
 function maskEmail(email: string): string {
+  if (!email || typeof email !== 'string') return '***@***'
   const [local, domain] = email.split('@')
   if (!local || !domain) return '***@***'
   const visibleChars = Math.min(3, local.length)

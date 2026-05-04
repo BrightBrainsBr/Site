@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const ext = fileName.split('.').pop() ?? 'bin'
+    const ext = fileName?.split('.').pop() ?? 'bin'
     const path = `uploads/pending/${crypto.randomUUID()}/${Date.now()}.${ext}`
 
     const supabase = createSupabase()
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     const folder = evaluationId ?? `pending/${crypto.randomUUID()}`
-    const ext = file.name.split('.').pop() ?? 'bin'
+    const ext = file.name?.split('.').pop() ?? 'bin'
     const path = `uploads/${folder}/${Date.now()}.${ext}`
     const buffer = Buffer.from(await file.arrayBuffer())
 
