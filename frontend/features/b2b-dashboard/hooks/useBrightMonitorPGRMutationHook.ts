@@ -20,10 +20,23 @@ export function useBrightMonitorPGRMutation(companyId: string | null) {
         }
       )
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(
-          (err as { error?: string }).error || 'PGR generation failed'
-        )
+        // 504 from Vercel returns a plain HTML/text gateway timeout (no JSON body).
+        const text = await res.text().catch(() => '')
+        let message = `PGR generation failed (HTTP ${res.status})`
+        if (text) {
+          try {
+            const parsed = JSON.parse(text) as { error?: string }
+            if (parsed.error) message = parsed.error
+          } catch {
+            if (res.status === 504) {
+              message =
+                'Tempo limite excedido (504). A geração demorou mais que 5 min — tente novamente ou contate o suporte.'
+            } else {
+              message = text.slice(0, 200)
+            }
+          }
+        }
+        throw new Error(message)
       }
       return res.json() as Promise<PGRResult>
     },

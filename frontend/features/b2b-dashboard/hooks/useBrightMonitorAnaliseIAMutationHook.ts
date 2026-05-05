@@ -18,10 +18,22 @@ export function useBrightMonitorAnaliseIAMutation(companyId: string | null) {
         }
       )
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(
-          (err as { error?: string }).error || 'Analysis generation failed'
-        )
+        const text = await res.text().catch(() => '')
+        let message = `Analysis generation failed (HTTP ${res.status})`
+        if (text) {
+          try {
+            const parsed = JSON.parse(text) as { error?: string }
+            if (parsed.error) message = parsed.error
+          } catch {
+            if (res.status === 504) {
+              message =
+                'Tempo limite excedido (504). A análise demorou mais que 5 min — tente novamente.'
+            } else {
+              message = text.slice(0, 200)
+            }
+          }
+        }
+        throw new Error(message)
       }
       return res.json() as Promise<AnaliseIAResult>
     },

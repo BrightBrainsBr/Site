@@ -36,20 +36,15 @@ function geminiFlashPreviewFixerDict(): LLMConfigDict {
 export type BrightmonitorReportTask =
   | 'general_response'
   | 'brightmonitor_pgr_generation'
+  | 'brightmonitor_analise_ia'
 
 function brightmonitorReportConfigs(primaryTask: BrightmonitorReportTask) {
   const primaryConfigDict = getAnthropicConfigForTask(primaryTask)
 
-  const fallbackConfigDict =
-    primaryTask === 'brightmonitor_pgr_generation'
-      ? getAnthropicConfigForTask('brightmonitor_pgr_generation', {
-          model_name: FALLBACK_ANTHROPIC_MODEL,
-          enable_cache: false,
-        })
-      : getAnthropicConfigForTask('general_response', {
-          model_name: FALLBACK_ANTHROPIC_MODEL,
-          enable_cache: false,
-        })
+  const fallbackConfigDict = getAnthropicConfigForTask(primaryTask, {
+    model_name: FALLBACK_ANTHROPIC_MODEL,
+    enable_cache: false,
+  })
 
   const fixerConfigDict = geminiFlashPreviewFixerDict()
 

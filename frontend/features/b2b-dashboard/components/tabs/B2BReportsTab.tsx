@@ -3,12 +3,12 @@
 'use client'
 
 import { marked } from 'marked'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useBrightMonitorAnaliseIAMutation } from '../../hooks/useBrightMonitorAnaliseIAMutationHook'
 import {
-  useBrightMonitorPGRMutation,
   type PGRResult,
+  useBrightMonitorPGRMutation,
 } from '../../hooks/useBrightMonitorPGRMutationHook'
 
 interface PGRCardDef {
@@ -104,7 +104,7 @@ interface B2BReportsTabProps {
 
 function MarkdownPreview({ content }: { content: string }) {
   const html = useMemo(() => {
-    const raw = marked.parse(content, { async: false }) as string
+    const raw = marked.parse(content, { async: false })
     return raw
   }, [content])
 
@@ -116,21 +116,103 @@ function MarkdownPreview({ content }: { content: string }) {
   )
 }
 
-function LoadingSpinner() {
+/**
+ * Live elapsed-time spinner. PGR/Análise IA generations can take 60–180s on
+ * Sonnet 4.6, so a static spinner feels broken. Shows seconds + an indeterminate
+ * progress bar that visually slows as we approach the 5-min server timeout.
+ */
+function LoadingSpinner({
+  label = 'Gerando com IA…',
+  expectedSeconds = 90,
+}: {
+  label?: string
+  expectedSeconds?: number
+}) {
+  const startedAt = useRef(Date.now())
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    startedAt.current = Date.now()
+    const id = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startedAt.current) / 1000))
+    }, 500)
+    return () => clearInterval(id)
+  }, [])
+
+  // Logistic curve approaching but never reaching 100% (caps at ~95% near expectedSeconds*2).
+  const progressPct = Math.min(95, (elapsed / (expectedSeconds * 2)) * 100)
+  const overdue = elapsed > expectedSeconds * 2
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#c5e155] border-t-transparent" />
-      <span className="text-[13px] text-[#94a3b8]">Gerando com IA…</span>
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#c5e155] border-t-transparent" />
+        <span className="text-[13px] text-[#94a3b8]">
+          {label} <span className="text-[#64748b]">({elapsed}s)</span>
+          {overdue && (
+            <span className="ml-2 text-[11px] text-amber-400">
+              demorando mais que o esperado…
+            </span>
+          )}
+        </span>
+      </div>
+      <div className="h-1 w-full overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
+        <div
+          className="h-full bg-[#c5e155] transition-[width] duration-500 ease-out"
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>
     </div>
   )
 }
 
-export function B2BReportsTab({ companyId, defaultSection = 'pgr' }: B2BReportsTabProps) {
-  const [activeSection, setActiveSection] = useState<'pgr' | 'analise-ia'>(defaultSection)
+function ErrorBlock({
+  message,
+  onRetry,
+  retryColor,
+}: {
+  message: string
+  onRetry: () => void
+  retryColor: string
+}) {
+  return (
+    <div className="mt-3 rounded-md border border-red-500/20 bg-red-500/5 p-2.5">
+      <div className="flex items-start gap-2">
+        <span className="mt-0.5 text-[14px]">⚠️</span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[12px] font-semibold text-red-400">
+            Falha na geração
+          </div>
+          <div
+            className="mt-0.5 break-words text-[12px] leading-relaxed text-[#fca5a5]"
+            title={message}
+          >
+            {message}
+          </div>
+          <button
+            onClick={onRetry}
+            className={`mt-1.5 text-[12px] font-medium underline hover:no-underline`}
+            style={{ color: retryColor }}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function B2BReportsTab({
+  companyId,
+  defaultSection = 'pgr',
+}: B2BReportsTabProps) {
+  const [activeSection, setActiveSection] = useState<'pgr' | 'analise-ia'>(
+    defaultSection
+  )
   const [pgrResults, setPgrResults] = useState<Record<string, PGRResult>>({})
-  const [analiseResults, setAnaliseResults] = useState<
-    Record<string, string>
-  >({})
+  const [analiseResults, setAnaliseResults] = useState<Record<string, string>>(
+    {}
+  )
   const [expandedPgr, setExpandedPgr] = useState<string | null>(null)
   const [expandedAnalise, setExpandedAnalise] = useState<string | null>(null)
 
@@ -188,224 +270,222 @@ export function B2BReportsTab({ companyId, defaultSection = 'pgr' }: B2BReportsT
       </div>
 
       {/* ── Section 1: Documentos PGR ──────────────────────────────── */}
-      {activeSection === 'pgr' && <section>
-        <div className="mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[20px]">📋</span>
-            <h2 className="text-[20px] font-bold text-[#e2e8f0]">
-              Documentos PGR
-            </h2>
+      {activeSection === 'pgr' && (
+        <section>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[20px]">📋</span>
+              <h2 className="text-[20px] font-bold text-[#e2e8f0]">
+                Documentos PGR
+              </h2>
+            </div>
+            <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">
+              Geração automática de documentos NR-1 com IA
+            </p>
           </div>
-          <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">
-            Geração automática de documentos NR-1 com IA
-          </p>
-        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PGR_CARDS.map((card) => {
-            const isGenerating =
-              pgrMutation.isPending && pgrMutation.variables === card.slug
-            const result = pgrResults[card.slug]
-            const isExpanded = expandedPgr === card.slug
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {PGR_CARDS.map((card) => {
+              const isGenerating =
+                pgrMutation.isPending && pgrMutation.variables === card.slug
+              const result = pgrResults[card.slug]
+              const isExpanded = expandedPgr === card.slug
 
-            return (
-              <div
-                key={card.slug}
-                className="flex flex-col rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-5"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="rounded-md bg-[rgba(197,225,85,0.1)] px-2 py-0.5 text-[11px] font-semibold text-[#c5e155]">
-                    {card.nr1Ref}
-                  </span>
-                  <span className="rounded-md bg-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">
-                    PDF
-                  </span>
-                </div>
-                <h3 className="mt-3 text-[17px] font-semibold text-[#e2e8f0]">
-                  {card.title}
-                </h3>
-                <p className="mt-1.5 flex-1 text-[14px] leading-relaxed text-[#64748b]">
-                  {card.description}
-                </p>
-
-                <div className="mt-4 flex items-center gap-2">
-                  <button
-                    onClick={() => handleGeneratePGR(card.slug)}
-                    disabled={isGenerating}
-                    className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
-                  >
-                    {isGenerating ? 'Gerando…' : 'Gerar'}
-                  </button>
-                  {result?.pdfUrl && (
-                    <a
-                      href={result.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-lg border border-[rgba(255,255,255,0.06)] px-3 py-1.5 text-[13px] text-[#94a3b8] transition-colors hover:border-[rgba(197,225,85,0.3)] hover:text-[#c5e155]"
-                    >
-                      ↓ PDF
-                    </a>
-                  )}
-                  {result && (
-                    <button
-                      onClick={() =>
-                        setExpandedPgr(isExpanded ? null : card.slug)
-                      }
-                      className="ml-auto text-[13px] text-[#64748b] hover:text-[#94a3b8]"
-                    >
-                      {isExpanded ? 'Recolher' : 'Ver texto'}
-                    </button>
-                  )}
-                </div>
-
-                {isGenerating && (
-                  <div className="mt-3">
-                    <LoadingSpinner />
+              return (
+                <div
+                  key={card.slug}
+                  className="flex flex-col rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="rounded-md bg-[rgba(197,225,85,0.1)] px-2 py-0.5 text-[11px] font-semibold text-[#c5e155]">
+                      {card.nr1Ref}
+                    </span>
+                    <span className="rounded-md bg-[rgba(255,255,255,0.06)] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">
+                      PDF
+                    </span>
                   </div>
-                )}
+                  <h3 className="mt-3 text-[17px] font-semibold text-[#e2e8f0]">
+                    {card.title}
+                  </h3>
+                  <p className="mt-1.5 flex-1 text-[14px] leading-relaxed text-[#64748b]">
+                    {card.description}
+                  </p>
 
-                {pgrMutation.isError &&
-                  pgrMutation.variables === card.slug && (
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="text-[13px] text-red-400">
-                        {pgrMutation.error.message}
-                      </span>
-                      <button
-                        onClick={() => handleGeneratePGR(card.slug)}
-                        className="text-[13px] text-[#c5e155] underline"
+                  <div className="mt-4 flex items-center gap-2">
+                    <button
+                      onClick={() => handleGeneratePGR(card.slug)}
+                      disabled={isGenerating}
+                      className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
+                    >
+                      {isGenerating ? 'Gerando…' : 'Gerar'}
+                    </button>
+                    {result?.pdfUrl && (
+                      <a
+                        href={result.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-lg border border-[rgba(255,255,255,0.06)] px-3 py-1.5 text-[13px] text-[#94a3b8] transition-colors hover:border-[rgba(197,225,85,0.3)] hover:text-[#c5e155]"
                       >
-                        Tentar novamente
+                        ↓ PDF
+                      </a>
+                    )}
+                    {result && (
+                      <button
+                        onClick={() =>
+                          setExpandedPgr(isExpanded ? null : card.slug)
+                        }
+                        className="ml-auto text-[13px] text-[#64748b] hover:text-[#94a3b8]"
+                      >
+                        {isExpanded ? 'Recolher' : 'Ver texto'}
                       </button>
+                    )}
+                  </div>
+
+                  {isGenerating && (
+                    <div className="mt-3">
+                      <LoadingSpinner
+                        label="Gerando PGR com IA…"
+                        expectedSeconds={90}
+                      />
                     </div>
                   )}
 
-                {result?.generatedAt && (
-                  <p className="mt-2 text-[11px] text-[#475569]">
-                    Gerado em{' '}
-                    {new Date(result.generatedAt).toLocaleString('pt-BR')}
-                  </p>
-                )}
-              </div>
-            )
-          })}
-        </div>
+                  {pgrMutation.isError &&
+                    pgrMutation.variables === card.slug && (
+                      <ErrorBlock
+                        message={pgrMutation.error.message}
+                        onRetry={() => handleGeneratePGR(card.slug)}
+                        retryColor="#c5e155"
+                      />
+                    )}
 
-        {/* Expanded PGR markdown preview */}
-        {expandedPgr && pgrResults[expandedPgr]?.markdown && (
-          <div className="mt-4">
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-[15px] font-semibold text-[#e2e8f0]">
-                {PGR_CARDS.find((c) => c.slug === expandedPgr)?.title}
-              </h3>
-              <button
-                onClick={() => setExpandedPgr(null)}
-                className="text-[13px] text-[#64748b] hover:text-[#94a3b8]"
-              >
-                ✕ Fechar
-              </button>
-            </div>
-            <MarkdownPreview content={pgrResults[expandedPgr].markdown} />
+                  {result?.generatedAt && (
+                    <p className="mt-2 text-[11px] text-[#475569]">
+                      Gerado em{' '}
+                      {new Date(result.generatedAt).toLocaleString('pt-BR')}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
           </div>
-        )}
-      </section>}
+
+          {/* Expanded PGR markdown preview */}
+          {expandedPgr && pgrResults[expandedPgr]?.markdown && (
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-[15px] font-semibold text-[#e2e8f0]">
+                  {PGR_CARDS.find((c) => c.slug === expandedPgr)?.title}
+                </h3>
+                <button
+                  onClick={() => setExpandedPgr(null)}
+                  className="text-[13px] text-[#64748b] hover:text-[#94a3b8]"
+                >
+                  ✕ Fechar
+                </button>
+              </div>
+              <MarkdownPreview content={pgrResults[expandedPgr].markdown} />
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ── Section 2: Análise IA ──────────────────────────────────── */}
-      {activeSection === 'analise-ia' && <section>
-        <div className="mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[20px]">🤖</span>
-            <h2 className="text-[20px] font-bold text-[#e2e8f0]">
-              Análise IA
-            </h2>
+      {activeSection === 'analise-ia' && (
+        <section>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[20px]">🤖</span>
+              <h2 className="text-[20px] font-bold text-[#e2e8f0]">
+                Análise IA
+              </h2>
+            </div>
+            <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">
+              Insights e recomendações gerados por inteligência artificial
+            </p>
           </div>
-          <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">
-            Insights e recomendações gerados por inteligência artificial
-          </p>
-        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {ANALISE_CARDS.map((card) => {
-            const isGenerating =
-              analiseMutation.isPending &&
-              analiseMutation.variables === card.slug
-            const result = analiseResults[card.slug]
-            const isExpanded = expandedAnalise === card.slug
+          <div className="grid gap-4 sm:grid-cols-2">
+            {ANALISE_CARDS.map((card) => {
+              const isGenerating =
+                analiseMutation.isPending &&
+                analiseMutation.variables === card.slug
+              const result = analiseResults[card.slug]
+              const isExpanded = expandedAnalise === card.slug
 
-            return (
-              <div
-                key={card.slug}
-                className="flex flex-col rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-5"
-              >
-                <h3 className="text-[17px] font-semibold text-[#e2e8f0]">
-                  {card.title}
-                </h3>
-                <p className="mt-1.5 flex-1 text-[14px] leading-relaxed text-[#64748b]">
-                  {card.description}
-                </p>
+              return (
+                <div
+                  key={card.slug}
+                  className="flex flex-col rounded-[14px] border border-[rgba(255,255,255,0.06)] bg-[#0c1425] p-5"
+                >
+                  <h3 className="text-[17px] font-semibold text-[#e2e8f0]">
+                    {card.title}
+                  </h3>
+                  <p className="mt-1.5 flex-1 text-[14px] leading-relaxed text-[#64748b]">
+                    {card.description}
+                  </p>
 
-                <div className="mt-4 flex items-center gap-2">
-                  <button
-                    onClick={() => handleGenerateAnalise(card.slug)}
-                    disabled={isGenerating}
-                    className="rounded-lg bg-[rgba(96,165,250,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#60a5fa] transition-colors hover:bg-[rgba(96,165,250,0.25)] disabled:opacity-50"
-                  >
-                    {isGenerating ? 'Analisando…' : 'Analisar'}
-                  </button>
-                  {result && (
+                  <div className="mt-4 flex items-center gap-2">
                     <button
-                      onClick={() =>
-                        setExpandedAnalise(isExpanded ? null : card.slug)
-                      }
-                      className="ml-auto text-[13px] text-[#64748b] hover:text-[#94a3b8]"
+                      onClick={() => handleGenerateAnalise(card.slug)}
+                      disabled={isGenerating}
+                      className="rounded-lg bg-[rgba(96,165,250,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#60a5fa] transition-colors hover:bg-[rgba(96,165,250,0.25)] disabled:opacity-50"
                     >
-                      {isExpanded ? 'Recolher' : 'Ver análise'}
+                      {isGenerating ? 'Analisando…' : 'Analisar'}
                     </button>
-                  )}
-                </div>
-
-                {isGenerating && (
-                  <div className="mt-3">
-                    <LoadingSpinner />
-                  </div>
-                )}
-
-                {analiseMutation.isError &&
-                  analiseMutation.variables === card.slug && (
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="text-[13px] text-red-400">
-                        {analiseMutation.error.message}
-                      </span>
+                    {result && (
                       <button
-                        onClick={() => handleGenerateAnalise(card.slug)}
-                        className="text-[13px] text-[#60a5fa] underline"
+                        onClick={() =>
+                          setExpandedAnalise(isExpanded ? null : card.slug)
+                        }
+                        className="ml-auto text-[13px] text-[#64748b] hover:text-[#94a3b8]"
                       >
-                        Tentar novamente
+                        {isExpanded ? 'Recolher' : 'Ver análise'}
                       </button>
+                    )}
+                  </div>
+
+                  {isGenerating && (
+                    <div className="mt-3">
+                      <LoadingSpinner
+                        label="Analisando com IA…"
+                        expectedSeconds={75}
+                      />
                     </div>
                   )}
-              </div>
-            )
-          })}
-        </div>
 
-        {/* Expanded analysis markdown preview */}
-        {expandedAnalise && analiseResults[expandedAnalise] && (
-          <div className="mt-4">
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-[15px] font-semibold text-[#e2e8f0]">
-                {ANALISE_CARDS.find((c) => c.slug === expandedAnalise)?.title}
-              </h3>
-              <button
-                onClick={() => setExpandedAnalise(null)}
-                className="text-[13px] text-[#64748b] hover:text-[#94a3b8]"
-              >
-                ✕ Fechar
-              </button>
-            </div>
-            <MarkdownPreview content={analiseResults[expandedAnalise]} />
+                  {analiseMutation.isError &&
+                    analiseMutation.variables === card.slug && (
+                      <ErrorBlock
+                        message={analiseMutation.error.message}
+                        onRetry={() => handleGenerateAnalise(card.slug)}
+                        retryColor="#60a5fa"
+                      />
+                    )}
+                </div>
+              )
+            })}
           </div>
-        )}
-      </section>}
+
+          {/* Expanded analysis markdown preview */}
+          {expandedAnalise && analiseResults[expandedAnalise] && (
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-[15px] font-semibold text-[#e2e8f0]">
+                  {ANALISE_CARDS.find((c) => c.slug === expandedAnalise)?.title}
+                </h3>
+                <button
+                  onClick={() => setExpandedAnalise(null)}
+                  className="text-[13px] text-[#64748b] hover:text-[#94a3b8]"
+                >
+                  ✕ Fechar
+                </button>
+              </div>
+              <MarkdownPreview content={analiseResults[expandedAnalise]} />
+            </div>
+          )}
+        </section>
+      )}
     </div>
   )
 }
