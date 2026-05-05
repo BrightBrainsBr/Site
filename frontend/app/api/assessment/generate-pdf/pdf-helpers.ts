@@ -75,6 +75,7 @@ function drawFooterOnPage(doc: jsPDF, today: string) {
 }
 
 export function parseSections(markdown: string) {
+  if (!markdown || typeof markdown !== 'string') return []
   const parts = markdown.split(/(?=^##\s)/m).filter((p) => p.trim())
   return parts.map((part) => {
     const lines = part.trim().split('\n')

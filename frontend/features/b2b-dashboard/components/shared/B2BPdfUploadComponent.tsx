@@ -329,7 +329,7 @@ function NR1ReviewForm({
           onChange={(e) =>
             onChange({
               ...data,
-              preventive_measures: e.target.value
+              preventive_measures: (e.target.value || '')
                 .split('\n')
                 .filter((s) => s.trim()),
             })

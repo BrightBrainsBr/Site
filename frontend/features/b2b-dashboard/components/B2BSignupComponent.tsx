@@ -46,13 +46,10 @@ export function B2BSignupComponent() {
   const passwordValue = watch('password')
 
   const checkEmail = useCallback(async (emailValue: string) => {
+    if (!emailValue || typeof emailValue !== 'string') return
     const trimmed = emailValue.trim().toLowerCase()
-    if (
-      !trimmed ||
-      !trimmed.includes('@') ||
-      !trimmed.split('@')[1]?.includes('.')
-    )
-      return
+    const parts = trimmed.split('@')
+    if (parts.length < 2 || !parts[1].includes('.')) return
     if (trimmed === lastCheckedEmail.current) return
     lastCheckedEmail.current = trimmed
 

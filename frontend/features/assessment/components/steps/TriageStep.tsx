@@ -21,7 +21,9 @@ export function TriageStep({
   const update = (key: string, value: unknown) =>
     setData({ ...data, [key]: value })
 
-  const wordCount = (data.transcricaoTriagem || '')
+  const wordCount = (
+    typeof data.transcricaoTriagem === 'string' ? data.transcricaoTriagem : ''
+  )
     .trim()
     .split(/\s+/)
     .filter(Boolean).length
