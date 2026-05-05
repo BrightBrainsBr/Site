@@ -56,7 +56,7 @@ async function resolveCompanyContext(
     return await buildContextFromCompanyId(sb, metaCompanyId)
   }
 
-  const domain = userEmail.split('@')[1]
+  const domain = userEmail ? userEmail.split('@')[1] : null
   if (domain) {
     const { data: domainCompany } = await sb
       .from('companies')
