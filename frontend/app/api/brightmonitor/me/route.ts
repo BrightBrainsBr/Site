@@ -60,7 +60,7 @@ export async function GET() {
         })
       }
 
-      const domain = user.email?.split('@')[1]
+      const domain = user.email ? user.email.split('@')[1] : null
       if (domain) {
         const { data: domainCompany } = await sb
           .from('companies')
