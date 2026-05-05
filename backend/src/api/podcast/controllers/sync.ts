@@ -8,7 +8,7 @@ export default {
       const { PodcastSyncService } = require('../../../app/spotify/podcast-sync')
       const syncService = new PodcastSyncService(strapi)
       
-      console.log('[Manual Sync] Starting synchronization via HTTP endpoint...')
+      console.warn('[Manual Sync] Starting synchronization via HTTP endpoint...')
       const result = await syncService.syncPodcasts()
       
       ctx.body = {

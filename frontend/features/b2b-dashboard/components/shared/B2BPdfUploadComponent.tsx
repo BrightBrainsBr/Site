@@ -56,7 +56,7 @@ export function B2BPdfUploadComponent({
       setUploadError(null)
 
       try {
-        const signedRes = await fetch(`/api/b2b/${companyId}/settings`, {
+        const signedRes = await fetch(`/api/brightmonitor/${companyId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -80,7 +80,7 @@ export function B2BPdfUploadComponent({
         })
         if (!uploadRes.ok) throw new Error('Falha no upload do arquivo')
 
-        const publicRes = await fetch(`/api/b2b/${companyId}/settings`, {
+        const publicRes = await fetch(`/api/brightmonitor/${companyId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

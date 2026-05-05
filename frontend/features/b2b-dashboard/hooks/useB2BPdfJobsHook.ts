@@ -53,7 +53,7 @@ export function useB2BPdfJobsHook(companyId: string | null) {
     return readPersistedIds(companyId)
   })
 
-  const base = `/api/b2b/${companyId}/extract-pdf/jobs`
+  const base = `/api/brightmonitor/${companyId}/extract-pdf/jobs`
 
   const setActiveJobIds = useCallback(
     (ids: string[]) => {

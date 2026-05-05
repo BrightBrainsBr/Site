@@ -11,7 +11,7 @@ async function fetchPercepcao(
   cycle?: string
 ): Promise<B2BPercepcaoData> {
   const url = new URL(
-    `/api/b2b/${companyId}/percepcao`,
+    `/api/brightmonitor/${companyId}/percepcao`,
     window.location.origin
   )
   if (cycle) url.searchParams.set('cycle', cycle)

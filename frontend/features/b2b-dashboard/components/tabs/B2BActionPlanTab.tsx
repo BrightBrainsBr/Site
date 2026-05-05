@@ -14,7 +14,6 @@ import { useB2BActionPlansMutationHook } from '../../hooks/useB2BActionPlansMuta
 import { useB2BActionPlansQueryHook } from '../../hooks/useB2BActionPlansQueryHook'
 import { useB2BDepartments } from '../../hooks/useB2BDepartments'
 
-
 const STATUS_CONFIG: Record<
   ActionPlanStatus,
   { label: string; color: string; bg: string }
@@ -418,52 +417,10 @@ export function B2BActionPlanTab({
         </div>
       )}
 
-      {/* ── Action bar: buttons + search + filters ── */}
+      {/* ── Action bar: search + filters on left, buttons on right ── */}
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={() => {
-            resetForm()
-            setShowForm(true)
-          }}
-          className="rounded-lg bg-[rgba(197,225,85,0.15)] px-3 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)]"
-        >
-          + Nova Ação
-        </button>
-        <button
-          onClick={handleGenerateClick}
-          disabled={generatePlans.isPending}
-          className="rounded-lg border border-[rgba(96,165,250,0.3)] bg-[rgba(96,165,250,0.1)] px-4 py-2 text-[14px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.2)] disabled:opacity-50"
-        >
-          {generatePlans.isPending ? (
-            <span className="flex items-center gap-2">
-              <svg
-                className="h-4 w-4 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
-              Gerando com IA…
-            </span>
-          ) : (
-            '✨ Gerar com IA'
-          )}
-        </button>
-
         {/* Search */}
-        <div className="relative ml-auto flex min-w-[180px] items-center">
+        <div className="relative flex min-w-[180px] flex-1 items-center">
           <svg
             className="absolute left-2.5 h-3.5 w-3.5 text-[#64748b]"
             fill="none"
@@ -506,6 +463,51 @@ export function B2BActionPlanTab({
           <option value="ai">✨ Gerado pela IA</option>
           <option value="manual">👤 Criado manualmente</option>
         </select>
+
+        {/* Action buttons — right-aligned */}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={handleGenerateClick}
+            disabled={generatePlans.isPending}
+            className="rounded-lg border border-[rgba(96,165,250,0.3)] bg-[rgba(96,165,250,0.1)] px-4 py-2 text-[13px] font-semibold text-[#60A5FA] transition-colors hover:bg-[rgba(96,165,250,0.2)] disabled:opacity-50"
+          >
+            {generatePlans.isPending ? (
+              <span className="flex items-center gap-2">
+                <svg
+                  className="h-3.5 w-3.5 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                Gerando com IA…
+              </span>
+            ) : (
+              '✨ Gerar com IA'
+            )}
+          </button>
+          <button
+            onClick={() => {
+              resetForm()
+              setShowForm(true)
+            }}
+            className="rounded-lg bg-[#c5e155] px-4 py-2 text-[13px] font-semibold text-[#060d1a] transition-colors hover:bg-[#d4ee6b]"
+          >
+            + Nova Ação
+          </button>
+        </div>
       </div>
 
       {/* Generation progress */}
@@ -762,23 +764,23 @@ export function B2BActionPlanTab({
               />
             </div>
           </div>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              onClick={resetForm}
+              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-2 text-[13px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
+            >
+              Cancelar
+            </button>
             <button
               onClick={handleSubmit}
               disabled={createPlan.isPending || updatePlan.isPending}
-              className="rounded-lg bg-[rgba(197,225,85,0.15)] px-4 py-1.5 text-[14px] font-semibold text-[#c5e155] transition-colors hover:bg-[rgba(197,225,85,0.25)] disabled:opacity-50"
+              className="rounded-lg bg-[#c5e155] px-4 py-2 text-[13px] font-semibold text-[#060d1a] transition-colors hover:bg-[#d4ee6b] disabled:opacity-50"
             >
               {createPlan.isPending || updatePlan.isPending
                 ? 'Salvando…'
                 : editingId
                   ? 'Salvar'
                   : 'Criar'}
-            </button>
-            <button
-              onClick={resetForm}
-              className="rounded-lg border border-[rgba(255,255,255,0.1)] px-4 py-1.5 text-[14px] font-semibold text-[#94a3b8] transition-colors hover:text-[#e2e8f0]"
-            >
-              Cancelar
             </button>
           </div>
         </div>

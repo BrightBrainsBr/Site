@@ -51,7 +51,7 @@ async function deleteFetch<T>(url: string): Promise<T> {
 
 export function useB2BEventsMutationHook(companyId: string | null) {
   const queryClient = useQueryClient()
-  const base = `/api/b2b/${companyId}/events`
+  const base = `/api/brightmonitor/${companyId}/incidents`
 
   const invalidate = () =>
     queryClient.invalidateQueries({

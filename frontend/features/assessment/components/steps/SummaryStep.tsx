@@ -6,7 +6,6 @@ import { computeAllScores } from '../../helpers/compute-scores'
 import { clearFormData } from '../../services/localStorage'
 import type { StepComponentProps } from '../assessment.interface'
 import { InfoBox, SectionTitle } from '../fields'
-import { StepNavigation } from '../StepNavigation'
 
 type Phase = 'review' | 'submitting' | 'submitted'
 
@@ -15,9 +14,14 @@ interface LaudoStatus {
   laudo_pdf_url?: string | null
 }
 
+const LAUDO_POLL_INTERVAL_MS = 5_000
+const LAUDO_TIMEOUT_MS = 4 * 60 * 1000
+
 function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
   const [laudo, setLaudo] = useState<LaudoStatus | null>(null)
+  const [timedOut, setTimedOut] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!enabled || !evaluationId) return
@@ -28,8 +32,15 @@ function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
         if (!res.ok) return
         const data = (await res.json()) as LaudoStatus
         setLaudo(data)
-        if (data.laudo_pdf_url || data.status === 'error') {
+        // Stop polling on any terminal state: PDF ready, error, or
+        // completed-without-PDF (NR-1-only flow that skips report gen).
+        const terminal =
+          !!data.laudo_pdf_url ||
+          data.status === 'error' ||
+          data.status === 'completed'
+        if (terminal) {
           if (intervalRef.current) clearInterval(intervalRef.current)
+          if (timeoutRef.current) clearTimeout(timeoutRef.current)
         }
       } catch {
         // silently ignore polling errors
@@ -37,13 +48,19 @@ function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
     }
 
     void poll()
-    intervalRef.current = setInterval(() => void poll(), 12_000)
+    intervalRef.current = setInterval(() => void poll(), LAUDO_POLL_INTERVAL_MS)
+    timeoutRef.current = setTimeout(() => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      setTimedOut(true)
+    }, LAUDO_TIMEOUT_MS)
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [evaluationId, enabled])
 
-  return laudo
+  return { laudo, timedOut }
 }
 
 const PROFILE_LABELS: Record<string, string> = {
@@ -73,7 +90,7 @@ export function SummaryStep({
   const [error, setError] = useState<string | null>(null)
   const [evaluationId, setEvaluationId] = useState<string | null>(null)
   const isCorporate = !!companyContext?.company_id
-  const laudo = useLaudoPolling(evaluationId, isCorporate && phase === 'submitted')
+  const { laudo, timedOut } = useLaudoPolling(evaluationId, isCorporate && phase === 'submitted')
 
   const scores = computeAllScores(data)
 
@@ -178,7 +195,8 @@ export function SummaryStep({
       }
       if (resData.evaluationId) setEvaluationId(resData.evaluationId)
 
-      clearFormData()
+      clearFormData(data.email ?? null)
+      clearFormData(null)
       setPhase('submitted')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
@@ -202,11 +220,17 @@ export function SummaryStep({
               title="Dados Pessoais"
               items={[
                 `Nome: ${data.nome || '—'}`,
-                `Nascimento: ${data.nascimento || '—'}`,
+                data.nascimento ? `Nascimento: ${data.nascimento}` : null,
                 data.email ? `E-mail: ${data.email}` : null,
                 data.sexo ? `Sexo: ${data.sexo}` : null,
-                isCorporate && companyContext?.department
-                  ? `Setor: ${companyContext.department}`
+                isCorporate &&
+                (data.nr1_role as string | undefined)?.trim()
+                  ? `Cargo: ${data.nr1_role}`
+                  : null,
+                isCorporate &&
+                ((data.department as string | undefined)?.trim() ||
+                  companyContext?.department)
+                  ? `Setor: ${data.department || companyContext?.department}`
                   : null,
               ].filter(Boolean) as string[]}
             />
@@ -273,13 +297,26 @@ export function SummaryStep({
 
           {error && <InfoBox variant="warning">{error}</InfoBox>}
 
-          <button
-            type="button"
-            onClick={() => void handleSubmit()}
-            className="mt-4 w-full rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 py-3.5 text-sm font-bold text-zinc-900 shadow-lg shadow-lime-400/20 transition-opacity hover:opacity-90"
-          >
-            Enviar Avaliação
-          </button>
+          <div className="mt-4 flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {onPrev ? (
+              <button
+                type="button"
+                onClick={onPrev}
+                className="rounded-lg border border-zinc-700 px-6 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+              >
+                Anterior
+              </button>
+            ) : (
+              <div />
+            )}
+            <button
+              type="button"
+              onClick={() => void handleSubmit()}
+              className="flex-1 rounded-lg bg-gradient-to-r from-lime-400 to-emerald-500 px-6 py-3 text-sm font-bold text-zinc-900 shadow-lg shadow-lime-400/20 transition-opacity hover:opacity-90 sm:flex-none sm:px-10"
+            >
+              Enviar Avaliação
+            </button>
+          </div>
         </>
       )}
 
@@ -341,19 +378,7 @@ export function SummaryStep({
 
                 {/* Laudo PDF polling status */}
                 <div className="mt-4 rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-4">
-                  {!laudo || !laudo.laudo_pdf_url ? (
-                    <div className="flex items-center gap-3">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
-                      <div>
-                        <p className="text-xs font-medium text-zinc-300">
-                          Gerando Laudo Individual…
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-zinc-500">
-                          Aguarde enquanto processamos sua avaliação
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
+                  {laudo?.laudo_pdf_url ? (
                     <div className="flex items-center gap-3">
                       <span className="text-lg">📄</span>
                       <div className="flex-1">
@@ -372,6 +397,55 @@ export function SummaryStep({
                       >
                         Baixar PDF
                       </a>
+                    </div>
+                  ) : laudo?.status === 'completed' ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">✅</span>
+                      <div>
+                        <p className="text-xs font-medium text-lime-400">
+                          Avaliação registrada
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Suas respostas foram contabilizadas no PGR da empresa.
+                          Você já pode fechar esta página.
+                        </p>
+                      </div>
+                    </div>
+                  ) : laudo?.status === 'error' ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">⚠️</span>
+                      <div>
+                        <p className="text-xs font-medium text-amber-400">
+                          Erro ao gerar laudo
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Nossa equipe foi notificada e entrará em contato
+                        </p>
+                      </div>
+                    </div>
+                  ) : timedOut ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">⏳</span>
+                      <div>
+                        <p className="text-xs font-medium text-zinc-300">
+                          Laudo ainda em processamento
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Está demorando mais que o esperado. Você receberá o laudo por e-mail em breve.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+                      <div>
+                        <p className="text-xs font-medium text-zinc-300">
+                          Gerando Laudo Individual…
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-zinc-500">
+                          Aguarde enquanto processamos sua avaliação (1–2 min)
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -438,7 +512,6 @@ export function SummaryStep({
         </div>
       )}
 
-      {phase === 'review' && <StepNavigation onPrev={onPrev} onNext={null} />}
     </div>
   )
 }

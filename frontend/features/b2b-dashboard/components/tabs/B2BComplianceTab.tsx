@@ -56,7 +56,7 @@ export function B2BComplianceTab({
           <span className="text-[20px]">✅</span>
           <h2 className="text-[20px] font-bold text-[#e2e8f0]">Compliance</h2>
         </div>
-        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">Portaria MTE 1.419/2024 — Status de conformidade por requisito</p>
+        <p className="mt-0.5 pl-[28px] text-[15px] text-[#64748b]">Portaria MTE 1.419/2024 — NR-1: Checklist de conformidade (11 itens)</p>
       </div>
 
       {/* Score header */}

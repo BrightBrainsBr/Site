@@ -233,6 +233,8 @@ export async function POST(
               data: {
                 needs_password_setup: true,
                 invite_role: 'collaborator',
+                company_id: companyId,
+                ...(department ? { department } : {}),
               },
             })
           if (
@@ -285,7 +287,11 @@ export async function POST(
     const redirectTo = `${getSiteUrl()}/pt-BR/empresa/auth-callback`
     const { error: authErr } = await sb.auth.admin.inviteUserByEmail(email, {
       redirectTo,
-      data: { needs_password_setup: true, invite_role: 'collaborator' },
+      data: {
+        needs_password_setup: true,
+        invite_role: 'collaborator',
+        company_id: companyId,
+      },
     })
 
     if (

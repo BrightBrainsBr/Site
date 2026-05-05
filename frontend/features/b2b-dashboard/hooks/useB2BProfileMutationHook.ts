@@ -12,7 +12,7 @@ export function useB2BProfileMutationHook() {
 
   return useMutation<{ success: boolean }, Error, ProfileUpdatePayload>({
     mutationFn: async (payload) => {
-      const response = await fetch('/api/b2b/profile', {
+      const response = await fetch('/api/brightmonitor/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

@@ -170,10 +170,11 @@ export interface CostContext {
 // Bedrock Model Mapping
 // ============================================================
 
+/** Only used when `ANTHROPIC_PLATFORM=bedrock`. Direct API uses `model_name` as-is. IDs from Anthropic’s platform tables. */
 export const BEDROCK_MODEL_MAP: Record<string, string> = {
   'claude-sonnet-4-6': 'us.anthropic.claude-sonnet-4-6-v1:0',
   'claude-opus-4-6': 'us.anthropic.claude-opus-4-6-v1:0',
-  'claude-haiku-3-5': 'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+  'claude-haiku-4-5': 'anthropic.claude-haiku-4-5-20251001-v1:0',
 }
 
 // ============================================================

@@ -48,4 +48,7 @@ backend/config/env/development/database.ts
 
 claude_artifact/
 
+# Supabase CLI local cache (may contain secrets)
+supabase/.temp/
+
 .cursor

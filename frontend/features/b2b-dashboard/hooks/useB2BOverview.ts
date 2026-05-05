@@ -10,7 +10,7 @@ async function fetchOverview(
   companyId: string,
   cycleId?: string | null
 ): Promise<B2BOverviewData> {
-  const url = new URL(`/api/b2b/${companyId}/overview`, window.location.origin)
+  const url = new URL(`/api/brightmonitor/${companyId}/overview`, window.location.origin)
   if (cycleId) url.searchParams.set('cycle', cycleId)
   const res = await fetch(url.toString())
   if (!res.ok) throw new Error('Failed to fetch overview')

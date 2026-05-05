@@ -33,7 +33,7 @@ export class PodcastSyncService {
    */
   async syncPodcasts(): Promise<{ success: boolean; message: string; processed: number }> {
     const startTime = Date.now()
-    console.log(`[Podcast Sync] Starting synchronization at ${new Date().toISOString()}`)
+    console.warn(`[Podcast Sync] Starting synchronization at ${new Date().toISOString()}`)
 
     try {
       // Step 1: Fetch latest episodes from Spotify
@@ -45,7 +45,7 @@ export class PodcastSyncService {
         return { success: false, message: errorMsg, processed: 0 }
       }
 
-      console.log(`[Podcast Sync] Retrieved ${episodesResult.data.length} episodes from Spotify`)
+      console.warn(`[Podcast Sync] Retrieved ${episodesResult.data.length} episodes from Spotify`)
 
       // Step 2: Check which episodes already exist in database
       const existingPodcasts = await this.strapi.entityService.findMany('api::podcast.podcast', {
@@ -59,14 +59,14 @@ export class PodcastSyncService {
           : []
       )
 
-      console.log(`[Podcast Sync] Found ${existingSpotifyIds.size} existing podcasts in database`)
+      console.warn(`[Podcast Sync] Found ${existingSpotifyIds.size} existing podcasts in database`)
 
       // Step 3: Filter new episodes
       const newEpisodes = episodesResult.data.filter(episode => 
         !existingSpotifyIds.has(episode.id)
       )
 
-      console.log(`[Podcast Sync] Found ${newEpisodes.length} new episodes to save`)
+      console.warn(`[Podcast Sync] Found ${newEpisodes.length} new episodes to save`)
 
       // Step 4: Save new episodes to database
       let savedCount = 0
@@ -74,7 +74,7 @@ export class PodcastSyncService {
         try {
           await this.saveEpisodeToDatabase(episode)
           savedCount++
-          console.log(`[Podcast Sync] Saved episode: ${episode.name}`)
+          console.warn(`[Podcast Sync] Saved episode: ${episode.name}`)
         } catch (error) {
           console.error(`[Podcast Sync] Failed to save episode ${episode.id}:`, error)
         }
@@ -82,7 +82,7 @@ export class PodcastSyncService {
 
       const duration = Date.now() - startTime
       const successMsg = `Synchronization completed successfully. Processed ${savedCount} new episodes in ${duration}ms`
-      console.log(`[Podcast Sync] ${successMsg}`)
+      console.warn(`[Podcast Sync] ${successMsg}`)
 
       return { success: true, message: successMsg, processed: savedCount }
 

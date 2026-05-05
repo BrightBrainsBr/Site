@@ -34,7 +34,7 @@ export function useAuthHook() {
       isSessionFetchingRef.current = true
 
       try {
-        // console.log('[useAuthHook] Fetching complete auth state...');
+        // console.warn('[useAuthHook] Fetching complete auth state...');
 
         // Step 1: Get session and user
         const [sessionRes, userRes] = await Promise.all([
@@ -75,7 +75,7 @@ export function useAuthHook() {
 
         // Step 2: If we have a user, fetch all user data in parallel
         if (finalSession?.user?.id) {
-          // console.log('[useAuthHook] Fetching user data for:', finalSession.user.id);
+          // console.warn('[useAuthHook] Fetching user data for:', finalSession.user.id);
 
           // NOTE: Organizations and subscription endpoints are disabled for Mindless Academy
           // These are from the old HowTheF* project and not used here
@@ -148,7 +148,7 @@ export function useAuthHook() {
   }, [authQuery.isLoading, authState.isLoading])
 
   const refreshUserData = useCallback(() => {
-    // console.log('[useAuthHook] Manually refreshing all auth data');
+    // console.warn('[useAuthHook] Manually refreshing all auth data');
     // Invalidate all auth-related queries to ensure fresh data
     queryClient.invalidateQueries({ queryKey: ['auth-complete'] })
     queryClient.invalidateQueries({ queryKey: ['auth'] })
@@ -166,7 +166,7 @@ export function useAuthHook() {
 
   // Sign out functionality
   const signOutAsync = useCallback(async () => {
-    // console.log('[useAuthHook] Signing out...');
+    // console.warn('[useAuthHook] Signing out...');
     try {
       // Call the auth service to sign out
       const result = await authService.signOut()

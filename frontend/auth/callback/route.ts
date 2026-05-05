@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
   // Handle password recovery flow
   if (type === 'recovery') {
-    console.log('[Auth Callback] Password recovery flow detected.')
+    console.warn('[Auth Callback] Password recovery flow detected.')
     const supabase = await createClient()
 
     try {
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(redirectUrl)
       }
 
-      console.log(
+      console.warn(
         '[Auth Callback] Recovery session established, redirecting to update password page.'
       )
       return NextResponse.redirect(
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  console.log(
+  console.warn(
     '[Auth Callback] Received code, attempting to exchange for session.'
   )
   const supabase = await createClient()
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    console.log(
+    console.warn(
       '[Auth Callback] Session exchanged successfully. Fetching user.'
     )
     const {
@@ -91,12 +91,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    console.log(
+    console.warn(
       `[Auth Callback] User ${user.id} (${user.email}) fetched. Checking company_users...`
     )
 
     if (user.user_metadata?.needs_password_setup) {
-      console.log(
+      console.warn(
         '[Auth Callback] Invited user needs password setup. Redirecting.'
       )
       return NextResponse.redirect(
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     if (companyUser) {
-      console.log(
+      console.warn(
         `[Auth Callback] User is a company admin. Redirecting to dashboard.`
       )
       const finalRedirectPath = intendedRedirect || '/pt-BR/monitor'
@@ -129,13 +129,13 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     if (invite) {
-      console.log(
+      console.warn(
         `[Auth Callback] User is a collaborator with active invite. Redirecting to assessment.`
       )
       return NextResponse.redirect(new URL('/pt-BR/monitor/form', request.url))
     }
 
-    console.log(
+    console.warn(
       '[Auth Callback] User not in company_users or invites. Redirecting to login.'
     )
     const redirectUrl = new URL('/pt-BR/login', request.url)

@@ -56,7 +56,7 @@ export function B2BSignupComponent() {
     setEmailStatus('checking')
     setError(null)
     try {
-      const res = await fetch('/api/b2b/signup', {
+      const res = await fetch('/api/brightmonitor/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: trimmed, checkDomain: true }),
@@ -79,7 +79,7 @@ export function B2BSignupComponent() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/b2b/signup', {
+      const res = await fetch('/api/brightmonitor/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +109,7 @@ export function B2BSignupComponent() {
 
       await queryClient.resetQueries({ queryKey: ['b2b'] })
 
-      const meRes = await fetch('/api/b2b/me')
+      const meRes = await fetch('/api/brightmonitor/me')
       const meData = await meRes.json()
 
       if (meData.isCompanyUser) {

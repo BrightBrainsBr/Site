@@ -9,6 +9,12 @@
     },
     "app/api/portal/evaluations/[id]/regenerate/route.ts": {
       "maxDuration": 300
+    },
+    "app/api/brightmonitor/[companyId]/reports/pgr/[slug]/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/brightmonitor/[companyId]/reports/analise-ia/[slug]/route.ts": {
+      "maxDuration": 300
     }
   }
 }

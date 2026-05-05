@@ -68,7 +68,7 @@ export default function EmpresaAuthCallbackPage() {
       }
 
       try {
-        const meRes = await fetch('/api/b2b/me')
+        const meRes = await fetch('/api/brightmonitor/me')
         const meData = (await meRes.json()) as {
           isCompanyUser?: boolean
           isCollaborator?: boolean

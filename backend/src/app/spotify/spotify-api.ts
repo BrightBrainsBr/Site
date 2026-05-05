@@ -83,7 +83,7 @@ export class SpotifyApiClient {
       this.accessToken = validatedData.access_token
       this.tokenExpiresAt = Date.now() + (validatedData.expires_in * 1000) - 60000 // Refresh 1 minute early
 
-      console.log('[Spotify API] Authentication successful')
+      console.warn('[Spotify API] Authentication successful')
       
       return {
         success: true,
@@ -135,7 +135,7 @@ export class SpotifyApiClient {
 
       const validatedData = SpotifyShowEpisodesResponseSchema.parse(response.data)
       
-      console.log(`[Spotify API] Retrieved ${validatedData.items.length} episodes`)
+      console.warn(`[Spotify API] Retrieved ${validatedData.items.length} episodes`)
 
       return {
         success: true,

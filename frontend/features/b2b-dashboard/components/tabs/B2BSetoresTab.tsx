@@ -6,71 +6,40 @@ import { useCallback, useMemo, useState } from 'react'
 import type {
   B2BDepartmentData,
   DashboardFilters,
-  RiskLevel,
+  NR1RiskBand,
 } from '../../b2b-dashboard.interface'
 import { useB2BDepartments } from '../../hooks/useB2BDepartments'
 import { B2BFilterBarComponent } from '../shared/B2BFilterBarComponent'
 
 type SortField =
-  | 'score'
-  | 'phq9'
-  | 'gad7'
-  | 'srq20'
-  | 'aep'
+  | 'overall'
+  | 'physical'
+  | 'ergonomic'
+  | 'psychosocial'
+  | 'violence'
   | 'actions'
   | 'name'
 
-const RISK_LABEL: Record<RiskLevel, { label: string; color: string }> = {
-  low: { label: 'Baixo', color: '#22c55e' },
-  moderate: { label: 'Moderado', color: '#eab308' },
-  elevated: { label: 'Elevado', color: '#f97316' },
-  critical: { label: 'Crítico', color: '#ef4444' },
+const NR1_BAND_LABELS: Record<NR1RiskBand, { label: string; color: string }> = {
+  baixo: { label: 'Baixo', color: '#22c55e' },
+  moderado: { label: 'Moderado', color: '#eab308' },
+  alto: { label: 'Alto', color: '#f97316' },
+  critico: { label: 'Crítico', color: '#ef4444' },
 }
 
-const RISK_PT_MAP: Record<string, RiskLevel> = {
-  baixo: 'low',
-  moderado: 'moderate',
-  elevado: 'elevated',
-  critico: 'critical',
+function scoreToBand(score: number | null): NR1RiskBand {
+  if (score == null || score < 2) return 'baixo'
+  if (score < 3) return 'moderado'
+  if (score < 4) return 'alto'
+  return 'critico'
 }
 
-function normalizedScoreColor(value: number | null): string {
-  if (value === null) return '#64748b'
-  if (value >= 70) return '#22c55e'
-  if (value >= 60) return '#eab308'
-  if (value >= 45) return '#f97316'
+function scoreColor(value: number | null): string {
+  if (value == null) return '#64748b'
+  if (value < 2) return '#22c55e'
+  if (value < 3) return '#eab308'
+  if (value < 4) return '#f97316'
   return '#ef4444'
-}
-
-function srq20Color(value: number | null): string {
-  if (value === null) return '#64748b'
-  if (value >= 12) return '#ef4444'
-  if (value >= 8) return '#f97316'
-  if (value >= 5) return '#eab308'
-  return '#22c55e'
-}
-
-function aepColor(value: number | null): string {
-  if (value === null) return '#64748b'
-  if (value >= 29) return '#ef4444'
-  if (value >= 20) return '#f97316'
-  if (value >= 12) return '#eab308'
-  return '#22c55e'
-}
-
-function phqGadColor(value: number | null): string {
-  if (value === null) return '#64748b'
-  if (value >= 15) return '#ef4444'
-  if (value >= 10) return '#f97316'
-  if (value >= 5) return '#eab308'
-  return '#22c55e'
-}
-
-function dominantRisk(rb: Record<RiskLevel, number>): RiskLevel {
-  if (rb.critical > 0) return 'critical'
-  if (rb.elevated > 0) return 'elevated'
-  if (rb.moderate > 0) return 'moderate'
-  return 'low'
 }
 
 interface B2BSetoresTabProps {
@@ -81,7 +50,7 @@ interface B2BSetoresTabProps {
 export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
   const { data, isLoading } = useB2BDepartments(companyId, cycleId)
 
-  const [sortField, setSortField] = useState<SortField>('score')
+  const [sortField, setSortField] = useState<SortField>('overall')
   const [sortAsc, setSortAsc] = useState(false)
   const [filters, setFilters] = useState<DashboardFilters>({})
 
@@ -90,23 +59,6 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
   }, [])
 
   const departments = data?.departments ?? []
-
-  const hasPhq9 = useMemo(
-    () => departments.some((d) => d.phq9Avg != null),
-    [departments]
-  )
-  const hasGad7 = useMemo(
-    () => departments.some((d) => d.gad7Avg != null),
-    [departments]
-  )
-  const hasSrq20 = useMemo(
-    () => departments.some((d) => d.srq20Avg != null),
-    [departments]
-  )
-  const hasAep = useMemo(
-    () => departments.some((d) => d.aepAvg != null),
-    [departments]
-  )
 
   const availableDepartments = useMemo(
     () => departments.map((d) => d.name),
@@ -121,12 +73,9 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
     }
 
     if (filters.riskLevels && filters.riskLevels.length > 0) {
-      const mappedLevels = filters.riskLevels
-        .map((r) => RISK_PT_MAP[r])
-        .filter(Boolean)
       result = result.filter((d) => {
-        const dom = dominantRisk(d.riskBreakdown)
-        return mappedLevels.includes(dom)
+        const band = scoreToBand(d.scoreOverall)
+        return filters.riskLevels!.includes(band)
       })
     }
 
@@ -138,16 +87,16 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
 
     const getValue = (d: B2BDepartmentData): number => {
       switch (sortField) {
-        case 'score':
-          return d.avgScore
-        case 'phq9':
-          return d.phq9Avg ?? -1
-        case 'gad7':
-          return d.gad7Avg ?? -1
-        case 'srq20':
-          return d.srq20Avg ?? -1
-        case 'aep':
-          return d.aepAvg ?? -1
+        case 'overall':
+          return d.scoreOverall ?? -1
+        case 'physical':
+          return d.scorePhysical ?? -1
+        case 'ergonomic':
+          return d.scoreErgonomic ?? -1
+        case 'psychosocial':
+          return d.scorePsychosocial ?? -1
+        case 'violence':
+          return d.scoreViolence ?? -1
         case 'actions':
           return d.pendingActions
         case 'name':
@@ -227,12 +176,28 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
     </button>
   )
 
+  function ScoreCell({ value }: { value: number | null }) {
+    if (value == null) {
+      return <span className="text-[15px] text-[#64748b]">–</span>
+    }
+    return (
+      <span
+        className="inline-flex h-[26px] w-[46px] items-center justify-center rounded-md text-[15px] font-bold"
+        style={{
+          backgroundColor: `${scoreColor(value)}15`,
+          color: scoreColor(value),
+        }}
+      >
+        {value.toFixed(1)}
+      </span>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <B2BFilterBarComponent
         availableDepartments={availableDepartments}
         showRiskFilter
-        showInstrumentFilter
         onFiltersChange={handleFiltersChange}
       />
 
@@ -253,12 +218,12 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
           <span className="text-[14px] font-medium text-[#64748b]">
             Ordenar por:
           </span>
-          {sortButton('score', 'Score Global')}
-          {hasPhq9 && sortButton('phq9', 'PHQ-9')}
-          {hasGad7 && sortButton('gad7', 'GAD-7')}
-          {hasSrq20 && sortButton('srq20', 'SRQ-20')}
-          {hasAep && sortButton('aep', 'AEP')}
-          {sortButton('actions', 'Ações Pendentes')}
+          {sortButton('overall', 'Overall')}
+          {sortButton('physical', 'Físico')}
+          {sortButton('ergonomic', 'Ergonômico')}
+          {sortButton('psychosocial', 'Psicossocial')}
+          {sortButton('violence', 'Violência')}
+          {sortButton('actions', 'Ações')}
         </div>
 
         <table className="w-full min-w-[700px] border-collapse text-[15px]">
@@ -268,34 +233,23 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
                 Setor
               </th>
               <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
-                Colabs
+                Nº Aval.
               </th>
               <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
-                Risco
+                Físico
               </th>
               <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
-                Score
+                Ergonômico
               </th>
-              {hasPhq9 && (
-                <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
-                  PHQ-9
-                </th>
-              )}
-              {hasGad7 && (
-                <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
-                  GAD-7
-                </th>
-              )}
-              {hasSrq20 && (
-                <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
-                  SRQ-20
-                </th>
-              )}
-              {hasAep && (
-                <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
-                  AEP/56
-                </th>
-              )}
+              <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
+                Psicossocial
+              </th>
+              <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
+                Violência
+              </th>
+              <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
+                Overall
+              </th>
               <th className="px-3 py-2.5 text-center text-[13px] font-medium uppercase tracking-wider text-[#64748b]">
                 Ações
               </th>
@@ -303,69 +257,45 @@ export function B2BSetoresTab({ companyId, cycleId }: B2BSetoresTabProps) {
           </thead>
           <tbody>
             {sortedDepts.map((d) => {
-              const risk = dominantRisk(d.riskBreakdown)
-              const riskCfg = RISK_LABEL[risk]
+              const band = scoreToBand(d.scoreOverall)
+              const bandCfg = NR1_BAND_LABELS[band]
               return (
                 <tr
                   key={d.name}
                   className="border-b border-[rgba(255,255,255,0.04)] transition-colors hover:bg-[rgba(255,255,255,0.02)] last:border-0"
                 >
                   <td className="px-4 py-3 text-[14px] font-medium text-[#e2e8f0]">
-                    {d.name}
+                    <div className="flex items-center gap-2">
+                      {d.name}
+                      <span
+                        className="inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold"
+                        style={{
+                          backgroundColor: `${bandCfg.color}20`,
+                          color: bandCfg.color,
+                        }}
+                      >
+                        {bandCfg.label}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-3 py-3 text-center text-[15px] text-[#94a3b8]">
                     {d.n}
                   </td>
                   <td className="px-3 py-3 text-center">
-                    <span
-                      className="inline-block rounded-md px-2.5 py-1 text-[13px] font-semibold"
-                      style={{
-                        backgroundColor: `${riskCfg.color}20`,
-                        color: riskCfg.color,
-                      }}
-                    >
-                      {riskCfg.label}
-                    </span>
+                    <ScoreCell value={d.scorePhysical} />
                   </td>
                   <td className="px-3 py-3 text-center">
-                    <span
-                      className="inline-flex h-[26px] w-[46px] items-center justify-center rounded-md text-[15px] font-bold"
-                      style={{
-                        backgroundColor: `${normalizedScoreColor(d.avgScore)}15`,
-                        color: normalizedScoreColor(d.avgScore),
-                      }}
-                    >
-                      {d.avgScore.toFixed(1)}
-                    </span>
+                    <ScoreCell value={d.scoreErgonomic} />
                   </td>
-                  {hasPhq9 && (
-                    <td className="px-3 py-3 text-center text-[15px]">
-                      <span style={{ color: phqGadColor(d.phq9Avg) }}>
-                        {d.phq9Avg?.toFixed(1) ?? '–'}
-                      </span>
-                    </td>
-                  )}
-                  {hasGad7 && (
-                    <td className="px-3 py-3 text-center text-[15px]">
-                      <span style={{ color: phqGadColor(d.gad7Avg) }}>
-                        {d.gad7Avg?.toFixed(1) ?? '–'}
-                      </span>
-                    </td>
-                  )}
-                  {hasSrq20 && (
-                    <td className="px-3 py-3 text-center text-[15px]">
-                      <span style={{ color: srq20Color(d.srq20Avg) }}>
-                        {d.srq20Avg?.toFixed(1) ?? '–'}
-                      </span>
-                    </td>
-                  )}
-                  {hasAep && (
-                    <td className="px-3 py-3 text-center text-[15px]">
-                      <span style={{ color: aepColor(d.aepAvg) }}>
-                        {d.aepAvg?.toFixed(1) ?? '–'}
-                      </span>
-                    </td>
-                  )}
+                  <td className="px-3 py-3 text-center">
+                    <ScoreCell value={d.scorePsychosocial} />
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <ScoreCell value={d.scoreViolence} />
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <ScoreCell value={d.scoreOverall} />
+                  </td>
                   <td className="px-3 py-3 text-center">
                     {d.pendingActions > 0 ? (
                       <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-md bg-[rgba(245,158,11,0.15)] px-2 text-[14px] font-bold text-[#FBBF24]">

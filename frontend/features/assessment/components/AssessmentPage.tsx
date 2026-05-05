@@ -9,6 +9,7 @@ import {
 } from '../helpers/generate-test-data'
 import {
   clearFormData,
+  ensureOwner,
   loadCurrentStep,
   loadFormData,
   saveCurrentStep,
@@ -22,21 +23,34 @@ import type {
   StepComponentProps,
 } from './assessment.interface'
 import { INITIAL_FORM_DATA } from './assessment.interface'
-import { ALL_STEPS, B2B_STEPS } from './constants/steps'
+import {
+  ALL_STEPS,
+  B2B_STEPS,
+  BRIGHT_INSIGHTS_CLINICAL_STEPS,
+} from './constants/steps'
 import { ProgressBar } from './ProgressBar'
 import {
   AEPStep,
+  AcidentesStep,
   B2BConsentsStep,
+  BiologicoStep,
   CanalPercepcaoStep,
   ClinicalProfileStep,
+  DenunciaAnonimaStep,
+  ErgonomicoStep,
   FamilyHistoryStep,
+  FisicoStep,
   GenericScaleStep,
   HistoryStep,
   LifestyleStep,
   MDQStep,
   MedicationsStep,
+  PercepcaoNR1Step,
+  PerfilStep,
   PersonalDataStep,
   PriorReportsStep,
+  PsicossocialStep,
+  QuimicoStep,
   SCALE_STEP_CONFIGS,
   SRQ20Step,
   SummaryStep,
@@ -336,10 +350,12 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
   useEffect(() => {
     if (!authorized) return
     if (isLoaded) return
-    const loaded = loadFormData()
+    // Wipe any drafts that belong to a previous user before loading.
+    ensureOwner(sessionEmail ?? null)
+    const loaded = loadFormData(sessionEmail ?? null)
     if (sessionEmail) loaded.email = sessionEmail
     setData(loaded)
-    const savedStep = loadCurrentStep()
+    const savedStep = loadCurrentStep(sessionEmail ?? null)
     setCurrentStepIndex(savedStep >= 0 ? savedStep : 0)
     setIsLoaded(true)
   }, [authorized, sessionEmail, isLoaded])
@@ -353,16 +369,27 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
 
   useEffect(() => {
     if (!isLoaded) return
-    saveFormData(data)
-  }, [data, isLoaded])
+    saveFormData(data, sessionEmail ?? null)
+  }, [data, isLoaded, sessionEmail])
 
   useEffect(() => {
     if (!isLoaded) return
-    saveCurrentStep(currentStepIndex)
-  }, [currentStepIndex, isLoaded])
+    saveCurrentStep(currentStepIndex, sessionEmail ?? null)
+  }, [currentStepIndex, isLoaded, sessionEmail])
 
-  const isB2B = mode === 'b2b' && !!companyContext.company_id
-  const stepSource = isB2B ? B2B_STEPS : ALL_STEPS
+  const isB2B = mode === 'b2b'
+
+  const stepSource = useMemo(() => {
+    if (!isB2B) return ALL_STEPS
+    if (!companyContext.bright_insights_enabled) return B2B_STEPS
+
+    const resumoIndex = B2B_STEPS.findIndex((s) => s.id === 'resumo')
+    return [
+      ...B2B_STEPS.slice(0, resumoIndex),
+      ...BRIGHT_INSIGHTS_CLINICAL_STEPS,
+      ...B2B_STEPS.slice(resumoIndex),
+    ]
+  }, [isB2B, companyContext.bright_insights_enabled])
 
   const visibleSteps = useMemo(
     () => stepSource.filter((step) => step.show(data)),
@@ -372,7 +399,7 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
   useEffect(() => {
     if (!isLoaded) return
     if (visibleSteps.length === 0) {
-      clearFormData()
+      clearFormData(sessionEmail ?? null)
       setData({ ...INITIAL_FORM_DATA })
       setCurrentStepIndex(0)
       return
@@ -404,7 +431,10 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
 
   const handleReset = () => {
     if (confirm('Tem certeza? Todos os dados serão perdidos.')) {
-      clearFormData()
+      // Pass null to also wipe legacy/anon drafts in case any stale data
+      // exists from previous sessions.
+      clearFormData(null)
+      clearFormData(sessionEmail ?? null)
       setData({ ...INITIAL_FORM_DATA })
       setCurrentStepIndex(0)
     }
@@ -453,6 +483,41 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-lime-400" />
+      </div>
+    )
+  }
+
+  // Hard guard: a B2B form submission MUST be tied to a company.
+  // If the auth user reached this page without a resolvable company link
+  // (no active company_access_codes row, no user_metadata.company_id, no
+  // matching domain), block the form so we never produce orphan submissions.
+  const devModeActive =
+    process.env.NEXT_PUBLIC_AVALIACAO_DEV_MODE === 'true'
+  if (mode === 'b2b' && !devModeActive && !companyContext.company_id) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="w-full max-w-md space-y-4 rounded-2xl border border-amber-500/30 bg-zinc-900/80 p-6 text-center shadow-xl backdrop-blur-sm">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/15 text-amber-300">
+            !
+          </div>
+          <h2 className="text-base font-semibold text-zinc-100">
+            Acesso não vinculado a uma empresa
+          </h2>
+          <p className="text-sm text-zinc-400">
+            Sua conta está autenticada, mas não encontramos um convite ativo
+            ligando você a uma empresa. Use o link de convite enviado pelo RH
+            ou peça uma nova convocação.
+          </p>
+          <p className="text-xs text-zinc-500">
+            Email autenticado: <span className="text-zinc-300">{sessionEmail ?? '—'}</span>
+          </p>
+          <a
+            href={`${getLocalePrefix()}/login`}
+            className="inline-flex w-full items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-700"
+          >
+            Voltar ao login
+          </a>
+        </div>
       </div>
     )
   }
@@ -523,6 +588,24 @@ export function AssessmentPage({ mode = 'b2b' }: { mode?: AssessmentMode }) {
         return <CanalPercepcaoStep {...stepProps} />
       case 'b2b_consents':
         return <B2BConsentsStep {...stepProps} />
+      case 'nr1_perfil':
+        return <PerfilStep {...stepProps} />
+      case 'nr1_fisico':
+        return <FisicoStep {...stepProps} />
+      case 'nr1_quimico':
+        return <QuimicoStep {...stepProps} />
+      case 'nr1_biologico':
+        return <BiologicoStep {...stepProps} />
+      case 'nr1_ergonomico':
+        return <ErgonomicoStep {...stepProps} />
+      case 'nr1_psicossocial':
+        return <PsicossocialStep {...stepProps} />
+      case 'nr1_acidentes':
+        return <AcidentesStep {...stepProps} />
+      case 'nr1_percepcao':
+        return <PercepcaoNR1Step {...stepProps} />
+      case 'denuncia_anonima':
+        return <DenunciaAnonimaStep {...stepProps} />
       case 'resumo':
         return <SummaryStep {...stepProps} />
       default: {

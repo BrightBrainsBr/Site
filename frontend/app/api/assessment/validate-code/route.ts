@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (!companyErr && companyCode) {
       const { data: companyData } = await sb
         .from('companies')
-        .select('departments')
+        .select('departments, bright_insights_enabled')
         .eq('id', companyCode.company_id)
         .single()
 
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
         company_id: companyCode.company_id,
         department: companyCode.department ?? undefined,
         departments: companyData?.departments ?? [],
+        bright_insights_enabled: companyData?.bright_insights_enabled ?? false,
         cycle_id: companyCode.cycle_id,
         code_id: companyCode.id,
       })

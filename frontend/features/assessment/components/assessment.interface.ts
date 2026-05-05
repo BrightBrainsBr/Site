@@ -151,7 +151,7 @@ export interface AssessmentFormData {
   familiaDetalhes: string
   infoAdicional: string
 
-  // B2B NR-1 fields
+  // B2B legacy fields
   srq20_answers?: number[]
   aep_answers?: number[]
   aep_percepcao_livre?: string
@@ -167,6 +167,68 @@ export interface AssessmentFormData {
   b2b_anonymized_consent?: boolean
   b2c_consent?: boolean
   b2c_contact_consent?: boolean
+
+  // NR-1 Perfil
+  department?: string
+  nr1_role?: string
+  nr1_work_time?: string
+
+  // NR-1 Riscos Físicos
+  noise_level?: number | null
+  temperature_level?: number | null
+  lighting_level?: number | null
+  vibration_level?: number | null
+  humidity_level?: number | null
+
+  // NR-1 Riscos Químicos
+  chemical_exposures?: string[]
+  chemical_details?: string
+
+  // NR-1 Riscos Biológicos
+  biological_exposures?: string[]
+  biological_details?: string
+
+  // NR-1 Riscos Ergonômicos
+  posture_level?: number | null
+  repetition_level?: number | null
+  manual_force_level?: number | null
+  breaks_level?: number | null
+  screen_level?: number | null
+  mobility_level?: number | null
+  cognitive_effort_level?: number | null
+
+  // NR-1 Fatores Psicossociais
+  workload_level?: number | null
+  pace_level?: number | null
+  autonomy_level?: number | null
+  leadership_level?: number | null
+  relationships_level?: number | null
+  recognition_level?: number | null
+  clarity_level?: number | null
+  balance_level?: number | null
+  violence_level?: number | null
+  harassment_level?: number | null
+
+  // NR-1 Acidentes e Doenças
+  had_accident?: boolean
+  accident_description?: string
+  had_near_miss?: boolean
+  near_miss_description?: string
+  had_work_disease?: boolean
+  work_disease_description?: string
+  report_harassment?: boolean
+  harassment_report_description?: string
+
+  // NR-1 Denúncia Anônima (free-text general complaint, not linked to user)
+  anonymous_complaint_description?: string
+
+  // NR-1 Percepção Geral
+  satisfaction_level?: number | null
+  biggest_risk?: string
+  suggestion?: string
+
+  // NR-1 LGPD consent
+  lgpd_consent?: boolean
 
   [key: string]: unknown
 }
@@ -214,6 +276,7 @@ export interface CompanyContext {
   cycle_id?: string
   code_id?: string
   prefilled_email?: boolean
+  bright_insights_enabled?: boolean
 }
 
 export interface StepComponentProps {

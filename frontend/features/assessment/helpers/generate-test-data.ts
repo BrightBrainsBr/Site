@@ -82,6 +82,62 @@ export function generateB2BTestFormData(): AssessmentFormData {
       ]),
     },
 
+    // NR-1 Perfil
+    nr1_role: pick(['Analista', 'Coordenador', 'Assistente', 'Técnico']),
+    nr1_work_time: pick(['< 1 ano', '1-3 anos', '3-5 anos', '5-10 anos', '> 10 anos']),
+
+    // NR-1 Físico (Likert 1-5)
+    noise_level: randInt(1, 5),
+    temperature_level: randInt(1, 5),
+    lighting_level: randInt(1, 5),
+    vibration_level: randInt(1, 5),
+    humidity_level: randInt(1, 5),
+
+    // NR-1 Químico
+    chemical_exposures: pickN(['Solventes', 'Tintas/Vernizes', 'Pó/Particulados', 'Gases tóxicos'] as const, 0, 2) as string[],
+    chemical_details: pick(['Exposição leve a solventes de limpeza', '', '']),
+
+    // NR-1 Biológico
+    biological_exposures: pickN(['Bactérias', 'Vírus', 'Fungos'] as const, 0, 1) as string[],
+    biological_details: '',
+
+    // NR-1 Ergonômico (Likert 1-5)
+    posture_level: randInt(1, 4),
+    repetition_level: randInt(1, 4),
+    manual_force_level: randInt(1, 3),
+    breaks_level: randInt(1, 4),
+    screen_level: randInt(2, 5),
+    mobility_level: randInt(1, 4),
+    cognitive_effort_level: randInt(2, 5),
+
+    // NR-1 Psicossocial (Likert 1-5)
+    workload_level: randInt(1, 4),
+    pace_level: randInt(1, 4),
+    autonomy_level: randInt(1, 3),
+    leadership_level: randInt(1, 3),
+    relationships_level: randInt(1, 3),
+    recognition_level: randInt(1, 4),
+    clarity_level: randInt(1, 3),
+    balance_level: randInt(1, 4),
+    violence_level: randInt(1, 2),
+    harassment_level: randInt(1, 2),
+
+    // NR-1 Acidentes
+    had_accident: pick([true, false]),
+    accident_description: pick(['Queda na escada do estoque', '', '']),
+    had_near_miss: pick([true, false]),
+    near_miss_description: '',
+    had_work_disease: false,
+    work_disease_description: '',
+
+    // NR-1 Percepção
+    satisfaction_level: randInt(2, 5),
+    biggest_risk: pick(['Piso escorregadio', 'Iluminação insuficiente', 'Ruído excessivo', '']),
+    suggestion: pick(['Instalar piso antiderrapante', 'Melhorar a ventilação', '']),
+
+    // LGPD consent
+    lgpd_consent: true,
+
     b2b_anonymized_consent: true,
     b2c_consent: pick([true, false]),
     b2c_contact_consent: false,

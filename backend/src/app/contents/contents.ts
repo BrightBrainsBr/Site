@@ -170,7 +170,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
   }
 
   public getContentByType(type: ContentTypes) {
-    console.log(`[ContentClient] getContentByType called with type: "${type}" (typeof: ${typeof type})`)
+    console.warn(`[ContentClient] getContentByType called with type: "${type}" (typeof: ${typeof type})`)
     switch (type) {
       case 'pages':
         return this.pages
@@ -179,7 +179,7 @@ class AppContentClient implements ContentClient<ContentTypes> {
       case 'posts':
         return this.posts
       case 'podcasts':
-        console.log('[ContentClient] Matched podcasts case, returning this.podcasts')
+        console.warn('[ContentClient] Matched podcasts case, returning this.podcasts')
         return this.podcasts
       case 'search':
         return this.searchEntry

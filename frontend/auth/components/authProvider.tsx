@@ -18,11 +18,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isInitializedRef.current) {
-      console.log('[AuthProvider] ⚠️ Already initialized, skipping...')
+      console.warn('[AuthProvider] ⚠️ Already initialized, skipping...')
       return
     }
 
-    console.log('[AuthProvider] 🔧 Setting up auth listener...')
+    console.warn('[AuthProvider] 🔧 Setting up auth listener...')
     isInitializedRef.current = true
 
     const { data: authListener } = authService.onAuthStateChange(
@@ -30,23 +30,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Prevent duplicate events
         const eventKey = `${event}-${!!newSession?.user}-${newSession?.user?.id || 'none'}`
         if (lastEventRef.current === eventKey) {
-          console.log(`[AuthProvider] 🔕 Duplicate event ignored: ${event}`)
+          console.warn(`[AuthProvider] 🔕 Duplicate event ignored: ${event}`)
           return
         }
         lastEventRef.current = eventKey
 
-        console.log(`[AuthProvider] 🔔 Auth event: ${event}`, {
+        console.warn(`[AuthProvider] 🔔 Auth event: ${event}`, {
           hasUser: !!newSession?.user,
           userId: newSession?.user?.id,
           hasAccessToken: !!newSession?.access_token,
         })
 
         if (event === 'SIGNED_OUT') {
-          console.log('[AuthProvider] 👋 User signed out - clearing everything')
+          console.warn('[AuthProvider] 👋 User signed out - clearing everything')
           reset()
           queryClient.clear()
         } else if (event === 'SIGNED_IN') {
-          console.log(
+          console.warn(
             '[AuthProvider] 🔑 User signed in - updating session immediately'
           )
           if (newSession) {
@@ -56,13 +56,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             queryClient.invalidateQueries({ queryKey: ['auth-session'] })
           }, 50)
         } else if (event === 'TOKEN_REFRESHED') {
-          console.log('[AuthProvider] 🔄 Token refreshed - updating session')
+          console.warn('[AuthProvider] 🔄 Token refreshed - updating session')
           if (newSession) {
             setSession(newSession)
           }
           queryClient.invalidateQueries({ queryKey: ['auth-session'] })
         } else if (event === 'INITIAL_SESSION') {
-          console.log('[AuthProvider] 🚀 Initial session detected')
+          console.warn('[AuthProvider] 🚀 Initial session detected')
           if (newSession) {
             setSession(newSession)
           }
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     authListenerRef.current = authListener
 
     return () => {
-      console.log('[AuthProvider] 🧹 Cleanup...')
+      console.warn('[AuthProvider] 🧹 Cleanup...')
       if (authListenerRef.current) {
         authListenerRef.current.subscription.unsubscribe()
         authListenerRef.current = null

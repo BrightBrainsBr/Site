@@ -19,6 +19,6 @@ export default generator.getEvents()
 //     }
 //   },
 //   afterCreate: async (ctx) => {
-//     console.log('beforeCreate', inspect(ctx, false, null, true))
+//     console.warn('beforeCreate', inspect(ctx, false, null, true))
 //   },
 // }

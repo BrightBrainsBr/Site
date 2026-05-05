@@ -24,7 +24,14 @@ const MODERATE_TASKS = new Set([
 ])
 
 // Tasks that need high output token limits but not extended thinking
-const HIGH_OUTPUT_TASKS = new Set(['b2b_laudo_generation'])
+const HIGH_OUTPUT_TASKS = new Set([
+  'b2b_laudo_generation',
+  'brightmonitor_pgr_generation',
+  // Brightmonitor "Análise IA" reports often produce 6–10K char markdown payloads.
+  // Previously used MODERATE (4096) which truncated the JSON mid-string and broke
+  // the structured-output parser. See vercel logs 2026-05-04 16:29 (analise-ia/geral).
+  'brightmonitor_analise_ia',
+])
 
 /**
  * Get optimized Anthropic config based on task complexity.
