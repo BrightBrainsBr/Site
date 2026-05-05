@@ -5,6 +5,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { PGR_SLUGS } from '~/features/assessment/components/constants/nr1-options'
+import { notifyError } from '~/shared/utils/notifications/notifyError'
 
 import { buildPdf } from '../../../../../assessment/generate-pdf/pdf-helpers'
 import { getB2BUser, resolveCycle } from '../../../../lib/getB2BUser'
@@ -20,7 +21,10 @@ import {
 } from '../../lib/pgr-prompts'
 
 export const runtime = 'nodejs'
-export const maxDuration = 120
+// Sonnet 4.6 with 8K-token output + PDF build + Supabase upload regularly
+// pushes past 120s under load (Vercel logs 2026-05-04 16:27 504 timeout).
+// Pro plan allows up to 800s; 300s gives ample headroom for retries inside the LLM service.
+export const maxDuration = 300
 
 type PGRSlug = (typeof PGR_SLUGS)[number]
 
@@ -122,9 +126,22 @@ export async function POST(
       generatedAt: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('[pgr/generate]', error)
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('[pgr/generate]', err)
+
+    void notifyError({
+      title: 'PGR generation failed',
+      route: `/api/brightmonitor/${companyId}/reports/pgr/${slug}`,
+      message: err.message,
+      stack: err.stack,
+      context: { companyId, slug, cycleId: cycleRes.cycleId },
+    })
+
     return NextResponse.json(
-      { error: 'Erro ao gerar documento PGR' },
+      {
+        error: `Erro ao gerar PGR (${slug}): ${err.message}`,
+        slug,
+      },
       { status: 500 }
     )
   }

@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 import { ANALISE_IA_SLUGS } from '~/features/assessment/components/constants/nr1-options'
+import { notifyError } from '~/shared/utils/notifications/notifyError'
 
 import { getB2BUser, resolveCycle } from '../../../../lib/getB2BUser'
 import {
@@ -16,7 +17,8 @@ import { buildPGRContext } from '../../lib/build-context'
 import { invokeBrightMonitorMarkdown } from '../../lib/invoke-report-llm'
 
 export const runtime = 'nodejs'
-export const maxDuration = 120
+// 8K-token Sonnet 4.6 outputs can take 60–90s; 300s gives headroom for fixer fallback.
+export const maxDuration = 300
 
 type AnaliseSlug = (typeof ANALISE_IA_SLUGS)[number]
 
@@ -64,15 +66,28 @@ export async function POST(
     const markdown = await invokeBrightMonitorMarkdown({
       system,
       user,
-      task: 'general_response',
+      task: 'brightmonitor_analise_ia',
       stepName: 'brightmonitor_analise_ia',
     })
 
     return NextResponse.json({ markdown })
   } catch (error) {
-    console.error('[analise-ia/generate]', error)
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('[analise-ia/generate]', err)
+
+    void notifyError({
+      title: 'Análise IA generation failed',
+      route: `/api/brightmonitor/${companyId}/reports/analise-ia/${slug}`,
+      message: err.message,
+      stack: err.stack,
+      context: { companyId, slug, cycleId: cycleRes.cycleId },
+    })
+
     return NextResponse.json(
-      { error: 'Erro ao gerar análise' },
+      {
+        error: `Erro ao gerar análise (${slug}): ${err.message}`,
+        slug,
+      },
       { status: 500 }
     )
   }
