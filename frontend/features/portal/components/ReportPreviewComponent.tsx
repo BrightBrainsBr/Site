@@ -1,5 +1,6 @@
 'use client'
 
+import { marked, type MarkedOptions } from 'marked'
 import { useEffect, useRef, useState } from 'react'
 
 import { cn } from '~/shared/utils/cn'
@@ -155,34 +156,68 @@ function splitIntoSections(md: string): MarkdownSection[] {
   return sections
 }
 
+// Render section markdown to HTML using `marked` for full CommonMark support
+// (numbered lists, blockquotes, links, inline code, tables, paragraphs, etc.).
+// Hand-rolled converter previously dropped many constructs which made certain
+// reports — especially "Recomendações práticas para você" — read as a wall of
+// faintly styled text. We post-process with class injection so the dark theme
+// stays consistent.
+const markedRenderer = new marked.Renderer()
+markedRenderer.heading = ({ tokens, depth }) => {
+  const text = markedRenderer.parser.parseInline(tokens)
+  const sizeMap: Record<number, string> = {
+    1: 'text-2xl font-bold text-white mt-6 mb-3',
+    2: 'text-xl font-bold text-[#e0f0ff] mt-6 mb-3',
+    3: 'text-base font-bold text-[#00c9b1] mt-6 mb-2',
+    4: 'text-[0.9375rem] font-semibold text-[#5ec4b6] mt-5 mb-2',
+    5: 'text-sm font-semibold text-[#5ec4b6] mt-4 mb-1.5',
+    6: 'text-sm font-semibold text-[#5ec4b6] mt-4 mb-1.5',
+  }
+  const cls = sizeMap[depth] ?? sizeMap[4]
+  return `<h${depth} class="${cls}">${text}</h${depth}>`
+}
+markedRenderer.paragraph = ({ tokens }) =>
+  `<p class="my-3 leading-[1.8]">${markedRenderer.parser.parseInline(tokens)}</p>`
+markedRenderer.list = (token) => {
+  const ordered = token.ordered
+  const tag = ordered ? 'ol' : 'ul'
+  const cls = ordered
+    ? 'ml-5 my-3 space-y-1.5 list-decimal marker:text-[#00c9b1] marker:font-semibold'
+    : 'ml-5 my-3 space-y-1.5 list-disc marker:text-[#00c9b1]'
+  const body = token.items
+    .map((item) => markedRenderer.listitem(item))
+    .join('')
+  return `<${tag} class="${cls}">${body}</${tag}>`
+}
+markedRenderer.listitem = (item) => {
+  const body = markedRenderer.parser.parse(item.tokens)
+  return `<li class="text-[#cfe1f4]">${body}</li>`
+}
+markedRenderer.strong = ({ tokens }) =>
+  `<strong class="font-semibold text-[#e0f0ff]">${markedRenderer.parser.parseInline(tokens)}</strong>`
+markedRenderer.em = ({ tokens }) =>
+  `<em class="text-[#cfe1f4]">${markedRenderer.parser.parseInline(tokens)}</em>`
+markedRenderer.link = ({ href, title, tokens }) => {
+  const text = markedRenderer.parser.parseInline(tokens)
+  const t = title ? ` title="${title}"` : ''
+  return `<a href="${href}"${t} target="_blank" rel="noopener noreferrer" class="text-[#5ec4b6] underline hover:text-[#00c9b1]">${text}</a>`
+}
+markedRenderer.blockquote = ({ tokens }) =>
+  `<blockquote class="my-3 border-l-2 border-[#00c9b1]/60 bg-[#0a1525]/60 pl-4 py-2 text-[#b8d2e8] italic">${markedRenderer.parser.parse(tokens)}</blockquote>`
+markedRenderer.codespan = ({ text }) =>
+  `<code class="rounded bg-[#0a1525] px-1.5 py-0.5 text-[0.85em] text-[#5ec4b6]">${text}</code>`
+markedRenderer.hr = () =>
+  `<hr class="my-4 border-[#1a3a5c]" />`
+
+const markedOptions: MarkedOptions = {
+  renderer: markedRenderer,
+  gfm: true,
+  breaks: true,
+  async: false,
+}
+
 function sectionContentToHtml(md: string): string {
-  let html = md
-    .replace(
-      /^#### (.+)$/gm,
-      '<h4 class="text-[0.9375rem] font-semibold text-[#5ec4b6] mt-5 mb-2">$1</h4>'
-    )
-    .replace(
-      /^### (.+)$/gm,
-      '<h3 class="text-base font-bold text-[#00c9b1] mt-6 mb-2">$1</h3>'
-    )
-    .replace(
-      /^# (.+)$/gm,
-      '<h1 class="text-2xl font-bold text-white mb-3">$1</h1>'
-    )
-    .replace(
-      /\*\*(.+?)\*\*/g,
-      '<strong class="font-semibold text-[#e0f0ff]">$1</strong>'
-    )
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/^---$/gm, '')
-    .replace(/\n\n/g, '<br/><br/>')
-
-  html = html.replace(
-    /(<li>[\s\S]*?<\/li>(?:\s*<li>[\s\S]*?<\/li>)*)/g,
-    '<ul class="ml-5 my-3 space-y-1.5 list-disc marker:text-[#00c9b1]">$1</ul>'
-  )
-
-  return html
+  return marked.parse(md, markedOptions) as string
 }
 
 function formatDate(iso: string) {
@@ -422,7 +457,7 @@ export function ReportPreviewComponent({
                 <div
                   key={i}
                   className={cn(
-                    'rounded-lg px-4 py-4 text-[0.9375rem] leading-[1.8] text-[#b0c8de] md:px-6 md:py-5',
+                    'rounded-lg px-4 py-4 text-[0.9375rem] leading-[1.8] text-[#d6e6f4] md:px-6 md:py-5',
                     isIntro
                       ? 'border-l-[3px] border-l-[#00c9b1] bg-[#0f2240]'
                       : isEven

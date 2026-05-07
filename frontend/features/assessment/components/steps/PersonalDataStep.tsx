@@ -56,7 +56,12 @@ export function PersonalDataStep({
   }
 
   const departments = companyContext?.departments ?? []
-  const hasDepartments = companyContext?.company_id && departments.length > 0
+  const isCompanyAssessment = !!companyContext?.company_id
+  const hasDepartments = isCompanyAssessment && departments.length > 0
+  // Show a free-text fallback so the field is captured even when the company
+  // didn't pre-define a list — without it the collaborator table renders "—"
+  // for everybody.
+  const showDepartmentFreeText = isCompanyAssessment && departments.length === 0
   const selectedDepartment = companyContext?.department ?? ''
 
   const handleDepartmentChange = (value: string) => {
@@ -128,6 +133,15 @@ export function PersonalDataStep({
             onChange={handleDepartmentChange}
             options={departments.map((d) => ({ label: d, value: d }))}
             placeholder="Selecione seu departamento"
+          />
+        )}
+
+        {showDepartmentFreeText && (
+          <Input
+            label="Departamento"
+            value={selectedDepartment}
+            onChange={handleDepartmentChange}
+            placeholder="Ex.: Operações, Recursos Humanos"
           />
         )}
 

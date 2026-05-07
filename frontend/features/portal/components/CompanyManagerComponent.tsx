@@ -6,6 +6,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import {
+  isValidCNPJLength,
+  maskCNPJ,
+  unmaskCNPJ,
+} from '~/shared/utils/format-br'
+
 interface Company {
   id: string
   name: string
@@ -75,6 +81,11 @@ export function CompanyManagerComponent({
 
   const handleCreate = useCallback(async () => {
     if (!newName.trim()) return
+    if (!isValidCNPJLength(newCnpj)) {
+      setError('CNPJ deve conter 14 dígitos.')
+      return
+    }
+    const cnpjDigits = unmaskCNPJ(newCnpj)
     setCreating(true)
     setError(null)
     try {
@@ -83,7 +94,7 @@ export function CompanyManagerComponent({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newName.trim(),
-          cnpj: newCnpj.trim() || undefined,
+          cnpj: cnpjDigits || undefined,
           contact_email: newEmail.trim() || undefined,
         }),
       })
@@ -105,6 +116,11 @@ export function CompanyManagerComponent({
 
   const handleEditSave = useCallback(async () => {
     if (!editingCompany || !editName.trim()) return
+    if (!isValidCNPJLength(editCnpj)) {
+      setActionError('CNPJ deve conter 14 dígitos.')
+      return
+    }
+    const cnpjDigits = unmaskCNPJ(editCnpj)
     setEditSaving(true)
     setActionError(null)
     try {
@@ -113,7 +129,7 @@ export function CompanyManagerComponent({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: editName.trim(),
-          cnpj: editCnpj.trim() || null,
+          cnpj: cnpjDigits || null,
         }),
       })
       if (!res.ok) {
@@ -211,7 +227,9 @@ export function CompanyManagerComponent({
               <label className="mb-1 block text-xs text-[#5a7fa0]">CNPJ</label>
               <input
                 value={newCnpj}
-                onChange={(e) => setNewCnpj(e.target.value)}
+                onChange={(e) => setNewCnpj(maskCNPJ(e.target.value))}
+                inputMode="numeric"
+                maxLength={18}
                 placeholder="00.000.000/0000-00"
                 className="w-full rounded-lg border border-[#1a3a5c] bg-[#060e1a] px-4 py-2 text-[#cce6f7]"
               />
@@ -294,7 +312,9 @@ export function CompanyManagerComponent({
                 }
               >
                 <td className="px-4 py-3 text-[#cce6f7]">{c.name}</td>
-                <td className="px-4 py-3 text-[#5a7fa0]">{c.cnpj ?? '–'}</td>
+                <td className="px-4 py-3 text-[#5a7fa0]">
+                  {c.cnpj ? maskCNPJ(c.cnpj) : '–'}
+                </td>
                 <td className="px-4 py-3">{renderAdminEmails(c)}</td>
                 <td className="px-4 py-3">
                   <span
@@ -329,7 +349,7 @@ export function CompanyManagerComponent({
                           setMenuOpenId(null)
                           setEditingCompany(c)
                           setEditName(c.name)
-                          setEditCnpj(c.cnpj ?? '')
+                          setEditCnpj(c.cnpj ? maskCNPJ(c.cnpj) : '')
                           setActionError(null)
                         }}
                         className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[#cce6f7] hover:bg-[#1a3a5c]"
@@ -396,7 +416,9 @@ export function CompanyManagerComponent({
             <label className="mb-1 block text-xs text-[#5a7fa0]">CNPJ</label>
             <input
               value={editCnpj}
-              onChange={(e) => setEditCnpj(e.target.value)}
+              onChange={(e) => setEditCnpj(maskCNPJ(e.target.value))}
+              inputMode="numeric"
+              maxLength={18}
               placeholder="00.000.000/0000-00"
               className="mb-4 w-full rounded-lg border border-[#1a3a5c] bg-[#060e1a] px-4 py-2 text-[#cce6f7] focus:border-[#00c9b1] focus:outline-none"
               onKeyDown={(e) => e.key === 'Enter' && handleEditSave()}

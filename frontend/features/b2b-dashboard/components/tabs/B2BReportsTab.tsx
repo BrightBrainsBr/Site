@@ -216,29 +216,80 @@ export function B2BReportsTab({
   const [expandedPgr, setExpandedPgr] = useState<string | null>(null)
   const [expandedAnalise, setExpandedAnalise] = useState<string | null>(null)
 
+  // Per-slug in-flight + error state.
+  // Why: a single shared `useMutation` only tracks the latest call, so when 6
+  // cards click "Gerar" in parallel only the last one's UI state was observable
+  // (others' spinners/results would not surface). Track each slug independently.
+  const [pendingPgr, setPendingPgr] = useState<Set<string>>(new Set())
+  const [pendingAnalise, setPendingAnalise] = useState<Set<string>>(new Set())
+  const [pgrErrors, setPgrErrors] = useState<Record<string, string>>({})
+  const [analiseErrors, setAnaliseErrors] = useState<Record<string, string>>({})
+
   const pgrMutation = useBrightMonitorPGRMutation(companyId ?? null)
   const analiseMutation = useBrightMonitorAnaliseIAMutation(companyId ?? null)
 
   const handleGeneratePGR = useCallback(
-    (slug: string) => {
-      pgrMutation.mutate(slug, {
-        onSuccess: (data) => {
-          setPgrResults((prev) => ({ ...prev, [slug]: data }))
-          setExpandedPgr(slug)
-        },
+    async (slug: string) => {
+      setPendingPgr((prev) => {
+        const next = new Set(prev)
+        next.add(slug)
+        return next
       })
+      setPgrErrors((prev) => {
+        if (!(slug in prev)) return prev
+        const next = { ...prev }
+        delete next[slug]
+        return next
+      })
+      try {
+        const data = await pgrMutation.mutateAsync(slug)
+        setPgrResults((prev) => ({ ...prev, [slug]: data }))
+        setExpandedPgr((prev) => prev ?? slug)
+      } catch (err) {
+        setPgrErrors((prev) => ({
+          ...prev,
+          [slug]: err instanceof Error ? err.message : 'Erro ao gerar PGR',
+        }))
+      } finally {
+        setPendingPgr((prev) => {
+          const next = new Set(prev)
+          next.delete(slug)
+          return next
+        })
+      }
     },
     [pgrMutation]
   )
 
   const handleGenerateAnalise = useCallback(
-    (slug: string) => {
-      analiseMutation.mutate(slug, {
-        onSuccess: (data) => {
-          setAnaliseResults((prev) => ({ ...prev, [slug]: data.markdown }))
-          setExpandedAnalise(slug)
-        },
+    async (slug: string) => {
+      setPendingAnalise((prev) => {
+        const next = new Set(prev)
+        next.add(slug)
+        return next
       })
+      setAnaliseErrors((prev) => {
+        if (!(slug in prev)) return prev
+        const next = { ...prev }
+        delete next[slug]
+        return next
+      })
+      try {
+        const data = await analiseMutation.mutateAsync(slug)
+        setAnaliseResults((prev) => ({ ...prev, [slug]: data.markdown }))
+        setExpandedAnalise((prev) => prev ?? slug)
+      } catch (err) {
+        setAnaliseErrors((prev) => ({
+          ...prev,
+          [slug]: err instanceof Error ? err.message : 'Erro ao gerar análise',
+        }))
+      } finally {
+        setPendingAnalise((prev) => {
+          const next = new Set(prev)
+          next.delete(slug)
+          return next
+        })
+      }
     },
     [analiseMutation]
   )
@@ -286,10 +337,10 @@ export function B2BReportsTab({
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PGR_CARDS.map((card) => {
-              const isGenerating =
-                pgrMutation.isPending && pgrMutation.variables === card.slug
+              const isGenerating = pendingPgr.has(card.slug)
               const result = pgrResults[card.slug]
               const isExpanded = expandedPgr === card.slug
+              const cardError = pgrErrors[card.slug]
 
               return (
                 <div
@@ -350,14 +401,13 @@ export function B2BReportsTab({
                     </div>
                   )}
 
-                  {pgrMutation.isError &&
-                    pgrMutation.variables === card.slug && (
-                      <ErrorBlock
-                        message={pgrMutation.error.message}
-                        onRetry={() => handleGeneratePGR(card.slug)}
-                        retryColor="#c5e155"
-                      />
-                    )}
+                  {cardError && (
+                    <ErrorBlock
+                      message={cardError}
+                      onRetry={() => handleGeneratePGR(card.slug)}
+                      retryColor="#c5e155"
+                    />
+                  )}
 
                   {result?.generatedAt && (
                     <p className="mt-2 text-[11px] text-[#475569]">
@@ -407,11 +457,10 @@ export function B2BReportsTab({
 
           <div className="grid gap-4 sm:grid-cols-2">
             {ANALISE_CARDS.map((card) => {
-              const isGenerating =
-                analiseMutation.isPending &&
-                analiseMutation.variables === card.slug
+              const isGenerating = pendingAnalise.has(card.slug)
               const result = analiseResults[card.slug]
               const isExpanded = expandedAnalise === card.slug
+              const cardError = analiseErrors[card.slug]
 
               return (
                 <div
@@ -454,14 +503,13 @@ export function B2BReportsTab({
                     </div>
                   )}
 
-                  {analiseMutation.isError &&
-                    analiseMutation.variables === card.slug && (
-                      <ErrorBlock
-                        message={analiseMutation.error.message}
-                        onRetry={() => handleGenerateAnalise(card.slug)}
-                        retryColor="#60a5fa"
-                      />
-                    )}
+                  {cardError && (
+                    <ErrorBlock
+                      message={cardError}
+                      onRetry={() => handleGenerateAnalise(card.slug)}
+                      retryColor="#60a5fa"
+                    />
+                  )}
                 </div>
               )
             })}
