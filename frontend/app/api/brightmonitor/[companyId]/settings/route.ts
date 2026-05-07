@@ -360,8 +360,20 @@ export async function POST(
       bucket: string
       path: string
     }
-    const { data } = sb.storage.from(bucket).getPublicUrl(filePath)
-    return NextResponse.json({ publicUrl: data.publicUrl })
+    // `company-signatures` is a private bucket — getPublicUrl returns a URL
+    // that 403s in <img>, which is what produced the broken-image preview.
+    // Issue a long-lived (10 years) signed URL instead so the preview works
+    // regardless of bucket visibility.
+    const TEN_YEARS_SECONDS = 60 * 60 * 24 * 365 * 10
+    const { data: signed, error: signedErr } = await sb.storage
+      .from(bucket)
+      .createSignedUrl(filePath, TEN_YEARS_SECONDS)
+    if (signedErr || !signed?.signedUrl) {
+      // Fallback to public URL for buckets that are actually public.
+      const { data } = sb.storage.from(bucket).getPublicUrl(filePath)
+      return NextResponse.json({ publicUrl: data.publicUrl })
+    }
+    return NextResponse.json({ publicUrl: signed.signedUrl })
   }
 
   if (body.action === 'update_nr1_fields') {
