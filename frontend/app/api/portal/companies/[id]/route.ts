@@ -129,11 +129,46 @@ export async function DELETE(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  // Best-effort cascade: clean up child rows that don't have ON DELETE CASCADE
+  // configured at the DB level, so the company delete doesn't 500 with a raw
+  // foreign-key constraint message.
+  const childCleanups = [
+    sb.from('mental_health_evaluations').delete().eq('company_id', id),
+    sb.from('company_access_codes').delete().eq('company_id', id),
+    sb.from('company_users').delete().eq('company_id', id),
+    sb.from('assessment_cycles').delete().eq('company_id', id),
+    sb.from('b2b_action_plans').delete().eq('company_id', id),
+    sb.from('b2b_events').delete().eq('company_id', id),
+    sb.from('harassment_reports').delete().eq('company_id', id),
+  ]
+  await Promise.allSettled(childCleanups)
+
   const { error } = await sb.from('companies').delete().eq('id', id)
 
   if (error) {
     console.error('[portal/companies DELETE]', error)
-    return NextResponse.json({ message: error.message }, { status: 500 })
+    const raw = error.message ?? ''
+    const isFk = /foreign key|violates foreign key constraint/i.test(raw)
+    if (isFk) {
+      // Surface a specific table when possible (best effort).
+      const tableMatch = raw.match(/on table "?([\w_]+)"?/i)
+      const linkedTable = tableMatch?.[1]
+      return NextResponse.json(
+        {
+          message: linkedTable
+            ? `Não foi possível excluir a empresa pois existem registros vinculados em "${linkedTable}". Remova-os antes de tentar novamente.`
+            : 'Não foi possível excluir a empresa pois existem dados vinculados. Tente novamente em alguns instantes ou entre em contato com o suporte.',
+        },
+        { status: 409 }
+      )
+    }
+    return NextResponse.json(
+      {
+        message:
+          'Não foi possível excluir a empresa. Tente novamente ou entre em contato com o suporte.',
+      },
+      { status: 500 }
+    )
   }
 
   return new NextResponse(null, { status: 204 })

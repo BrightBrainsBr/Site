@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   isValidCNPJLength,
+  isValidEmail,
   maskCNPJ,
   unmaskCNPJ,
 } from '~/shared/utils/format-br'
@@ -85,6 +86,11 @@ export function CompanyManagerComponent({
       setError('CNPJ deve conter 14 dígitos.')
       return
     }
+    const trimmedEmail = newEmail.trim()
+    if (trimmedEmail && !isValidEmail(trimmedEmail)) {
+      setError('E-mail inválido. Verifique se contém @ e um domínio válido.')
+      return
+    }
     const cnpjDigits = unmaskCNPJ(newCnpj)
     setCreating(true)
     setError(null)
@@ -154,7 +160,9 @@ export function CompanyManagerComponent({
         method: 'DELETE',
       })
       if (!res.ok && res.status !== 204) {
-        const err = await res.json().catch(() => ({ message: 'Erro ao excluir' }))
+        const err = await res
+          .json()
+          .catch(() => ({ message: 'Erro ao excluir' }))
         throw new Error(err.message ?? 'Erro ao excluir')
       }
       await queryClient.invalidateQueries({ queryKey: ['portal', 'companies'] })
@@ -182,7 +190,8 @@ export function CompanyManagerComponent({
 
   function renderAdminEmails(c: Company) {
     const emails = c.admin_emails
-    if (!emails.length) return <span className="text-[#5a7fa0]">{c.contact_email ?? '–'}</span>
+    if (!emails.length)
+      return <span className="text-[#5a7fa0]">{c.contact_email ?? '–'}</span>
 
     const first = emails[0]
     const rest = emails.length - 1
@@ -331,7 +340,12 @@ export function CompanyManagerComponent({
                     }}
                     className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#5a7fa0] hover:bg-[#1a3a5c] hover:text-[#cce6f7]"
                   >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                    >
                       <circle cx="8" cy="3" r="1.5" />
                       <circle cx="8" cy="8" r="1.5" />
                       <circle cx="8" cy="13" r="1.5" />
@@ -354,7 +368,16 @@ export function CompanyManagerComponent({
                         }}
                         className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[#cce6f7] hover:bg-[#1a3a5c]"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                         </svg>
@@ -370,7 +393,16 @@ export function CompanyManagerComponent({
                         }}
                         className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-400 hover:bg-[#1a3a5c]"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
                           <polyline points="3 6 5 6 21 6" />
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                         </svg>
@@ -457,7 +489,16 @@ export function CompanyManagerComponent({
           >
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#ef4444"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -468,8 +509,8 @@ export function CompanyManagerComponent({
               </h3>
             </div>
             <p className="mb-2 text-sm text-[#94a3b8]">
-              Esta ação é <strong className="text-red-400">irreversível</strong>.
-              Todos os dados associados serão excluídos permanentemente:
+              Esta ação é <strong className="text-red-400">irreversível</strong>
+              . Todos os dados associados serão excluídos permanentemente:
             </p>
             <ul className="mb-4 ml-4 list-disc text-xs text-[#5a7fa0]">
               <li>Ciclos de avaliação</li>
@@ -506,8 +547,7 @@ export function CompanyManagerComponent({
               <button
                 onClick={handleDelete}
                 disabled={
-                  deleteLoading ||
-                  deleteConfirmText !== deletingCompany.name
+                  deleteLoading || deleteConfirmText !== deletingCompany.name
                 }
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-30"
               >

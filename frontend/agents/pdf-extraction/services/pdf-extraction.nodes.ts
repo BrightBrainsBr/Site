@@ -51,7 +51,9 @@ export async function parsePdf(
   try {
     // Lazy-require at runtime to avoid pdfjs-dist canvas globals failing at build time
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdf = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
+    const pdf = require('pdf-parse') as (
+      buf: Buffer
+    ) => Promise<{ text: string }>
     const buffer = await downloadPdf(state.fileUrl)
     const parsed = await pdf(buffer)
 

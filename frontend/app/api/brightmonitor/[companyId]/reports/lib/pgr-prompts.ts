@@ -4,10 +4,19 @@ import type { PGRContext } from './build-context'
 
 function formatCompanyBlock(ctx: PGRContext): string {
   const c = ctx.company
+  const sopList =
+    c.emergency_sops && c.emergency_sops.length > 0
+      ? c.emergency_sops.map((s) => `- ${s.name}`).join('\n')
+      : null
+  const measuresList =
+    c.nr1_preventive_measures && c.nr1_preventive_measures.length > 0
+      ? c.nr1_preventive_measures.map((m) => `- ${m}`).join('\n')
+      : null
   return [
     `Empresa: ${c.name}`,
     `CNPJ: ${c.cnpj}`,
     c.cnae ? `CNAE: ${c.cnae}` : null,
+    c.risk_grade ? `Grau de Risco: ${c.risk_grade}` : null,
     `Departamentos: ${c.departments.join(', ') || 'Não informados'}`,
     c.sst_responsible_name
       ? `Responsável SST: ${c.sst_responsible_name} (${c.sst_responsible_role ?? 'Não informado'})`
@@ -16,6 +25,14 @@ function formatCompanyBlock(ctx: PGRContext): string {
       ? `Ciclo: ${ctx.cycle.label} (${ctx.cycle.starts_at} a ${ctx.cycle.ends_at})`
       : 'Ciclo: Não definido',
     `Total de avaliações NR-1: ${ctx.assessmentCount}`,
+    c.nr1_process_descriptions
+      ? `\nDescrição dos Processos de Trabalho:\n${c.nr1_process_descriptions}`
+      : null,
+    c.nr1_activities
+      ? `\nDescrição das Atividades:\n${c.nr1_activities}`
+      : null,
+    measuresList ? `\nMedidas Preventivas Existentes:\n${measuresList}` : null,
+    sopList ? `\nSOPs de Emergência cadastrados:\n${sopList}` : null,
   ]
     .filter(Boolean)
     .join('\n')

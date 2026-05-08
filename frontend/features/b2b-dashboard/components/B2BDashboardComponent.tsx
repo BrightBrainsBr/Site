@@ -69,7 +69,12 @@ function buildSidebarSections(
       label: 'Visão Geral',
       items: [
         { id: 'visao-geral', label: 'Dashboard', icon: '📊' },
-        { id: 'alertas', label: 'Alertas', icon: '🔔', badge: alertCount > 0 ? alertCount : null },
+        {
+          id: 'alertas',
+          label: 'Alertas',
+          icon: '🔔',
+          badge: alertCount > 0 ? alertCount : null,
+        },
       ],
     },
     {
@@ -84,9 +89,7 @@ function buildSidebarSections(
     },
     {
       label: 'Configuração',
-      items: [
-        { id: 'settings', label: 'Perfil da Empresa', icon: '🏭' },
-      ],
+      items: [{ id: 'settings', label: 'Perfil da Empresa', icon: '🏭' }],
     },
     {
       label: 'Documentos',
@@ -100,7 +103,12 @@ function buildSidebarSections(
           {
             label: 'Saúde Mental',
             items: [
-              { id: 'insights' as TabId, label: 'Insights', icon: '🧬', isNew: true },
+              {
+                id: 'insights' as TabId,
+                label: 'Insights',
+                icon: '🧬',
+                isNew: true,
+              },
             ],
           },
         ]
@@ -200,8 +208,7 @@ export function B2BDashboardComponent({
     tracking != null &&
     tracking.completionPct < 30
 
-  const noInvites =
-    !trackingLoading && tracking != null && tracking.total === 0
+  const noInvites = !trackingLoading && tracking != null && tracking.total === 0
 
   useEffect(() => {
     if (!isPortalMode && noInvites) {
@@ -239,7 +246,9 @@ export function B2BDashboardComponent({
                 <div className="text-[17px] font-bold text-[#c5e155]">
                   BrightMonitor
                 </div>
-                <div className="text-[12px] text-[#64748b]">Saúde Mental Corporativa</div>
+                <div className="text-[12px] text-[#64748b]">
+                  Saúde Mental Corporativa
+                </div>
               </div>
             </div>
           </div>
@@ -279,7 +288,7 @@ export function B2BDashboardComponent({
                     void setActiveTab(item.id)
                     setSidebarOpen(false)
                   }}
-                  className={`mb-0.5 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[14px] transition-all ${
+                  className={`relative mb-0.5 flex w-full items-center gap-2 overflow-hidden rounded-lg px-3 py-2 text-left text-[14px] transition-all duration-300 ease-out motion-safe:hover:translate-x-[1px] ${
                     activeTab === item.id
                       ? item.isNew
                         ? 'bg-[rgba(124,106,247,0.12)] font-semibold text-[#a99df7]'
@@ -287,6 +296,16 @@ export function B2BDashboardComponent({
                       : 'font-normal text-[#94a3b8] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#e2e8f0]'
                   }`}
                 >
+                  <span
+                    aria-hidden
+                    className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r transition-all duration-300 ease-out ${
+                      activeTab === item.id
+                        ? item.isNew
+                          ? 'bg-[#a99df7] opacity-100'
+                          : 'bg-[#c5e155] opacity-100'
+                        : 'opacity-0'
+                    }`}
+                  />
                   <span className="shrink-0 text-[16px]">{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
                   {item.badge != null && item.badge > 0 && (
@@ -295,7 +314,13 @@ export function B2BDashboardComponent({
                     </span>
                   )}
                   {item.isNew && (
-                    <span className="rounded px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: 'rgba(124,106,247,.2)', color: '#a99df7' }}>
+                    <span
+                      className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                      style={{
+                        background: 'rgba(124,106,247,.2)',
+                        color: '#a99df7',
+                      }}
+                    >
                       Novo
                     </span>
                   )}
@@ -491,16 +516,27 @@ export function B2BDashboardComponent({
                 <B2BComplianceTab companyId={companyId} cycleId={cycleId} />
               )}
               {activeTab === 'relatorios' && (
-                <B2BReportsTab companyId={companyId} cycleId={cycleId} defaultSection="pgr" />
+                <B2BReportsTab
+                  companyId={companyId}
+                  cycleId={cycleId}
+                  defaultSection="pgr"
+                />
               )}
               {activeTab === 'analise-ia' && (
-                <B2BReportsTab companyId={companyId} cycleId={cycleId} defaultSection="analise-ia" />
+                <B2BReportsTab
+                  companyId={companyId}
+                  cycleId={cycleId}
+                  defaultSection="analise-ia"
+                />
               )}
               {activeTab === 'insights' && session.brightInsightsEnabled && (
                 <B2BPercepcaoTab companyId={companyId} cycleId={cycleId} />
               )}
               {activeTab === 'settings' && (
-                <B2BSettingsTab companyId={companyId} isPortalMode={isPortalMode} />
+                <B2BSettingsTab
+                  companyId={companyId}
+                  isPortalMode={isPortalMode}
+                />
               )}
             </>
           )}

@@ -16,6 +16,22 @@ Analise o texto do PDF fornecido e extraia os seguintes 9 campos do inventário 
 Extraia as informações diretamente do texto. Se um campo não estiver presente no documento, retorne string vazia ou array vazio conforme o tipo.
 Responda APENAS com JSON válido no formato especificado.`
 
+// New schema aligned with what the BrightMonitor frontend stores
+// (process_descriptions, activities, preventive_measures[]).
+export const NR1_FIELDS_FRONTEND_EXTRACTION_SYSTEM = `Você é um especialista em saúde e segurança do trabalho no Brasil (NR-1).
+Você receberá um PDF (texto ou digitalizado/imagens) com informações sobre uma empresa.
+Extraia rigorosamente APENAS os 3 campos abaixo, em português, no formato JSON solicitado:
+
+1. process_descriptions: Texto corrido descrevendo os processos de trabalho da empresa.
+2. activities: Texto corrido descrevendo as atividades realizadas pelos colaboradores.
+3. preventive_measures: Lista de medidas preventivas existentes (uma string por medida, sem numeração).
+
+Regras:
+- Se o PDF for digitalizado (imagens), interprete o conteúdo visual.
+- Se um campo não estiver claro no documento, retorne string vazia ou array vazio.
+- Não invente conteúdo. Não inclua explicações ou texto fora do JSON.
+- Responda APENAS com JSON válido aderente ao schema fornecido.`
+
 export const EVENTS_BULK_EXTRACTION_SYSTEM = `Você é um especialista em análise de documentos de saúde ocupacional.
 Analise o texto do PDF e extraia todos os eventos de saúde/segurança encontrados.
 

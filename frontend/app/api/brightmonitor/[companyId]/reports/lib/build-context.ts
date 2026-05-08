@@ -12,9 +12,14 @@ export interface PGRContext {
     name: string
     cnpj: string
     cnae: string | null
+    risk_grade: string | null
     departments: string[]
     sst_responsible_name: string | null
     sst_responsible_role: string | null
+    nr1_process_descriptions: string | null
+    nr1_activities: string | null
+    nr1_preventive_measures: string[] | null
+    emergency_sops: Array<{ name: string; uploaded_at?: string }> | null
   }
   cycle: {
     id: string
@@ -87,7 +92,9 @@ export async function buildPGRContext(
   // ── Company metadata ────────────────────────────────────────────
   const { data: company } = await sb
     .from('companies')
-    .select('name, cnpj, cnae, sst_responsible_name, sst_responsible_role')
+    .select(
+      'name, cnpj, cnae, risk_grade, sst_responsible_name, sst_responsible_role, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, emergency_sop_urls'
+    )
     .eq('id', companyId)
     .single()
 
@@ -344,9 +351,21 @@ export async function buildPGRContext(
       name: company?.name ?? companyId,
       cnpj: company?.cnpj ?? '',
       cnae: company?.cnae ?? null,
+      risk_grade: company?.risk_grade ?? null,
       departments: Array.from(departments),
       sst_responsible_name: company?.sst_responsible_name ?? null,
       sst_responsible_role: company?.sst_responsible_role ?? null,
+      nr1_process_descriptions: company?.nr1_process_descriptions ?? null,
+      nr1_activities: company?.nr1_activities ?? null,
+      nr1_preventive_measures: Array.isArray(company?.nr1_preventive_measures)
+        ? (company?.nr1_preventive_measures as string[])
+        : null,
+      emergency_sops: Array.isArray(company?.emergency_sop_urls)
+        ? (company?.emergency_sop_urls as Array<{
+            name: string
+            uploaded_at?: string
+          }>)
+        : null,
     },
     cycle,
     assessmentCount: evaluations.length,
