@@ -8,10 +8,10 @@ export const BRAND = {
   gray100: [243, 244, 246] as const,
   gray200: [229, 231, 235] as const,
   gray300: [209, 213, 219] as const,
-  gray400: [156, 163, 175] as const,
-  gray500: [107, 114, 128] as const,
-  gray700: [55, 65, 81] as const,
-  gray900: [17, 24, 39] as const,
+  gray400: [120, 135, 155] as const,
+  gray500: [85, 100, 125] as const,
+  gray700: [30, 41, 59] as const,
+  gray900: [15, 23, 42] as const,
 }
 
 export const LOGO_PNG =

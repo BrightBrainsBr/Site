@@ -95,9 +95,12 @@ const LIME: RGB   = [197, 225, 85]
 const WHITE: RGB  = [255, 255, 255]
 const ROW1: RGB   = [242, 246, 252]
 const TXT_H: RGB  = [10, 25, 47]
-const TXT_B: RGB  = [40, 55, 75]
-const TXT_L: RGB  = [100, 120, 145]
-const TXT_M: RGB  = [148, 163, 184]
+// Body text: client reported some analyses rendering with washed-out grey.
+// Darkened from [40,55,75] → [22,33,52] so paragraphs read with strong
+// contrast against the white page background, including on high-DPI displays.
+const TXT_B: RGB  = [22, 33, 52]
+const TXT_L: RGB  = [70, 85, 110]
+const TXT_M: RGB  = [120, 135, 155]
 const RULE: RGB   = [205, 215, 228]
 
 // Risk colours
