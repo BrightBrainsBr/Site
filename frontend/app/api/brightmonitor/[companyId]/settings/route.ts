@@ -1,6 +1,6 @@
 // frontend/app/api/brightmonitor/[companyId]/settings/route.ts
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
@@ -9,6 +9,30 @@ import { getB2BUser } from '../../lib/getB2BUser'
 export const runtime = 'nodejs'
 
 const CANONICAL_PROD_URL = 'https://www.brightbrains.com.br'
+
+// Rehydrate a Supabase storage URL into a long-lived signed URL.
+// Older signatures were stored as `getPublicUrl` links against the
+// `company-signatures` bucket (private), which 403 in <img>. We detect the
+// public-URL pattern, parse out the bucket + path, and re-sign for 10 years.
+async function rehydrateStorageUrl(
+  sb: SupabaseClient,
+  storedUrl: string | null | undefined
+): Promise<string | null> {
+  if (!storedUrl) return null
+  // Already a signed URL — leave it (signed URLs include `?token=`).
+  if (storedUrl.includes('/storage/v1/object/sign/')) return storedUrl
+  const publicMatch = storedUrl.match(
+    /\/storage\/v1\/object\/public\/([^/]+)\/(.+?)(?:\?.*)?$/
+  )
+  if (!publicMatch) return storedUrl
+  const [, bucket, path] = publicMatch
+  const TEN_YEARS = 60 * 60 * 24 * 365 * 10
+  const { data, error } = await sb.storage
+    .from(bucket)
+    .createSignedUrl(decodeURIComponent(path), TEN_YEARS)
+  if (error || !data?.signedUrl) return storedUrl
+  return data.signedUrl
+}
 
 function getSiteUrl(): string {
   const raw =
@@ -105,7 +129,10 @@ export async function GET(
       nr1_preventive_measures: company?.nr1_preventive_measures ?? null,
       sst_responsible_name: company?.sst_responsible_name ?? null,
       sst_responsible_role: company?.sst_responsible_role ?? null,
-      sst_signature_url: company?.sst_signature_url ?? null,
+      sst_signature_url: await rehydrateStorageUrl(
+        sb,
+        company?.sst_signature_url
+      ),
       cnae: company?.cnae ?? null,
       risk_grade: company?.risk_grade ?? null,
       emergency_sop_urls: company?.emergency_sop_urls ?? null,
