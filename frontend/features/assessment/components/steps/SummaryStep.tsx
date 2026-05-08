@@ -28,7 +28,9 @@ function useLaudoPolling(evaluationId: string | null, enabled: boolean) {
 
     const poll = async () => {
       try {
-        const res = await fetch(`/api/assessment/laudo-status?id=${evaluationId}`)
+        const res = await fetch(
+          `/api/assessment/laudo-status?id=${evaluationId}`
+        )
         if (!res.ok) return
         const data = (await res.json()) as LaudoStatus
         setLaudo(data)
@@ -90,7 +92,10 @@ export function SummaryStep({
   const [error, setError] = useState<string | null>(null)
   const [evaluationId, setEvaluationId] = useState<string | null>(null)
   const isCorporate = !!companyContext?.company_id
-  const { laudo, timedOut } = useLaudoPolling(evaluationId, isCorporate && phase === 'submitted')
+  const { laudo, timedOut } = useLaudoPolling(
+    evaluationId,
+    isCorporate && phase === 'submitted'
+  )
 
   const scores = computeAllScores(data)
 
@@ -158,6 +163,10 @@ export function SummaryStep({
 
       const { uploads: _uploads, ...formDataWithoutUploads } = data
 
+      const formDept =
+        typeof data.department === 'string' ? data.department.trim() : ''
+      const employeeDept = companyContext?.department || formDept || null
+
       const res = await fetch('/api/assessment/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,9 +177,7 @@ export function SummaryStep({
           ...(companyContext?.company_id
             ? { company_id: companyContext.company_id }
             : {}),
-          ...(companyContext?.department
-            ? { employee_department: companyContext.department }
-            : {}),
+          ...(employeeDept ? { employee_department: employeeDept } : {}),
           ...(companyContext?.cycle_id
             ? { cycle_id: companyContext.cycle_id }
             : {}),
@@ -218,21 +225,21 @@ export function SummaryStep({
             {/* Personal data — always shown */}
             <SummaryCard
               title="Dados Pessoais"
-              items={[
-                `Nome: ${data.nome || '—'}`,
-                data.nascimento ? `Nascimento: ${data.nascimento}` : null,
-                data.email ? `E-mail: ${data.email}` : null,
-                data.sexo ? `Sexo: ${data.sexo}` : null,
-                isCorporate &&
-                (data.nr1_role as string | undefined)?.trim()
-                  ? `Cargo: ${data.nr1_role}`
-                  : null,
-                isCorporate &&
-                ((data.department as string | undefined)?.trim() ||
-                  companyContext?.department)
-                  ? `Setor: ${data.department || companyContext?.department}`
-                  : null,
-              ].filter(Boolean) as string[]}
+              items={
+                [
+                  `Nome: ${data.nome || '—'}`,
+                  data.nascimento ? `Nascimento: ${data.nascimento}` : null,
+                  data.email ? `E-mail: ${data.email}` : null,
+                  data.sexo ? `Sexo: ${data.sexo}` : null,
+                  isCorporate && data.nr1_role?.trim()
+                    ? `Cargo: ${data.nr1_role}`
+                    : null,
+                  isCorporate &&
+                  (data.department?.trim() || companyContext?.department)
+                    ? `Setor: ${data.department || companyContext?.department}`
+                    : null,
+                ].filter(Boolean) as string[]
+              }
             />
 
             {isCorporate ? (
@@ -244,23 +251,28 @@ export function SummaryStep({
                 {(data.publico || data.queixaPrincipal) && (
                   <SummaryCard
                     title="Perfil Clínico"
-                    items={[
-                      data.publico
-                        ? `Perfil: ${PROFILE_LABELS[data.publico] ?? data.publico}`
-                        : null,
-                      data.queixaPrincipal
-                        ? `Queixa: ${data.queixaPrincipal}`
-                        : null,
-                      data.tempoSintomas
-                        ? `Tempo dos sintomas: ${data.tempoSintomas}`
-                        : null,
-                    ].filter(Boolean) as string[]}
+                    items={
+                      [
+                        data.publico
+                          ? `Perfil: ${PROFILE_LABELS[data.publico] ?? data.publico}`
+                          : null,
+                        data.queixaPrincipal
+                          ? `Queixa: ${data.queixaPrincipal}`
+                          : null,
+                        data.tempoSintomas
+                          ? `Tempo dos sintomas: ${data.tempoSintomas}`
+                          : null,
+                      ].filter(Boolean) as string[]
+                    }
                   />
                 )}
                 {data.sintomasAtuais.length > 0 && (
                   <SummaryCard
                     title="Sintomas Relatados"
-                    items={[`${data.sintomasAtuais.length} sintoma(s) selecionado(s)`, ...data.sintomasAtuais.slice(0, 4)]}
+                    items={[
+                      `${data.sintomasAtuais.length} sintoma(s) selecionado(s)`,
+                      ...data.sintomasAtuais.slice(0, 4),
+                    ]}
                   />
                 )}
                 <B2CScalesSummary scores={scores} />
@@ -279,12 +291,14 @@ export function SummaryStep({
             {isCorporate && data.canal_percepcao?.descricao?.trim() && (
               <SummaryCard
                 title="Canal de Percepção"
-                items={[
-                  data.canal_percepcao.urgencia
-                    ? `Urgência: ${data.canal_percepcao.urgencia}`
-                    : null,
-                  `Relato: ${data.canal_percepcao.descricao.slice(0, 100)}${data.canal_percepcao.descricao.length > 100 ? '…' : ''}`,
-                ].filter(Boolean) as string[]}
+                items={
+                  [
+                    data.canal_percepcao.urgencia
+                      ? `Urgência: ${data.canal_percepcao.urgencia}`
+                      : null,
+                    `Relato: ${data.canal_percepcao.descricao.slice(0, 100)}${data.canal_percepcao.descricao.length > 100 ? '…' : ''}`,
+                  ].filter(Boolean) as string[]
+                }
               />
             )}
           </div>
@@ -357,8 +371,8 @@ export function SummaryStep({
                     <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
                       1
                     </span>
-                    A IA está gerando seu Laudo Individual BrightMonitor
-                    (pode levar 1-3 min)
+                    A IA está gerando seu Laudo Individual BrightMonitor (pode
+                    levar 1-3 min)
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/10 text-xs font-bold text-lime-400">
@@ -431,7 +445,8 @@ export function SummaryStep({
                           Laudo ainda em processamento
                         </p>
                         <p className="mt-0.5 text-[10px] text-zinc-500">
-                          Está demorando mais que o esperado. Você receberá o laudo por e-mail em breve.
+                          Está demorando mais que o esperado. Você receberá o
+                          laudo por e-mail em breve.
                         </p>
                       </div>
                     </div>
@@ -511,7 +526,6 @@ export function SummaryStep({
           </div>
         </div>
       )}
-
     </div>
   )
 }
@@ -551,7 +565,11 @@ function B2BScalesSummary({ scores }: { scores: Record<string, number> }) {
               stroke="currentColor"
               strokeWidth={2.5}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
         ))}
@@ -574,7 +592,8 @@ function B2CScalesSummary({ scores }: { scores: Record<string, number> }) {
   return (
     <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 px-4 py-3">
       <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-        Escalas Clínicas ({filled.length} respondida{filled.length !== 1 ? 's' : ''})
+        Escalas Clínicas ({filled.length} respondida
+        {filled.length !== 1 ? 's' : ''})
       </h4>
       <div className="space-y-1.5">
         {filled.map(({ key, label, max }) => (

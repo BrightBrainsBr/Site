@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
+import { isValidCNAEFormat, maskCNAE } from '~/shared/utils/format-br'
+
 import type {
   B2BNR1Data,
   B2BSOPDocument,
@@ -35,16 +37,14 @@ export function B2BNR1FieldsComponent({
   companyData,
   onSave,
 }: B2BNR1FieldsComponentProps) {
-  const [sstName, setSstName] = useState(
-    companyData.sst_responsible_name ?? ''
-  )
-  const [sstRole, setSstRole] = useState(
-    companyData.sst_responsible_role ?? ''
-  )
+  const [sstName, setSstName] = useState(companyData.sst_responsible_name ?? '')
+  const [sstRole, setSstRole] = useState(companyData.sst_responsible_role ?? '')
   const [signatureUrl, setSignatureUrl] = useState(
     companyData.sst_signature_url ?? ''
   )
-  const [cnae, setCnae] = useState(companyData.cnae ?? '')
+  const [cnae, setCnae] = useState(
+    companyData.cnae ? maskCNAE(companyData.cnae) : ''
+  )
   const [riskGrade, setRiskGrade] = useState(companyData.risk_grade ?? '')
   const [processDescriptions, setProcessDescriptions] = useState(
     typeof companyData.nr1_process_descriptions === 'string'
@@ -68,12 +68,20 @@ export function B2BNR1FieldsComponent({
   const [showPdfImport, setShowPdfImport] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [uploadingSignature, setUploadingSignature] = useState(false)
   const [uploadingSop, setUploadingSop] = useState(false)
   const signatureInputRef = useRef<HTMLInputElement>(null)
   const sopInputRef = useRef<HTMLInputElement>(null)
 
+  const cnaeInvalid = !isValidCNAEFormat(cnae)
+
   const handleSave = async () => {
+    if (cnaeInvalid) {
+      setSaveError('CNAE inválido. Use o formato 0000-0/00 (ex: 6201-5/01).')
+      return
+    }
+    setSaveError(null)
     setSaving(true)
     setSaveSuccess(false)
     try {
@@ -102,16 +110,19 @@ export function B2BNR1FieldsComponent({
       bucket: string
     ): Promise<{ publicUrl: string } | null> => {
       try {
-        const signedRes = await fetch(`/api/brightmonitor/${companyId}/settings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'upload_file',
-            bucket,
-            fileName: file.name,
-            contentType: file.type,
-          }),
-        })
+        const signedRes = await fetch(
+          `/api/brightmonitor/${companyId}/settings`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'upload_file',
+              bucket,
+              fileName: file.name,
+              contentType: file.type,
+            }),
+          }
+        )
         if (!signedRes.ok) return null
 
         const { signedUrl, fullPath } = await signedRes.json()
@@ -126,15 +137,18 @@ export function B2BNR1FieldsComponent({
         })
         if (!uploadRes.ok) return null
 
-        const publicRes = await fetch(`/api/brightmonitor/${companyId}/settings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'get_public_url',
-            bucket,
-            path: fullPath,
-          }),
-        })
+        const publicRes = await fetch(
+          `/api/brightmonitor/${companyId}/settings`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'get_public_url',
+              bucket,
+              path: fullPath,
+            }),
+          }
+        )
         if (!publicRes.ok) return null
 
         const { publicUrl } = await publicRes.json()
@@ -196,7 +210,8 @@ export function B2BNR1FieldsComponent({
 
   const handlePdfExtracted = (data: PdfExtractionResponse) => {
     const nr1 = data.extracted as PdfExtractionNR1Result
-    if (nr1.process_descriptions) setProcessDescriptions(nr1.process_descriptions)
+    if (nr1.process_descriptions)
+      setProcessDescriptions(nr1.process_descriptions)
     if (nr1.activities) setActivities(nr1.activities)
     if (nr1.preventive_measures?.length) {
       setPreventiveMeasures(nr1.preventive_measures)
@@ -296,10 +311,22 @@ export function B2BNR1FieldsComponent({
             </label>
             <input
               value={cnae}
-              onChange={(e) => setCnae(e.target.value)}
+              onChange={(e) => setCnae(maskCNAE(e.target.value))}
+              inputMode="numeric"
+              maxLength={9}
               placeholder="Ex: 6201-5/01"
-              className="w-full rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:border-[#14B8A6] focus:outline-none"
+              aria-invalid={cnaeInvalid}
+              className={`w-full rounded-lg border bg-[#07111F] px-3 py-2 text-[14px] text-[#E2E8F0] placeholder-[#64748B] focus:outline-none ${
+                cnaeInvalid
+                  ? 'border-[#F87171] focus:border-[#F87171]'
+                  : 'border-[rgba(255,255,255,0.08)] focus:border-[#14B8A6]'
+              }`}
             />
+            {cnaeInvalid && (
+              <p className="mt-1 text-[12px] text-[#F87171]">
+                Formato esperado: 0000-0/00 (ex: 6201-5/01)
+              </p>
+            )}
           </div>
           <div>
             <label className="mb-1 block text-[13px] font-medium text-[#94A3B8]">
@@ -496,6 +523,11 @@ export function B2BNR1FieldsComponent({
 
       {/* Save button */}
       <div className="flex items-center justify-end gap-3">
+        {saveError && (
+          <span className="text-[14px] font-medium text-[#F87171]">
+            {saveError}
+          </span>
+        )}
         {saveSuccess && (
           <span className="text-[14px] font-medium text-[#34D399]">
             Salvo com sucesso!
@@ -503,7 +535,7 @@ export function B2BNR1FieldsComponent({
         )}
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || cnaeInvalid}
           className="flex items-center gap-2 rounded-lg bg-[#0D9488] px-5 py-2.5 text-[15px] font-semibold text-white transition-colors hover:bg-[#14B8A6] disabled:opacity-40"
         >
           {saving ? (

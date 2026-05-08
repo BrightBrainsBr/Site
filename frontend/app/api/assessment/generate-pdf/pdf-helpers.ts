@@ -159,17 +159,32 @@ function drawPatientBox(
   const col2 = PAGE_W / 2 + 5
   let py = y + 6
 
+  // Truncate long values to fit within a column to prevent overflow into the
+  // next column. Roughly half the content width per column minus padding.
+  const colMaxWidth = (CONTENT_W - 16) / 2 - 4
+  const fitToCol = (text: string): string => {
+    if (doc.getTextWidth(text) <= colMaxWidth) return text
+    let truncated = text
+    while (
+      truncated.length > 1 &&
+      doc.getTextWidth(`${truncated}\u2026`) > colMaxWidth
+    ) {
+      truncated = truncated.slice(0, -1)
+    }
+    return `${truncated}\u2026`
+  }
+
   doc.setFontSize(6)
   doc.setFont(FONT_NAME, 'normal')
   setColor(doc, BRAND.gray400)
-  doc.text('PACIENTE', col1, py)
-  doc.text('NASCIMENTO', col2, py)
+  doc.text('COLABORADOR', col1, py)
+  doc.text('DATA DE NASCIMENTO', col2, py)
   py += 4.5
   doc.setFontSize(8.5)
   doc.setFont(FONT_NAME, 'bold')
   setColor(doc, BRAND.gray900)
-  doc.text(formData.nome || '\u2014', col1, py)
-  doc.text(formData.nascimento || '\u2014', col2, py)
+  doc.text(fitToCol(formData.nome || '\u2014'), col1, py)
+  doc.text(fitToCol(formData.nascimento || '\u2014'), col2, py)
   py += 6
   doc.setFontSize(6)
   doc.setFont(FONT_NAME, 'normal')
@@ -180,8 +195,8 @@ function drawPatientBox(
   doc.setFontSize(8.5)
   doc.setFont(FONT_NAME, 'bold')
   setColor(doc, BRAND.gray900)
-  doc.text((formData.publico || '\u2014').toUpperCase(), col1, py)
-  doc.text(today, col2, py)
+  doc.text(fitToCol((formData.publico || '\u2014').toUpperCase()), col1, py)
+  doc.text(fitToCol(today), col2, py)
 
   return y + 30
 }

@@ -3,6 +3,7 @@
 'use client'
 
 import { marked } from 'marked'
+import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useBrightMonitorAnaliseIAMutation } from '../../hooks/useBrightMonitorAnaliseIAMutationHook'
@@ -206,8 +207,19 @@ export function B2BReportsTab({
   companyId,
   defaultSection = 'pgr',
 }: B2BReportsTabProps) {
-  const [activeSection, setActiveSection] = useState<'pgr' | 'analise-ia'>(
-    defaultSection
+  // Bind the inner toggle (PGR / Análise IA) to the same URL `tab` query that
+  // drives the sidebar, so switching here animates the sidebar highlight too.
+  const [activeTab, setActiveTab] = useQueryState(
+    'tab',
+    parseAsString.withDefault(defaultSection)
+  )
+  const activeSection: 'pgr' | 'analise-ia' =
+    activeTab === 'analise-ia' ? 'analise-ia' : 'pgr'
+  const setActiveSection = useCallback(
+    (s: 'pgr' | 'analise-ia') => {
+      void setActiveTab(s === 'analise-ia' ? 'analise-ia' : 'relatorios')
+    },
+    [setActiveTab]
   )
   const [pgrResults, setPgrResults] = useState<Record<string, PGRResult>>({})
   const [analiseResults, setAnaliseResults] = useState<Record<string, string>>(

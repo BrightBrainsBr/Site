@@ -87,6 +87,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'name is required' }, { status: 400 })
   }
 
+  if (
+    body.contact_email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.contact_email.trim())
+  ) {
+    return NextResponse.json(
+      {
+        message: 'E-mail inválido. Verifique se contém @ e um domínio válido.',
+      },
+      { status: 400 }
+    )
+  }
+
   const sb = createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
