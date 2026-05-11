@@ -126,10 +126,34 @@ function formatPerception(ctx: PGRContext): string {
   ].join('\n')
 }
 
+function formatSopContents(ctx: PGRContext): string | null {
+  const sops = ctx.company.emergency_sops
+  if (!sops || sops.length === 0) return null
+  const withContent = sops.filter(
+    (s) => s.content && s.content.trim().length > 0
+  )
+  if (withContent.length === 0) return null
+  return withContent
+    .map(
+      (s) =>
+        `--- INÍCIO SOP: ${s.name} ---\n${s.content}\n--- FIM SOP: ${s.name} ---`
+    )
+    .join('\n\n')
+}
+
 function buildFullDataBlock(ctx: PGRContext): string {
+  const sopContents = formatSopContents(ctx)
   return [
     '=== DADOS DA EMPRESA ===',
     formatCompanyBlock(ctx),
+    ...(sopContents
+      ? [
+          '',
+          '=== CONTEÚDO DOS SOPs DE EMERGÊNCIA CADASTRADOS ===',
+          'Use o conteúdo abaixo, fielmente, ao descrever procedimentos de emergência, planos de resposta e itens da Ordem de Serviço. Cite o nome do SOP quando referenciar.',
+          sopContents,
+        ]
+      : []),
     '',
     '=== SCORES POR DOMÍNIO (escala 1–5, Likert) ===',
     formatDomainScores(ctx),
@@ -162,12 +186,20 @@ const NR1_SPECIALIST_SYSTEM = `Você é um especialista em segurança e saúde d
 
 Regras de formatação:
 - Gere saída em Markdown válido
-- Use ## para seções principais, ### para subseções
+- Use ## para seções principais (formato "## N. Título"), ### para subseções
 - Use listas com - para itens
 - Use **negrito** para termos-chave e referências legais
 - Inclua referências aos artigos relevantes da NR-1 (§1.5.3, §1.5.4, §1.5.5, etc.)
 - Escreva em português brasileiro formal, estilo técnico-jurídico
-- Não inclua saudações, assinaturas ou metadata — apenas o conteúdo do documento`
+- Não inclua saudações ou metadata fora do corpo do documento
+
+Padrão obrigatório para a seção "Conclusão e Assinaturas" (quando existir):
+- Use exatamente o título "## N. Conclusão e Assinaturas" (com a numeração apropriada)
+- Comece com um parágrafo curto (3 a 5 linhas) consolidando os principais achados e a classificação geral de risco
+- Em seguida, uma subseção "### Recomendações Finais" com 3 a 5 bullets objetivos e acionáveis
+- Em seguida, uma subseção "### Validade e Revisão" indicando a periodicidade (NR-1 §1.5.6) e o gatilho de revisão
+- NÃO inclua linhas de assinatura desenhadas com "_____" nem espaços em branco para preencher manualmente. O sistema renderiza automaticamente a assinatura digital do Responsável Técnico SST cadastrada nas Configurações da empresa.
+- NÃO inclua o nome do responsável técnico, cargo ou CNPJ no corpo desta seção; esses dados aparecem no cabeçalho do PDF e no bloco de assinatura renderizado pelo sistema.`
 
 export function getInventarioPrompt(ctx: PGRContext): {
   system: string

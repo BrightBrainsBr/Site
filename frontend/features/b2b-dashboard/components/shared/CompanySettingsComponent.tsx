@@ -84,6 +84,21 @@ export function CompanySettingsComponent({
   const hasFetched = useRef(false)
   const apiBase = getApiBase(mode)
 
+  // Dedup collaborators by email so the badge count matches the rendered table.
+  // (Two evaluations / an invite + an evaluation with the same email count as one collaborator.)
+  const collaboratorCount = useMemo(() => {
+    const keys = new Set<string>()
+    for (const ev of data?.collaborators?.evaluations ?? []) {
+      keys.add(ev.patient_email ?? `__ev_${ev.id}`)
+    }
+    for (const inv of data?.collaborators?.pending_invites ?? []) {
+      const key = inv.employee_email ?? `__inv_${inv.id}`
+      if (inv.employee_email && keys.has(inv.employee_email)) continue
+      keys.add(key)
+    }
+    return keys.size
+  }, [data?.collaborators?.evaluations, data?.collaborators?.pending_invites])
+
   const fetchSettings = useCallback(async () => {
     if (!companyId) return
     if (!hasFetched.current) setInitialLoading(true)
@@ -175,9 +190,7 @@ export function CompanySettingsComponent({
             >
               <ClipboardList className="h-4 w-4" />
               Colaboradores
-              {(data?.collaborators?.evaluations?.length ?? 0) +
-                (data?.collaborators?.pending_invites?.length ?? 0) >
-                0 && (
+              {collaboratorCount > 0 && (
                 <span
                   className={`rounded-full px-2 py-0.5 text-[12px] ${
                     subTab === 'collaborators'
@@ -185,8 +198,7 @@ export function CompanySettingsComponent({
                       : 'bg-[#132540] text-[#94A3B8]'
                   }`}
                 >
-                  {(data?.collaborators?.evaluations?.length ?? 0) +
-                    (data?.collaborators?.pending_invites?.length ?? 0)}
+                  {collaboratorCount}
                 </span>
               )}
             </button>
@@ -256,17 +268,19 @@ export function CompanySettingsComponent({
       </div>
       <B2BNR1FieldsComponent
         companyId={companyId}
-        companyData={data?.nr1 ?? {
-          nr1_process_descriptions: null,
-          nr1_activities: null,
-          nr1_preventive_measures: null,
-          sst_responsible_name: null,
-          sst_responsible_role: null,
-          sst_signature_url: null,
-          cnae: null,
-          risk_grade: null,
-          emergency_sop_urls: null,
-        }}
+        companyData={
+          data?.nr1 ?? {
+            nr1_process_descriptions: null,
+            nr1_activities: null,
+            nr1_preventive_measures: null,
+            sst_responsible_name: null,
+            sst_responsible_role: null,
+            sst_signature_url: null,
+            cnae: null,
+            risk_grade: null,
+            emergency_sop_urls: null,
+          }
+        }
         onSave={async (nr1Data) => {
           const res = await fetch(`${apiBase}/${companyId}/settings`, {
             method: 'POST',
@@ -278,7 +292,9 @@ export function CompanySettingsComponent({
           })
           if (!res.ok) {
             const err = await res.json().catch(() => ({}))
-            throw new Error((err as { error?: string }).error || 'Failed to save')
+            throw new Error(
+              (err as { error?: string }).error || 'Failed to save'
+            )
           }
           await fetchSettings()
         }}
@@ -698,7 +714,8 @@ function CollaboratorsSection({
               }
               const isPending = c.status === 'invited'
               const inviteId = isPending
-                ? (pendingInvites.find((p) => p.employee_email === c.email)?.id ?? null)
+                ? (pendingInvites.find((p) => p.employee_email === c.email)
+                    ?.id ?? null)
                 : null
               return (
                 <tr
@@ -837,8 +854,8 @@ function BrightInsightsSection({
             </h3>
             <p className="mt-1 text-[13px] leading-relaxed text-[#64748B]">
               Quando ativado, habilita escalas clínicas (PHQ-9, GAD-7, ISI, MBI)
-              na aba de Percepção Organizacional, fornecendo indicadores avançados
-              de saúde mental.
+              na aba de Percepção Organizacional, fornecendo indicadores
+              avançados de saúde mental.
             </p>
           </div>
           <button

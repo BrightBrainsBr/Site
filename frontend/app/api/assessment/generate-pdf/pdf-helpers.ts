@@ -38,6 +38,44 @@ function drawRect(
   doc.rect(x, y, w, h, 'F')
 }
 
+interface JsPdfFontState {
+  fontName: string
+  fontStyle: string
+  fontSize: number
+  textColor: unknown
+  drawColor: unknown
+  fillColor: unknown
+}
+
+function snapshotFontState(doc: jsPDF): JsPdfFontState {
+  const f = (
+    doc as unknown as { getFont: () => { fontName: string; fontStyle: string } }
+  ).getFont()
+  return {
+    fontName: f.fontName,
+    fontStyle: f.fontStyle,
+    fontSize: doc.getFontSize(),
+    textColor: (
+      doc as unknown as { getTextColor: () => unknown }
+    ).getTextColor(),
+    drawColor: (
+      doc as unknown as { getDrawColor: () => unknown }
+    ).getDrawColor(),
+    fillColor: (
+      doc as unknown as { getFillColor: () => unknown }
+    ).getFillColor(),
+  }
+}
+
+function restoreFontState(doc: jsPDF, s: JsPdfFontState): void {
+  doc.setFont(s.fontName, s.fontStyle)
+  doc.setFontSize(s.fontSize)
+  // jsPDF accepts the same string format it returns from getTextColor().
+  doc.setTextColor(s.textColor as string)
+  doc.setDrawColor(s.drawColor as string)
+  doc.setFillColor(s.fillColor as string)
+}
+
 function ensureSpace(
   doc: jsPDF,
   y: number,
@@ -45,9 +83,15 @@ function ensureSpace(
   drawFooter: () => void
 ): number {
   if (y + needed > BOTTOM_LIMIT) {
+    // Snapshot current font/color so the footer draw doesn't leak its own
+    // styles (fontSize 6 / lime color) into the next page's body content.
+    // Without this, the first wrapped line on a new page renders in the wrong
+    // size/color — visible as "broken formatting" after page breaks.
+    const snapshot = snapshotFontState(doc)
     drawFooter()
     doc.addPage()
     drawPageBackground(doc)
+    restoreFontState(doc, snapshot)
     return 20
   }
   return y
@@ -149,9 +193,19 @@ function drawTitle(doc: jsPDF, y: number): number {
 function drawPatientBox(
   doc: jsPDF,
   y: number,
-  formData: { nome?: string; nascimento?: string; publico?: string },
+  formData: {
+    nome?: string
+    nascimento?: string
+    publico?: string
+    labelNome?: string
+    labelNascimento?: string
+  },
   today: string
 ): number {
+  // Allow callers (e.g. PGR/company reports) to override the default
+  // patient labels with company-document labels (EMPRESA / CNPJ).
+  const labelLeft = formData.labelNome ?? 'COLABORADOR'
+  const labelRight = formData.labelNascimento ?? 'DATA DE NASCIMENTO'
   drawRect(doc, MARGIN_X, y, CONTENT_W, 24, BRAND.gray50)
   drawRect(doc, MARGIN_X, y, 2.5, 24, BRAND.lime)
 
@@ -177,8 +231,8 @@ function drawPatientBox(
   doc.setFontSize(6)
   doc.setFont(FONT_NAME, 'normal')
   setColor(doc, BRAND.gray400)
-  doc.text('COLABORADOR', col1, py)
-  doc.text('DATA DE NASCIMENTO', col2, py)
+  doc.text(labelLeft, col1, py)
+  doc.text(labelRight, col2, py)
   py += 4.5
   doc.setFontSize(8.5)
   doc.setFont(FONT_NAME, 'bold')
@@ -253,6 +307,55 @@ function renderBodyLine(
   return y + 1
 }
 
+function drawSignatureBlock(
+  doc: jsPDF,
+  y: number,
+  signatureDataUrl: string,
+  label: string,
+  subtitle: string | undefined,
+  drawFooter: () => void
+): number {
+  // Need ~46mm: image (24mm) + line (1mm) + label/subtitle (~12mm) + breathing room.
+  y = ensureSpace(doc, y, 48, drawFooter)
+  y += 6
+
+  const imgW = 60
+  const imgH = 22
+  const x = MARGIN_X + (CONTENT_W - imgW) / 2
+
+  // Detect image format from data URL prefix; jsPDF needs the right type.
+  let format: 'PNG' | 'JPEG' = 'PNG'
+  if (/^data:image\/jpe?g/i.test(signatureDataUrl)) format = 'JPEG'
+
+  try {
+    doc.addImage(signatureDataUrl, format, x, y, imgW, imgH, undefined, 'FAST')
+  } catch (err) {
+    console.warn('[pdf] failed to embed signature image:', err)
+    // Fall through: render line + label even if image fails
+  }
+
+  y += imgH + 1
+  doc.setDrawColor(BRAND.gray400[0], BRAND.gray400[1], BRAND.gray400[2])
+  doc.setLineWidth(0.3)
+  doc.line(x, y, x + imgW, y)
+
+  y += 4
+  doc.setFontSize(8.5)
+  doc.setFont(FONT_NAME, 'bold')
+  setColor(doc, BRAND.gray900)
+  doc.text(label, PAGE_W / 2, y, { align: 'center' })
+
+  if (subtitle) {
+    y += 4
+    doc.setFontSize(7)
+    doc.setFont(FONT_NAME, 'normal')
+    setColor(doc, BRAND.gray500)
+    doc.text(subtitle, PAGE_W / 2, y, { align: 'center' })
+  }
+
+  return y + 6
+}
+
 function drawDisclaimer(doc: jsPDF, y: number, drawFooter: () => void): number {
   y = ensureSpace(doc, y, 30, drawFooter)
   const disclaimerH = 24
@@ -283,7 +386,20 @@ function drawDisclaimer(doc: jsPDF, y: number, drawFooter: () => void): number {
 }
 
 export function buildPdf(
-  formData: { nome?: string; nascimento?: string; publico?: string },
+  formData: {
+    nome?: string
+    nascimento?: string
+    publico?: string
+    labelNome?: string
+    labelNascimento?: string
+    /**
+     * Optional signature image (data URL or PNG/JPG bytes encoded as data URL).
+     * When provided, rendered above the signature line at the end of the doc.
+     */
+    signatureDataUrl?: string
+    signatureLabel?: string
+    signatureSubtitle?: string
+  },
   reportMarkdown: string
 ): Buffer {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -325,6 +441,20 @@ export function buildPdf(
       y = renderBodyLine(doc, trimmed, y, drawFooter)
     }
     y += 5
+  }
+
+  // Render uploaded responsible-technician signature (if any) before the
+  // disclaimer. Keeps the block on the same page when possible so it lands
+  // near the "Conclusão e Assinaturas" content.
+  if (formData.signatureDataUrl) {
+    y = drawSignatureBlock(
+      doc,
+      y,
+      formData.signatureDataUrl,
+      formData.signatureLabel ?? 'Responsável Técnico SST',
+      formData.signatureSubtitle,
+      drawFooter
+    )
   }
 
   drawDisclaimer(doc, y, drawFooter)

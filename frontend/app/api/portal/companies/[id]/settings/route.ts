@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { ensureAdminDomainsAllowed } from '../../../../lib/allowedDomains'
+import { findDuplicateCollaboratorError } from '../../../../lib/inviteGuards'
 import { validatePortalSession } from '../../../lib/validatePortalSession'
 
 export const runtime = 'nodejs'
@@ -90,9 +92,18 @@ export async function GET(
     return !evaluatedEmails.has(email.toLowerCase())
   })
 
+  const allowedDomains = await ensureAdminDomainsAllowed(
+    sb,
+    companyId,
+    Array.isArray(company?.allowed_domains)
+      ? (company?.allowed_domains as string[])
+      : [],
+    enriched.map((u) => u.email)
+  )
+
   return NextResponse.json({
     users: enriched,
-    allowed_domains: company?.allowed_domains ?? [],
+    allowed_domains: allowedDomains,
     departments: company?.departments ?? [],
     company_name: company?.name ?? null,
     collaborators: {
@@ -211,6 +222,19 @@ export async function POST(
           }
           results.push({ email, ok: true })
         } else {
+          // Guard against duplicate collaborator for same email within the same cycle
+          // (prevents the "primeiro foi sobrescrito" / phantom-count behavior).
+          const dupErr = await findDuplicateCollaboratorError(
+            sb,
+            companyId,
+            currentCycleId!,
+            email
+          )
+          if (dupErr) {
+            results.push({ email, ok: false, error: dupErr })
+            continue
+          }
+
           const { error: insertErr } = await sb
             .from('company_access_codes')
             .insert({
@@ -393,6 +417,23 @@ export async function POST(
     const { bucket, path } = body as { bucket: string; path: string }
     const { data } = sb.storage.from(bucket).getPublicUrl(path)
     return NextResponse.json({ publicUrl: data.publicUrl })
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  if (body.action === 'update_insights_flag') {
+    // Portal session is implicitly portal-admin (validated at the top of POST).
+    const { error: updateError } = await sb
+      .from('companies')
+      .update({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        bright_insights_enabled: body.bright_insights_enabled === true,
+      })
+      .eq('id', companyId)
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 })
+    }
+    return NextResponse.json({ success: true })
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
