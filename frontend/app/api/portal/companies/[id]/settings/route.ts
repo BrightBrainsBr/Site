@@ -57,7 +57,7 @@ export async function GET(
   const { data: company } = (await sb
     .from('companies')
     .select(
-      'id, name, allowed_domains, departments, cnae, risk_grade, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, sst_responsible_name, sst_responsible_role, sst_signature_url, emergency_sop_urls'
+      'id, name, allowed_domains, departments, cnae, risk_grade, bright_insights_enabled, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, sst_responsible_name, sst_responsible_role, sst_signature_url, emergency_sop_urls'
     )
     .eq('id', companyId)
     .single()) as { data: Record<string, any> | null; error: unknown }
@@ -106,6 +106,7 @@ export async function GET(
     allowed_domains: allowedDomains,
     departments: company?.departments ?? [],
     company_name: company?.name ?? null,
+    bright_insights_enabled: company?.bright_insights_enabled === true,
     collaborators: {
       evaluations: evaluations ?? [],
       pending_invites: invitedOnly,
