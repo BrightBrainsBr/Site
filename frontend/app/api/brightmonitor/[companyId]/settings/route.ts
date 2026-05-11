@@ -4,6 +4,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { ensureAdminDomainsAllowed } from '../../../lib/allowedDomains'
+import { findDuplicateCollaboratorError } from '../../../lib/inviteGuards'
 import { getB2BUser } from '../../lib/getB2BUser'
 
 export const runtime = 'nodejs'
@@ -113,9 +115,21 @@ export async function GET(
     return !evaluatedEmails.has(email.toLowerCase())
   })
 
+  // Auto-populate the allowed-domains list with the admins' corporate email
+  // domains. Free-email providers are skipped so they don't accidentally
+  // open registration to anyone.
+  const allowedDomains = await ensureAdminDomainsAllowed(
+    sb,
+    companyId,
+    Array.isArray(company?.allowed_domains)
+      ? (company?.allowed_domains as string[])
+      : [],
+    enriched.map((u) => u.email)
+  )
+
   return NextResponse.json({
     users: enriched,
-    allowed_domains: company?.allowed_domains ?? [],
+    allowed_domains: allowedDomains,
     departments: company?.departments ?? [],
     company_name: company?.name ?? null,
     bright_insights_enabled: company?.bright_insights_enabled ?? false,
@@ -241,6 +255,19 @@ export async function POST(
           }
           results.push({ email, ok: true })
         } else {
+          // Guard against duplicate collaborator for same email within the same cycle
+          // (prevents the "primeiro foi sobrescrito" / phantom-count behavior).
+          const dupErr = await findDuplicateCollaboratorError(
+            sb,
+            companyId,
+            currentCycleId!,
+            email
+          )
+          if (dupErr) {
+            results.push({ email, ok: false, error: dupErr })
+            continue
+          }
+
           const { error: insertErr } = await sb
             .from('company_access_codes')
             .insert({
@@ -445,7 +472,10 @@ export async function POST(
   if (body.action === 'update_insights_flag') {
     if (!auth.isPortalAdmin) {
       return NextResponse.json(
-        { error: 'Somente administradores Bright Brains podem alterar esta configuração' },
+        {
+          error:
+            'Somente administradores Bright Brains podem alterar esta configuração',
+        },
         { status: 403 }
       )
     }

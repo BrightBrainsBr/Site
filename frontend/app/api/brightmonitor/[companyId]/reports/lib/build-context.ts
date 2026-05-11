@@ -16,10 +16,17 @@ export interface PGRContext {
     departments: string[]
     sst_responsible_name: string | null
     sst_responsible_role: string | null
+    sst_signature_url: string | null
     nr1_process_descriptions: string | null
     nr1_activities: string | null
     nr1_preventive_measures: string[] | null
-    emergency_sops: Array<{ name: string; uploaded_at?: string }> | null
+    emergency_sops: Array<{
+      name: string
+      url?: string
+      uploaded_at?: string
+      /** Extracted plain text from the SOP PDF (truncated). */
+      content?: string
+    }> | null
   }
   cycle: {
     id: string
@@ -75,6 +82,72 @@ export interface PGRContext {
   }
 }
 
+/**
+ * Fetches each uploaded Emergency SOP PDF and extracts its text content so the
+ * LLM can actually reference SOP contents (and not just filenames) when
+ * producing PGR / OS-SST reports.
+ */
+async function hydrateEmergencySops(
+  raw: unknown
+): Promise<PGRContext['company']['emergency_sops']> {
+  if (!Array.isArray(raw) || raw.length === 0) return null
+  const entries = raw as Array<{
+    name?: string
+    url?: string
+    uploaded_at?: string
+  }>
+
+  // Best-effort dynamic import; pdf-parse is CJS and pulls native deps,
+  // we don't want to crash the route if it fails.
+  let pdfParse: ((buf: Buffer) => Promise<{ text: string }>) | null = null
+  try {
+    const mod: unknown = await import('pdf-parse')
+    const resolved =
+      (mod as { default?: unknown }).default ?? (mod as Record<string, unknown>)
+    pdfParse = resolved as (buf: Buffer) => Promise<{ text: string }>
+  } catch (err) {
+    console.warn('[build-context] pdf-parse unavailable:', err)
+  }
+
+  // Cap how much SOP text we feed to the LLM per file to stay well within
+  // context budgets. ~6k chars ≈ ~1.5k tokens per SOP.
+  const PER_FILE_CHAR_LIMIT = 6000
+
+  const hydrated = await Promise.all(
+    entries.map(async (sop) => {
+      const base = {
+        name: sop.name ?? 'SOP sem nome',
+        url: sop.url,
+        uploaded_at: sop.uploaded_at,
+      }
+      if (!sop.url || !pdfParse) return base
+      try {
+        const res = await fetch(sop.url)
+        if (!res.ok) {
+          console.warn(
+            `[build-context] SOP fetch ${res.status} for ${sop.name}`
+          )
+          return base
+        }
+        const buf = Buffer.from(await res.arrayBuffer())
+        const { text } = await pdfParse(buf)
+        const clean = text.replace(/\s+\n/g, '\n').trim()
+        const truncated =
+          clean.length > PER_FILE_CHAR_LIMIT
+            ? clean.slice(0, PER_FILE_CHAR_LIMIT) +
+              '\n[... conteúdo truncado ...]'
+            : clean
+        return { ...base, content: truncated }
+      } catch (err) {
+        console.warn(`[build-context] SOP extract failed for ${sop.name}:`, err)
+        return base
+      }
+    })
+  )
+
+  return hydrated
+}
+
 function getSb() {
   return createClient(
     process.env.SUPABASE_URL!,
@@ -93,7 +166,7 @@ export async function buildPGRContext(
   const { data: company } = await sb
     .from('companies')
     .select(
-      'name, cnpj, cnae, risk_grade, sst_responsible_name, sst_responsible_role, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, emergency_sop_urls'
+      'name, cnpj, cnae, risk_grade, sst_responsible_name, sst_responsible_role, sst_signature_url, nr1_process_descriptions, nr1_activities, nr1_preventive_measures, emergency_sop_urls'
     )
     .eq('id', companyId)
     .single()
@@ -355,17 +428,13 @@ export async function buildPGRContext(
       departments: Array.from(departments),
       sst_responsible_name: company?.sst_responsible_name ?? null,
       sst_responsible_role: company?.sst_responsible_role ?? null,
+      sst_signature_url: company?.sst_signature_url ?? null,
       nr1_process_descriptions: company?.nr1_process_descriptions ?? null,
       nr1_activities: company?.nr1_activities ?? null,
       nr1_preventive_measures: Array.isArray(company?.nr1_preventive_measures)
         ? (company?.nr1_preventive_measures as string[])
         : null,
-      emergency_sops: Array.isArray(company?.emergency_sop_urls)
-        ? (company?.emergency_sop_urls as Array<{
-            name: string
-            uploaded_at?: string
-          }>)
-        : null,
+      emergency_sops: await hydrateEmergencySops(company?.emergency_sop_urls),
     },
     cycle,
     assessmentCount: evaluations.length,

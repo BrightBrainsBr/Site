@@ -37,6 +37,25 @@ const PROMPT_MAP: Record<PGRSlug, typeof getInventarioPrompt> = {
   'os-sst': getOSSSTPrompt,
 }
 
+async function fetchAsDataUrl(
+  url: string | null | undefined
+): Promise<string | undefined> {
+  if (!url) return undefined
+  try {
+    const res = await fetch(url)
+    if (!res.ok) {
+      console.warn(`[pgr] signature fetch failed: ${res.status} ${url}`)
+      return undefined
+    }
+    const contentType = res.headers.get('content-type') ?? 'image/png'
+    const buf = Buffer.from(await res.arrayBuffer())
+    return `data:${contentType};base64,${buf.toString('base64')}`
+  } catch (err) {
+    console.warn('[pgr] signature fetch threw:', err)
+    return undefined
+  }
+}
+
 const TITLE_MAP: Record<PGRSlug, string> = {
   inventario: 'Inventário de Riscos',
   plano: 'Plano de Ação 5W2H',
@@ -87,11 +106,27 @@ export async function POST(
 
     // Generate PDF
     const title = TITLE_MAP[slug as PGRSlug]
+
+    // Fetch the SST signature (if configured) and convert to a data URL so
+    // jsPDF can embed it directly.
+    const signatureDataUrl = await fetchAsDataUrl(ctx.company.sst_signature_url)
+    const sigSubtitle = [
+      ctx.company.sst_responsible_name,
+      ctx.company.sst_responsible_role,
+    ]
+      .filter((v): v is string => Boolean(v && v.trim()))
+      .join(' — ')
+
     const pdfBuffer = buildPdf(
       {
         nome: ctx.company.name,
         nascimento: ctx.company.cnpj,
         publico: title,
+        labelNome: 'EMPRESA',
+        labelNascimento: 'CNPJ',
+        signatureDataUrl,
+        signatureLabel: 'Responsável Técnico SST',
+        signatureSubtitle: sigSubtitle || undefined,
       },
       markdown
     )
