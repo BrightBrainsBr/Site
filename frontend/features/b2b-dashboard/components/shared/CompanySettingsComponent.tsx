@@ -300,13 +300,20 @@ export function CompanySettingsComponent({
         }}
       />
 
-      <BrightInsightsSection
-        companyId={companyId}
-        enabled={data?.bright_insights_enabled ?? false}
-        isPortalMode={mode === 'portal'}
-        apiBase={apiBase}
-        onUpdate={fetchSettings}
-      />
+      {/*
+       * "Módulo de Saúde Mental Avançado" / Bright Insights toggle is
+       * intentionally hidden until the underlying feature ships. The
+       * BrightInsightsSection component below is kept in the codebase so
+       * we can re-enable it with a single line change once ready.
+       *
+       * <BrightInsightsSection
+       *   companyId={companyId}
+       *   enabled={data?.bright_insights_enabled ?? false}
+       *   isPortalMode={mode === 'portal'}
+       *   apiBase={apiBase}
+       *   onUpdate={fetchSettings}
+       * />
+       */}
 
       <GuiaLinkSection />
     </div>
@@ -787,7 +794,9 @@ function CollaboratorsSection({
 }
 
 /* ─── Bright Insights Toggle ─── */
-
+// NOTE: Kept in code (but unmounted above) so we can re-enable the
+// "Módulo de Saúde Mental Avançado" section once the feature ships.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function BrightInsightsSection({
   companyId,
   enabled,

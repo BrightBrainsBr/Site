@@ -199,9 +199,16 @@ function drawPatientBox(
     publico?: string
     labelNome?: string
     labelNascimento?: string
+    /**
+     * When true, the right-hand column (CNPJ / DATA DE NASCIMENTO) is not
+     * rendered. Used by PGR/company reports where birth date doesn't apply
+     * and the CNPJ already appears in the document body.
+     */
+    hideSecondaryField?: boolean
   },
   today: string
 ): number {
+  const showSecondary = !formData.hideSecondaryField
   // Allow callers (e.g. PGR/company reports) to override the default
   // patient labels with company-document labels (EMPRESA / CNPJ).
   const labelLeft = formData.labelNome ?? 'COLABORADOR'
@@ -232,13 +239,14 @@ function drawPatientBox(
   doc.setFont(FONT_NAME, 'normal')
   setColor(doc, BRAND.gray400)
   doc.text(labelLeft, col1, py)
-  doc.text(labelRight, col2, py)
+  if (showSecondary) doc.text(labelRight, col2, py)
   py += 4.5
   doc.setFontSize(8.5)
   doc.setFont(FONT_NAME, 'bold')
   setColor(doc, BRAND.gray900)
   doc.text(fitToCol(formData.nome || '\u2014'), col1, py)
-  doc.text(fitToCol(formData.nascimento || '\u2014'), col2, py)
+  if (showSecondary)
+    doc.text(fitToCol(formData.nascimento || '\u2014'), col2, py)
   py += 6
   doc.setFontSize(6)
   doc.setFont(FONT_NAME, 'normal')
@@ -392,6 +400,7 @@ export function buildPdf(
     publico?: string
     labelNome?: string
     labelNascimento?: string
+    hideSecondaryField?: boolean
     /**
      * Optional signature image (data URL or PNG/JPG bytes encoded as data URL).
      * When provided, rendered above the signature line at the end of the doc.
