@@ -4,7 +4,10 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
-import { ensureAdminDomainsAllowed } from '../../../lib/allowedDomains'
+import {
+  addCorporateDomainForEmail,
+  ensureAdminDomainsAllowed,
+} from '../../../lib/allowedDomains'
 import { findDuplicateCollaboratorError } from '../../../lib/inviteGuards'
 import { getB2BUser } from '../../lib/getB2BUser'
 
@@ -236,6 +239,7 @@ export async function POST(
                   },
                   { onConflict: 'user_id,company_id' }
                 )
+                await addCorporateDomainForEmail(sb, companyId, email)
                 results.push({ email, ok: true })
                 continue
               }
@@ -253,6 +257,7 @@ export async function POST(
                 { onConflict: 'user_id,company_id' }
               )
           }
+          await addCorporateDomainForEmail(sb, companyId, email)
           results.push({ email, ok: true })
         } else {
           // Guard against duplicate collaborator for same email within the same cycle

@@ -120,10 +120,11 @@ export async function POST(
     const pdfBuffer = buildPdf(
       {
         nome: ctx.company.name,
-        nascimento: ctx.company.cnpj,
         publico: title,
         labelNome: 'EMPRESA',
-        labelNascimento: 'CNPJ',
+        // CNPJ / Nascimento column is intentionally hidden for company-level
+        // PGR documents (the CNPJ is rendered in the body of the report).
+        hideSecondaryField: true,
         signatureDataUrl,
         signatureLabel: 'Responsável Técnico SST',
         signatureSubtitle: sigSubtitle || undefined,

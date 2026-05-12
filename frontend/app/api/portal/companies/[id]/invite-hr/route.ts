@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { addCorporateDomainForEmail } from '../../../../lib/allowedDomains'
 import { validatePortalSession } from '../../../lib/validatePortalSession'
 
 export const runtime = 'nodejs'
@@ -78,6 +79,11 @@ export async function POST(
       role: 'viewer',
     })
   }
+
+  // Auto-add the admin's corporate email domain to the company's
+  // allowed_domains so collaborators with matching emails can self-register
+  // without a Bright Brains operator having to add it manually.
+  await addCorporateDomainForEmail(sb, companyId, email)
 
   return NextResponse.json({ success: true })
 }

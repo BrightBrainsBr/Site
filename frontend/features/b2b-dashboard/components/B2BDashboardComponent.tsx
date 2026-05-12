@@ -196,11 +196,11 @@ export function B2BDashboardComponent({
     new Date(compliance.groValidUntil) > new Date()
 
   const alertCount = alertsData?.alerts?.length ?? 0
-  const sidebarSections = buildSidebarSections(
-    alertCount,
-    session.brightInsightsEnabled,
-    isPortalMode
-  )
+  // "Módulo de Saúde Mental Avançado" (Bright Insights) is hidden until the
+  // underlying feature ships. Force the sidebar tab off regardless of any
+  // previously-persisted `bright_insights_enabled=true` value. Re-enable by
+  // restoring `session.brightInsightsEnabled` once the module is ready.
+  const sidebarSections = buildSidebarSections(alertCount, false, isPortalMode)
 
   const showOnboarding =
     !isPortalMode &&

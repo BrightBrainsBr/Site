@@ -28,10 +28,49 @@ export function extractCorporateDomain(
   if (!email) return null
   const at = email.lastIndexOf('@')
   if (at < 0) return null
-  const domain = email.slice(at + 1).trim().toLowerCase()
+  const domain = email
+    .slice(at + 1)
+    .trim()
+    .toLowerCase()
   if (!domain || domain.length < 3 || !domain.includes('.')) return null
   if (FREE_EMAIL_DOMAINS.has(domain)) return null
   return domain
+}
+
+/**
+ * Adds the corporate domain of `email` to `companies.allowed_domains` for
+ * the given `companyId` if it isn't already there (free-mail providers are
+ * skipped). Called synchronously at admin-invite time so the company admin
+ * doesn't need to refresh / wait for the GET-time backfill — and so that
+ * pending invites also extend the allow-list.
+ */
+export async function addCorporateDomainForEmail(
+  sb: SupabaseClient,
+  companyId: string,
+  email: string | null | undefined
+): Promise<void> {
+  const domain = extractCorporateDomain(email)
+  if (!domain) return
+  const { data } = await sb
+    .from('companies')
+    .select('allowed_domains')
+    .eq('id', companyId)
+    .maybeSingle()
+  const current = Array.isArray(data?.allowed_domains)
+    ? (data?.allowed_domains as string[]).map((d) => d.toLowerCase())
+    : []
+  if (current.includes(domain)) return
+  const next = [...current, domain]
+  const { error } = await sb
+    .from('companies')
+    .update({ allowed_domains: next })
+    .eq('id', companyId)
+  if (error) {
+    console.warn(
+      '[allowedDomains] failed to add domain at invite time:',
+      error.message
+    )
+  }
 }
 
 /**
@@ -58,10 +97,7 @@ export async function ensureAdminDomainsAllowed(
     .update({ allowed_domains: next })
     .eq('id', companyId)
   if (error) {
-    console.warn(
-      '[allowedDomains] failed to persist backfill:',
-      error.message
-    )
+    console.warn('[allowedDomains] failed to persist backfill:', error.message)
   }
   return next
 }
