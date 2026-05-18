@@ -176,6 +176,7 @@ function buildGlobalSchema(locale: string) {
 
 const RootLayout = async ({ children, params }: any) => {
   const { locale } = await params
+  const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
 
   return (
     <html
@@ -228,6 +229,24 @@ const RootLayout = async ({ children, params }: any) => {
             })(window,document,'script','dataLayer','GTM-WQ538QRM');`,
           }}
         />
+
+        {/* Google Ads tag */}
+        {isProduction && (
+          <>
+            <Script
+              id="google-ads-src"
+              strategy="afterInteractive"
+              src="https://www.googletagmanager.com/gtag/js?id=AW-17156896641"
+            />
+            <Script
+              id="google-ads-config"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','AW-17156896641');`,
+              }}
+            />
+          </>
+        )}
 
         {/* Facebook Pixel Code */}
         <Script
