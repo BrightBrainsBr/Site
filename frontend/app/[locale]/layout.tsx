@@ -229,6 +229,20 @@ const RootLayout = async ({ children, params }: any) => {
           }}
         />
 
+        {/* Google Ads tag */}
+        <Script
+          id="google-ads-src"
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17156896641"
+        />
+        <Script
+          id="google-ads-config"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','AW-17156896641');`,
+          }}
+        />
+
         {/* Facebook Pixel Code */}
         <Script
           id="fb-pixel-1"
