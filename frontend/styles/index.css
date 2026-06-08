@@ -153,7 +153,7 @@
   --distance-large: --spacing(24);
 }
 
-@custom-variant data-disabled (&:where([data-disabled="true"] *));
+@custom-variant data-disabled (&:where([data-disabled="true"], [data-disabled="true"] *));
 @custom-variant group-active (&:merge(.group).active &);
 @custom-variant control-active (.control-active &);
 @custom-variant current-active (&.current-active);
