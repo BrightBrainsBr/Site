@@ -29,7 +29,7 @@ const FormComponent: React.FC<IProperties> = ({
   return (
     <Form.Context
       onSubmitAction={async (form, data, context) => {
-        return await sendFormAction(form.id, data, context)
+        return await sendFormAction(form.id, data, context, form.locale)
       }}
       isHidden={isHidden}
       className={twMerge(

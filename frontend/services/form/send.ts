@@ -8,10 +8,11 @@ const formService = new FormService()
 export async function sendFormAction(
   formId: number,
   data: Record<string, unknown>,
-  context: ISubmitPageContext
+  context: ISubmitPageContext,
+  locale: string
 ): Promise<IFormResponse> {
   try {
-    const result = await formService.submit(formId, data, context)
+    const result = await formService.submit(formId, data, context, locale)
 
     // If the CMS/Strapi returned a raw server error (e.g. an unhandled crash
     // inside the futurebrand-strapi-helpers plugin), replace the technical
