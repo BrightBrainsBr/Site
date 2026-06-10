@@ -208,7 +208,7 @@ const NavMenu: React.FC<Properties> = ({
             className={twMerge(
               'hidden lg:flex fixed top-0 left-0 w-full bg-gray-light duration-300 transition-[all cubic-bezier(0.29,1.01,1,-0.68)] delay-300 justify-center opacity-0 z-30',
               dropdown.submenuTreatment
-                ? 'min-h-[44rem] pt-[5.625rem] pb-8 items-start'
+                ? 'min-h-[34rem] pt-[5.625rem] pb-8 items-start'
                 : 'h-[62.905vh] min-h-[32.5rem] pt-[6.875rem] pb-[3.75rem] items-center',
               activeSubmenu === index
                 ? 'translate-y-0 animate-fadein'
@@ -339,7 +339,7 @@ const NavMenu: React.FC<Properties> = ({
                               <Link
                                 href={card.path}
                                 name="treatment-card"
-                                className="group relative flex flex-col justify-end h-[180px] overflow-hidden rounded-[1.25rem] p-4 border-0 hover:border-8 duration-200 transition-all"
+                                className="group relative flex flex-col justify-end h-[120px] overflow-hidden rounded-[1.25rem] p-4 border-0 hover:border-8 duration-200 transition-all"
                               >
                                 <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-[#091930F2] to-[#09193015] z-10 opacity-100 duration-300 transition-all group-hover:opacity-50" />
                                 {card.featuredImage && (
@@ -355,12 +355,6 @@ const NavMenu: React.FC<Properties> = ({
                                       .replace(/\s+/g, ' ')
                                       .trim()}
                                   </h3>
-                                )}
-                                {card.excerpt && (
-                                  <div
-                                    className="relative z-10 cms-rich-text hidden group-hover:block group-hover:animate-fadein opacity-0 text-white text-sm"
-                                    dangerouslySetInnerHTML={{ __html: card.excerpt }}
-                                  />
                                 )}
                               </Link>
                             </li>
