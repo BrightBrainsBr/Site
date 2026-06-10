@@ -135,7 +135,7 @@ const NavMenu: React.FC<Properties> = ({
                       <ul className="flex flex-col gap-4 pl-4 pt-4">
                         {treatments && treatments.length > 0
                           ? treatments.map((treatment, i) => (
-                              <li key={`submenu-treatment-${i}`}>
+                              <li key={`submenu-treatment-${treatment.id}`}>
                                 <Link
                                   name="submenu-item"
                                   href={treatment.path}
@@ -330,7 +330,7 @@ const NavMenu: React.FC<Properties> = ({
                         >
                           {row.map((card, cardIndex) => (
                             <li
-                              key={`treatment-card-${rowIndex}-${cardIndex}`}
+                              key={`treatment-card-${card.id}`}
                               className={twMerge(
                                 '[flex:1] hover:[flex:2.5] transition-all duration-200',
                                 styles.treatmentCard
