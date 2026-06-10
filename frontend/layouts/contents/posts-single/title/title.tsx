@@ -68,7 +68,7 @@ const Title: React.FC<Properties> = ({
               <span className="block w-[2.625rem] h-[0.125rem] bg-current mb-3" />
               <p
                 className={twMerge(
-                  'lg:max-w-[29.17vw] heading-2xl',
+                  'heading-2xl',
                   animate({ index: 1 })
                 )}
               >
