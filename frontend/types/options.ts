@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 declare module '@futurebrand/types/global-options' {
-  import type { IGlobalBlock } from '@futurebrand/types/contents'
+  import type { IGlobalBlock, ITreatmentCard } from '@futurebrand/types/contents'
   import type {
     HTMLString,
     ISocialLinks,
@@ -87,6 +87,7 @@ declare module '@futurebrand/types/global-options' {
     logo: IStrapiMedia
     headerMenu: IHeaderMenuItem[]
     contactLink: IStrapiCommonLink
+    treatments?: ITreatmentCard[]
   }
 
   /** @COMPONENTS */
