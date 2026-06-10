@@ -98,17 +98,17 @@ async function PostsSingle({ locale, params, previewData }: Props) {
         featuredImage={pageData.featuredImage}
       />
       <div className="relative z-10 flex flex-col gap-10 bg-gray-light py-10 lg:py-20">
-        <div className="container mx-auto px-4">
-           <MedicalReviewer 
-            datePublished={pageData.publishedDateTime || pageData.publishedAt}
-            dateUpdated={pageData.updatedAt}
-          />
-        </div>
         <BlocksLayout
           blocks={pageData.blocks}
           content={pageData}
           contentType="posts"
         />
+        <div className="container mx-auto px-4">
+          <MedicalReviewer
+            datePublished={pageData.publishedDateTime || pageData.publishedAt}
+            dateUpdated={pageData.updatedAt}
+          />
+        </div>
       </div>
       <RelatedPosts locale={locale} title={pageData.title} />
       <HeadlineContact />
