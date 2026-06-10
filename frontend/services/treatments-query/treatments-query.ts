@@ -17,6 +17,7 @@ function sanitizeData(
     slug: item.slug,
     excerpt: item.excerpt,
     featuredImage: item.featuredImage,
+    themeColor: item.themeColor,
     path: router.getLocalizedPath(
       {
         slug: item.slug,
