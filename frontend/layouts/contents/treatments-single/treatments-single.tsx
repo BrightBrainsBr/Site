@@ -100,19 +100,21 @@ async function TreatmentsSingle({ locale, params, previewData }: Props) {
       <JsonLd data={pageSchema} />
       <JsonLd data={procedureSchema} />
       <JsonLd data={breadcrumbSchema} />
-      <div className="container mx-auto px-4 mt-8 lg:mt-12 relative z-10">
+      <div className="container mx-auto px-4 pt-24 lg:pt-28 relative z-10">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">{pageData.title}</h1>
         {pageData.excerpt && <p className="text-xl text-gray-600 mb-6 max-w-3xl">{pageData.excerpt}</p>}
-        <MedicalReviewer 
-          datePublished={pageData.publishedDateTime || pageData.publishedAt}
-          dateUpdated={pageData.updatedAt}
-        />
       </div>
       <BlocksLayout
         blocks={pageData.blocks}
         content={pageData}
         contentType="posts"
       />
+      <div className="container mx-auto px-4 py-8">
+        <MedicalReviewer
+          datePublished={pageData.publishedDateTime || pageData.publishedAt}
+          dateUpdated={pageData.updatedAt}
+        />
+      </div>
     </Main>
   )
 }
