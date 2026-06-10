@@ -1,8 +1,11 @@
-.treatmentCard:nth-child(1) a {
+/* Rows of up to 5 cards: cycles green → blue → violet → green → blue */
+.treatmentCard:nth-child(1) a,
+.treatmentCard:nth-child(4) a {
   border-color: var(--color-green-400);
 }
 
-.treatmentCard:nth-child(2) a {
+.treatmentCard:nth-child(2) a,
+.treatmentCard:nth-child(5) a {
   border-color: var(--color-blue-400);
 }
 
