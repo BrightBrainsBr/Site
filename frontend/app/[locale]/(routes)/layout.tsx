@@ -3,6 +3,7 @@ import { getGlobalData } from '@futurebrand/hooks'
 import { setRequestLocale } from 'next-intl/server'
 import React from 'react'
 
+import { queryTreatmentsData } from '~/services/treatments-query'
 import StateControllerProvider from '~/contexts/state-controller'
 import { getHelpersRouter } from '~/hooks/get-helpers-router'
 import ContentModalWrapper from '~/layouts/structure/content-wrappers'
@@ -62,6 +63,17 @@ const RootLayout: React.FC<IRootLayoutProps> = async ({
   setRequestLocale(locale)
   const { options, structure } = await getGlobalData(locale)
 
+  const treatmentsResponse = await queryTreatmentsData({
+    filters: {},
+    page: 1,
+    pageSize: 25,
+    locale,
+  }).catch(() => ({ results: [], pagination: { page: 1, pageSize: 25, pageCount: 0, total: 0 } }))
+
+  const treatments = treatmentsResponse.results.filter(
+    (t) => t.themeColor !== 'midnight-950'
+  )
+
   const dictionary = options?.dictionary ?? {}
 
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.brightbrains.com.br'
@@ -102,7 +114,9 @@ const RootLayout: React.FC<IRootLayoutProps> = async ({
         <JsonLd data={organizationSchema} />
         <JsonLd data={websiteSchema} />
         <JsonLd data={medicalClinicSchema} />
-        {structure?.header && <Header {...structure.header} locale={locale} />}
+        {structure?.header && (
+          <Header {...structure.header} treatments={treatments} locale={locale} />
+        )}
         {children}
         {structure?.footer && <Footer {...structure.footer} locale={locale} />}
         <div id="modals">

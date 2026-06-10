@@ -18,7 +18,7 @@ interface Props extends IHeaderStructure {
   locale: string
 }
 
-const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
+const Header: React.FC<Props> = ({ headerMenu, contactLink, locale, treatments }) => {
   const { themeColor } = useThemeControl()
   const [isMenuActive, setIsMenuActive] = useState<boolean>(false)
   const [isDropdownActive, setIsDropdownActive] = useState<boolean>(false)
@@ -114,6 +114,7 @@ const Header: React.FC<Props> = ({ headerMenu, contactLink, locale }) => {
             isDropdownActive={isDropdownActive}
             setIsDropdownActive={setIsDropdownActive}
             locale={locale}
+            treatments={treatments}
           />
         </div>
       </header>

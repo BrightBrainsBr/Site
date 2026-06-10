@@ -5,6 +5,7 @@
 import { Link, StrapiImage } from '@futurebrand/helpers-nextjs/components'
 import type { IHeaderMenuItem } from '@futurebrand/types/global-options'
 import type { IStrapiCommonLink } from '@futurebrand/types/strapi'
+import type { ITreatmentCard } from '@futurebrand/types/contents'
 import React, { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
@@ -22,6 +23,7 @@ interface Properties {
   isDropdownActive: boolean
   setIsDropdownActive: (arg0: boolean) => void
   locale: string
+  treatments?: ITreatmentCard[]
 }
 
 const NavMenu: React.FC<Properties> = ({
@@ -33,6 +35,7 @@ const NavMenu: React.FC<Properties> = ({
   isDropdownActive,
   setIsDropdownActive,
   locale,
+  treatments,
 }) => {
   const [activeSubmenu, setActiveSubmenu] = useState<number>(-1)
   const ctaVariants: any = {
@@ -130,19 +133,29 @@ const NavMenu: React.FC<Properties> = ({
                       title={menuItem.item.text}
                     >
                       <ul className="flex flex-col gap-4 pl-4 pt-4">
-                        {menuItem.submenuTreatment.cards.map(
-                          (submenuItem, index) => (
-                            <li key={`submenu-item-${index}`}>
-                              <Link
-                                name="submenu-item"
-                                href={submenuItem.cta.url}
-                                onClick={closeMenu}
-                              >
-                                {submenuItem.title}
-                              </Link>
-                            </li>
-                          )
-                        )}
+                        {treatments && treatments.length > 0
+                          ? treatments.map((treatment, i) => (
+                              <li key={`submenu-treatment-${treatment.id}`}>
+                                <Link
+                                  name="submenu-item"
+                                  href={treatment.path}
+                                  onClick={closeMenu}
+                                >
+                                  {treatment.title}
+                                </Link>
+                              </li>
+                            ))
+                          : menuItem.submenuTreatment.cards.map((submenuItem, i) => (
+                              <li key={`submenu-item-${i}`}>
+                                <Link
+                                  name="submenu-item"
+                                  href={submenuItem.cta.url}
+                                  onClick={closeMenu}
+                                >
+                                  {submenuItem.title}
+                                </Link>
+                              </li>
+                            ))}
                       </ul>
                     </Accordion>
                   </>
@@ -193,7 +206,10 @@ const NavMenu: React.FC<Properties> = ({
         headerMenu.map((dropdown, index) => (
           <div
             className={twMerge(
-              'hidden lg:flex fixed top-0 left-0 w-full h-[62.905vh] min-h-[32.5rem] pt-[6.875rem] pb-[3.75rem] bg-gray-light duration-300 transition-[all cubic-bezier(0.29, 1.01, 1, -0.68)] delay-300 items-center justify-center opacity-0 z-30',
+              'hidden lg:flex fixed top-0 left-0 w-full bg-gray-light duration-300 transition-[all cubic-bezier(0.29,1.01,1,-0.68)] delay-300 justify-center opacity-0 z-30',
+              dropdown.submenuTreatment
+                ? 'min-h-[34rem] pt-[5.625rem] pb-8 items-start'
+                : 'h-[62.905vh] min-h-[32.5rem] pt-[6.875rem] pb-[3.75rem] items-center',
               activeSubmenu === index
                 ? 'translate-y-0 animate-fadein'
                 : '-translate-y-full'
@@ -299,45 +315,90 @@ const NavMenu: React.FC<Properties> = ({
               </div>
             )}
             {dropdown.submenuTreatment && (
-              <ul className="container flex gap-5 justify-between">
-                {dropdown.submenuTreatment.cards &&
-                  dropdown.submenuTreatment.cards.map((card, index) => (
-                    <li
-                      key={`treatment-card-${index}`}
-                      className={twMerge(
-                        'w-[32.5%] hover:w-[48.44vw] transition-all duration-200',
-                        styles.treatmentCard
-                      )}
-                    >
-                      <Link
-                        href={card.cta.url}
-                        name="treatment-card"
-                        className="group relative flex flex-col justify-end h-[47.62vh] min-h-[23.125rem] overflow-hidden rounded-[1.25rem] p-6 border-0 hover:border-8 duration-200 transition-all"
-                      >
-                        <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-[#091930F2] to-[#09193015] z-10 opacity-100 duration-300 transition-all group-hover:opacity-50" />
-                        {card.image && (
-                          <StrapiImage
-                            className="absolute top-0 left-0 w-full h-full object-cover"
-                            image={card.image}
-                          />
-                        )}
-                        {card.title && (
-                          <h3 className="relative z-10 heading-4xl text-white">
-                            {card.title}
-                          </h3>
-                        )}
-                        {card.description && (
-                          <div
-                            className="relative z-10 cms-rich-text hidden group-hover:block group-hover:animate-fadein opacity-0 text-white"
-                            dangerouslySetInnerHTML={{
-                              __html: card.description,
-                            }}
-                          />
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-              </ul>
+              <div className="container flex flex-col gap-4 w-full">
+                {treatments && treatments.length > 0
+                  ? [
+                      treatments.slice(0, 5),
+                      treatments.slice(5, 10),
+                      treatments.slice(10),
+                    ]
+                      .filter((row) => row.length > 0)
+                      .map((row, rowIndex) => (
+                        <ul
+                          key={`treatment-row-${rowIndex}`}
+                          className="flex gap-5 w-full"
+                        >
+                          {row.map((card, cardIndex) => (
+                            <li
+                              key={`treatment-card-${card.id}`}
+                              className={twMerge(
+                                '[flex:1] hover:[flex:2.5] transition-all duration-200',
+                                styles.treatmentCard
+                              )}
+                            >
+                              <Link
+                                href={card.path}
+                                name="treatment-card"
+                                className="group relative flex flex-col justify-end h-[120px] overflow-hidden rounded-[1.25rem] p-4 border-0 hover:border-8 duration-200 transition-all"
+                              >
+                                <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-[#091930F2] to-[#09193015] z-10 opacity-100 duration-300 transition-all group-hover:opacity-50" />
+                                {card.featuredImage && (
+                                  <StrapiImage
+                                    className="absolute top-0 left-0 w-full h-full object-cover"
+                                    image={card.featuredImage}
+                                  />
+                                )}
+                                {card.title && (
+                                  <h3 className="relative z-10 heading-xl text-white">
+                                    {card.title
+                                      .replace(/tratamento/gi, '')
+                                      .replace(/\s+/g, ' ')
+                                      .trim()}
+                                  </h3>
+                                )}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      ))
+                  : /* Fallback: render original CMS cards in a single row */
+                    <ul className="flex gap-5 w-full">
+                      {dropdown.submenuTreatment.cards.map((card, index) => (
+                        <li
+                          key={`treatment-card-fallback-${index}`}
+                          className={twMerge(
+                            'w-[32.5%] hover:w-[48.44vw] transition-all duration-200',
+                            styles.treatmentCard
+                          )}
+                        >
+                          <Link
+                            href={card.cta.url}
+                            name="treatment-card"
+                            className="group relative flex flex-col justify-end h-[47.62vh] min-h-[23.125rem] overflow-hidden rounded-[1.25rem] p-6 border-0 hover:border-8 duration-200 transition-all"
+                          >
+                            <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-[#091930F2] to-[#09193015] z-10 opacity-100 duration-300 transition-all group-hover:opacity-50" />
+                            {card.image && (
+                              <StrapiImage
+                                className="absolute top-0 left-0 w-full h-full object-cover"
+                                image={card.image}
+                              />
+                            )}
+                            {card.title && (
+                              <h3 className="relative z-10 heading-4xl text-white">
+                                {card.title}
+                              </h3>
+                            )}
+                            {card.description && (
+                              <div
+                                className="relative z-10 cms-rich-text hidden group-hover:block group-hover:animate-fadein opacity-0 text-white"
+                                dangerouslySetInnerHTML={{ __html: card.description }}
+                              />
+                            )}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>}
+              </div>
             )}
           </div>
         ))}
