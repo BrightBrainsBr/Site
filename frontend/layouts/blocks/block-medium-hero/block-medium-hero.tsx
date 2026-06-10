@@ -57,7 +57,7 @@ const BlockMediumHero: React.FC<IBlockProps<Properties>> = ({ blockData }) => {
           {content && (
             <div
               className={twMerge(
-                'lg:max-w-[29.17vw] flex flex-col gap-3',
+                'flex flex-col gap-3',
                 animate({ index: 1 })
               )}
             >

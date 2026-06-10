@@ -48,6 +48,10 @@ backend/config/env/development/database.ts
 
 claude_artifact/
 
+# local plans and skills
+docs/superpowers/
+docs/plans/
+
 # Supabase CLI local cache (may contain secrets)
 supabase/.temp/
 
