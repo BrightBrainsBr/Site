@@ -6,13 +6,19 @@ import { Link, StrapiImage } from '@futurebrand/helpers-nextjs/components'
 import type { IHeaderMenuItem } from '@futurebrand/types/global-options'
 import type { IStrapiCommonLink } from '@futurebrand/types/strapi'
 import type { ITreatmentCard } from '@futurebrand/types/contents'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { ReactComponent as Logo } from '~/assets/icons/logo-lite.svg'
 import Accordion from '~/components/accordion'
 
 import styles from './nav-menu.module.css'
+
+// Sort key = the title as displayed (the render strips the word "tratamento",
+// so e.g. "Tratamento Clínico" shows as "Clínico"). Sorting on the raw title
+// would file those entries under "T" instead of where the user sees them.
+const cleanTitle = (title = '') =>
+  title.replace(/tratamento/gi, '').replace(/\s+/g, ' ').trim()
 
 interface Properties {
   headerMenu: IHeaderMenuItem[]
@@ -42,6 +48,15 @@ const NavMenu: React.FC<Properties> = ({
     lime: 'lg:bg-lime-400 lg:text-midnight-950 hover:lg:bg-lime-500',
     midnight: 'lg:bg-midnight-950 lg:text-white hover:lg:bg-midnight-700',
   }
+  const sortedTreatments = useMemo(
+    () =>
+      treatments
+        ? [...treatments].sort((a, b) =>
+            cleanTitle(a.title).localeCompare(cleanTitle(b.title), 'pt')
+          )
+        : undefined,
+    [treatments]
+  )
 
   return (
     <>
@@ -133,8 +148,8 @@ const NavMenu: React.FC<Properties> = ({
                       title={menuItem.item.text}
                     >
                       <ul className="flex flex-col gap-4 pl-4 pt-4">
-                        {treatments && treatments.length > 0
-                          ? treatments.map((treatment, i) => (
+                        {sortedTreatments && sortedTreatments.length > 0
+                          ? sortedTreatments.map((treatment, i) => (
                               <li key={`submenu-treatment-${treatment.id}`}>
                                 <Link
                                   name="submenu-item"
@@ -316,11 +331,11 @@ const NavMenu: React.FC<Properties> = ({
             )}
             {dropdown.submenuTreatment && (
               <div className="container flex flex-col gap-4 w-full">
-                {treatments && treatments.length > 0
+                {sortedTreatments && sortedTreatments.length > 0
                   ? [
-                      treatments.slice(0, 5),
-                      treatments.slice(5, 10),
-                      treatments.slice(10),
+                      sortedTreatments.slice(0, 5),
+                      sortedTreatments.slice(5, 10),
+                      sortedTreatments.slice(10),
                     ]
                       .filter((row) => row.length > 0)
                       .map((row, rowIndex) => (
