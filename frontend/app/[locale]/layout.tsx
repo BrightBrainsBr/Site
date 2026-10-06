@@ -176,7 +176,6 @@ function buildGlobalSchema(locale: string) {
 
 const RootLayout = async ({ children, params }: any) => {
   const { locale } = await params
-  const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
 
   return (
     <html
@@ -230,45 +229,7 @@ const RootLayout = async ({ children, params }: any) => {
           }}
         />
 
-        {/* Google Ads tag */}
-        {isProduction && (
-          <>
-            <Script
-              id="google-ads-src"
-              strategy="afterInteractive"
-              src="https://www.googletagmanager.com/gtag/js?id=AW-17156896641"
-            />
-            <Script
-              id="google-ads-config"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','AW-17156896641');`,
-              }}
-            />
-          </>
-        )}
-
         {/* Facebook Pixel Code */}
-        <Script
-          id="fb-pixel-1"
-          strategy="lazyOnload"
-          dangerouslySetInnerHTML={{
-            __html: `
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '1271906851245732');
-            fbq('track', 'PageView');
-            `,
-          }}
-        />
-
-        {/* Facebook Pixel Code - Second Pixel */}
         <Script
           id="fb-pixel-2"
           strategy="lazyOnload"
@@ -289,15 +250,6 @@ const RootLayout = async ({ children, params }: any) => {
         />
 
         <Scripts />
-
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: 'none' }}
-            src="https://www.facebook.com/tr?id=1271906851245732&ev=PageView&noscript=1"
-          />
-        </noscript>
 
         <noscript>
           <img
