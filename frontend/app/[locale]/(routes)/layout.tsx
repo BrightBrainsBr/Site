@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
+
 import HelpersContexts from '@futurebrand/contexts'
 import { getGlobalData } from '@futurebrand/hooks'
 import { setRequestLocale } from 'next-intl/server'
@@ -17,17 +19,24 @@ interface IRootLayoutProps {
   params: Promise<{ locale: string }>
 }
 
+// Pages render concurrently, so swapping console.error per call races and can
+// leave it silenced for everyone. Suppress only inside the wrapped call instead.
+const errorSuppression = new AsyncLocalStorage<boolean>()
+let isConsoleErrorPatched = false
+
 function withSuppressedErrors<T>(
   fn: () => Promise<T>,
   fallback: T
 ): Promise<T> {
-  const orig = console.error
-  console.error = (() => {}) as typeof console.error
-  return fn()
-    .catch(() => fallback)
-    .finally(() => {
-      console.error = orig
-    })
+  if (!isConsoleErrorPatched) {
+    isConsoleErrorPatched = true
+    const orig = console.error
+    console.error = (...args: Parameters<typeof console.error>) => {
+      if (errorSuppression.getStore()) return
+      orig(...args)
+    }
+  }
+  return errorSuppression.run(true, fn).catch(() => fallback)
 }
 
 export async function generateMetadata({ params }: IRootLayoutProps) {
